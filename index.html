@@ -838,7 +838,7 @@ const C={
   // Heat
   HEAT_MAX:100,COOL_RATE:28,OVERHEAT_UNLOCK:22,
   HEAT_PER_SHOT:[6,5,6,7,0],// per power level (lv4 uses napalm separately)
-  NAPALM_HEAT:40,NAPALM_START:5,
+  NAPALM_HEAT:40,NAPALM_START:5,NAPALM_MAX:20,
   // Return mission
   RETURN_DUR:28,
   // Dock
@@ -1272,12 +1272,7 @@ function updateComms(dt){
   const bossActive=enemies.some(e=>e.isBoss);
   if(bossActive&&r<.5){
     playComm('enemy',pickComm(ENEMY_COMMS_GENERAL));
-  } else if(r<.55){
-    const now=new Date();const h=now.getHours(),m=now.getMinutes();
-    const period=h<6?'late night':h<9?'early morning':h<12?'morning':h<17?'afternoon':h<21?'evening':'night';
-    const timeMsg=`Earth time ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}. ${period.charAt(0).toUpperCase()+period.slice(1)} operations. Stay focused, #N.`;
-    playComm('nav',timeMsg);
-  } else if(r<.78){
+  } else if(r<.5){
     playComm('wingman',pickComm(COMMS.wingman));
   } else {
     playComm('nav',pickComm(COMMS.nav_status));
@@ -2360,12 +2355,9 @@ function emitBeamFromCannon(cannon,color){
   pBeams.push({mesh,vel:new THREE.Vector3(-ox*.4,-oy*.2,-C.BEAM_SPEED),dmg:1+S.power*.4})}
 
 function fireNapalm(){
-  if(S.napalmAmmo<=0||S.overheated)return;
+  // Napalm is independent from heat system - fires regardless of overheat
+  if(S.napalmAmmo<=0)return;
   S.napalmAmmo--;
-  S.heat+=C.NAPALM_HEAT;
-  if(S.heat>=C.HEAT_MAX){S.overheated=true;sfx.overheatWarn();playVoice('overheat');
-    document.getElementById('oh-warn').style.display='block';
-    ['lu-tl','lu-tr','lu-bl','lu-br'].forEach(id=>document.getElementById(id).classList.add('overheat'))}
   sfx.napalmFire();
   // 12-way spread
   for(let i=0;i<12;i++){const a=(i/12)*Math.PI*2;const mesh=makeNapalmBeam();
@@ -2406,15 +2398,22 @@ function tintBossMech(group,hue){
     c.setHSL(hue,Math.min(1,hsl.s+.2),hsl.l)}})}
 
 function spawnBossMech(cycleMult){
-  // Mobile difficulty: 20% easier
+  // Cycle-based difficulty: cycle 0 = easy for all, increases 70% per cycle
   const mobileEase=isMobile?.8:1;
-  const mult=(cycleMult||1)*mobileEase;
-  // Boss A - Heavy Gunner (stays at z=-30, heavy firing)
+  // Scale HP by cycle (not multiplied with old mult anymore)
+  // Cycle 0: base x1.0 (very easy); Cycle 1: x1.7; Cycle 2: x2.4
+  const cycleScale=1+S.cycle*.7;
+  const mult=cycleScale*mobileEase;
+  // Base HP values much lower now (cycle 0 total = 30+40+25 = 95)
+  const hpA=Math.ceil(30*mult);
+  const hpB=Math.ceil(40*mult);
+  const hpC=Math.ceil(25*mult);
+  // Boss A - Heavy Gunner
   const bossA=makeBossMech();
-  tintBossMech(bossA,0);// red-orange hue
+  tintBossMech(bossA,0);
   bossA.position.set(-10,4,C.SPAWN_Z-30);
   scene.add(bossA);
-  enemies.push({mesh:bossA,type:200,hp:Math.ceil(80*mult),maxHp:Math.ceil(80*mult),
+  enemies.push({mesh:bossA,type:200,hp:hpA,maxHp:hpA,
     baseX:-10,baseY:4,sineAmp:2,sineFreq:.12,sinePhase:0,
     speedZ:.5+S.cycle*.15,
     shootTimer:1,shootCD:.7,
@@ -2428,7 +2427,7 @@ function spawnBossMech(cycleMult){
   bossB.position.set(0,2,C.SPAWN_Z-80);
   bossB.scale.setScalar(1.15);// slightly larger, more intimidating
   scene.add(bossB);
-  enemies.push({mesh:bossB,type:200,hp:Math.ceil(120*mult),maxHp:Math.ceil(120*mult),
+  enemies.push({mesh:bossB,type:200,hp:hpB,maxHp:hpB,
     baseX:0,baseY:2,sineAmp:1,sineFreq:.3,sinePhase:.5,
     speedZ:3+S.cycle*.4,// fast charge!
     shootTimer:3,shootCD:1.5,
@@ -2442,7 +2441,7 @@ function spawnBossMech(cycleMult){
   tintBossMech(bossC,.5);// cyan
   bossC.position.set(12,5,C.SPAWN_Z-50);
   scene.add(bossC);
-  enemies.push({mesh:bossC,type:200,hp:Math.ceil(70*mult),maxHp:Math.ceil(70*mult),
+  enemies.push({mesh:bossC,type:200,hp:hpC,maxHp:hpC,
     baseX:12,baseY:5,sineAmp:12,sineFreq:.5,sinePhase:0,
     speedZ:1+S.cycle*.2,
     shootTimer:2.5,shootCD:1.2,
@@ -2496,22 +2495,18 @@ function spawnWave(n){
     S.waveLeft++}}
   announceWave(n)}
 
-// Random weather + time report (name NOT included per user request)
-const WEATHER_CONDITIONS=['clear skies','scattered clouds','heavy rain','light drizzle','thunderstorms','snowfall','dense fog','strong winds','hazy conditions','morning mist'];
-const TEMPS=['cold','chilly','mild','warm','hot','freezing'];
-function getRandomWeatherReport(){
+// Time report (no weather) - used at mission start, post-boss, post-dock only
+function getTimeReport(){
   const now=new Date();
   const h=now.getHours(),m=now.getMinutes();
   const hh=String(h).padStart(2,'0'),mm=String(m).padStart(2,'0');
   const period=h<6?'early morning':h<12?'morning':h<17?'afternoon':h<21?'evening':'night';
-  const temp=TEMPS[Math.floor(Math.random()*TEMPS.length)];
-  const weather=WEATHER_CONDITIONS[Math.floor(Math.random()*WEATHER_CONDITIONS.length)];
   const templates=[
-    `Earth time ${hh}:${mm}. ${weather}, ${temp} conditions reported.`,
-    `Local time ${hh}:${mm}, ${period}. Weather: ${weather}.`,
-    `${period.charAt(0).toUpperCase()+period.slice(1)} operations, ${hh}:${mm}. Surface report: ${weather}.`,
-    `Ground time ${hh}:${mm}. ${temp} ${period} with ${weather}.`,
-    `Mission clock ${hh}:${mm}. Base reports ${weather}, ${temp}.`,
+    `Earth time ${hh}:${mm}.`,
+    `Local time ${hh}:${mm}, ${period}.`,
+    `${period.charAt(0).toUpperCase()+period.slice(1)} operations, ${hh}:${mm}.`,
+    `Ground time ${hh}:${mm}.`,
+    `Mission clock ${hh}:${mm}.`,
   ];
   return templates[Math.floor(Math.random()*templates.length)]}
 
@@ -2520,8 +2515,11 @@ function announceWave(n){const el=document.getElementById('wave-announce');
   void el.offsetWidth;el.style.animation='waveFade 2.5s ease-out forwards';
   setTimeout(()=>el.style.display='none',2600);
   const wi=((n-1)%5);if(COMMS.hq_wave[wi])setTimeout(()=>playComm('hq',COMMS.hq_wave[wi]),500);
-  // Random: 60% chance of navigator sending time/weather report on stage transition
-  if(Math.random()<.6){setTimeout(()=>playComm('nav',getRandomWeatherReport()),3200)}}
+  // Time announce ONLY on first wave of cycle (mission start)
+  if(((n-1)%C.FORT_WAVES)===0){
+    setTimeout(()=>playComm('nav',getTimeReport()),3200);
+  }
+}
 
 function updateEnemies(dt){
   for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];
@@ -2681,6 +2679,8 @@ function checkCollisions(){const camP=camera.position;
               playComm('hq','Confirmed kill! #N, you took down all three R01 units!');
               setTimeout(()=>playComm('wingman','Nice shot, #N! That was one tough bastard!'),3500);
               setTimeout(()=>playComm('enemy','Impossible! All units lost! Abort! Abort!'),6500);
+              // Time announce post-boss
+              setTimeout(()=>playComm('nav',getTimeReport()),10000);
             }
           } else if(e.isCapsule){
             // ENERGY CAPSULE - restore shield + bonus score
@@ -2698,7 +2698,7 @@ function checkCollisions(){const camP=camera.position;
             // Restore shield OR refill napalm if shield is already full
             if(S.lives>=C.SHIELD_MAX){
               // Shield full → restock napalm (+2)
-              S.napalmAmmo=Math.min((S.napalmAmmo||0)+2,C.NAPALM_START+4);
+              S.napalmAmmo=Math.min((S.napalmAmmo||0)+3,C.NAPALM_MAX);
               if(typeof updateNapalmDisplay==='function')updateNapalmDisplay();
               addScore(50);
               playComm('nav','Shield full! Napalm reloaded!');
@@ -3232,10 +3232,11 @@ function completeDocking(){
   document.getElementById('dock-status').textContent='DOCKING COMPLETE';
   playComm('nav',resolveN('Docking clamps engaged. Welcome home, #N.'));
   setTimeout(()=>playComm('hq',resolveN('Good to have you back, #N. Commencing resupply.')),3000);
+  setTimeout(()=>playComm('nav',getTimeReport()),6500);
 
   // Upgrades
   S.lives=C.LIVES;// Full shield restore on docking
-  S.napalmAmmo=C.NAPALM_START+S.cycle;
+  S.napalmAmmo=Math.min(C.NAPALM_START+S.cycle,C.NAPALM_MAX);
   S.heat=0;S.overheated=false;
   document.getElementById('oh-warn').style.display='none';
   LU_IDS.forEach(id=>document.getElementById(id).classList.remove('overheat'));
@@ -3677,11 +3678,35 @@ function continueWithShip(){
   setTimeout(()=>continuing=false,500);
 }
 
-function triggerGameOver(){S.phase='GAMEOVER';sfx.stopBGM();sfx.gameOver();playVoice('gameover');
-  setTimeout(()=>showStamp(),800);
-  setTimeout(()=>{document.getElementById('gameover-screen').style.display='flex';
-    document.getElementById('final-score').textContent=`SCORE: ${S.score}`;
-    document.getElementById('new-record').style.display=(S.score>=S.hiScore&&S.score>0)?'block':'none'},1800)}
+function triggerGameOver(){
+  S.phase='GAMEOVER';
+  try{sfx.stopBGM()}catch(e){}
+  try{sfx.gameOver()}catch(e){}
+  try{playVoice('gameover')}catch(e){}
+  // Hard cleanup: remove any stuck overlays that block touches
+  ['fate-overlay','doom-overlay','rescue-overlay','continue-overlay','catapult-overlay','cat-tunnel','cat-speedlines','cat-flash'].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.style.display='none';if(e.classList&&e.parentNode&&(id==='fate-overlay'||id==='doom-overlay'||id==='rescue-overlay'||id==='continue-overlay')){try{e.remove()}catch(err){}}}
+  });
+  if(fateHeartbeatIv){try{clearInterval(fateHeartbeatIv)}catch(e){}fateHeartbeatIv=null}
+  if(fateCoin){try{scene.remove(fateCoin)}catch(e){}fateCoin=null}
+  if(ejectPod){try{scene.remove(ejectPod)}catch(e){}ejectPod=null}
+  if(rescueShip){try{scene.remove(rescueShip)}catch(e){}rescueShip=null}
+  if(destroyedShip){try{scene.remove(destroyedShip)}catch(e){}destroyedShip=null}
+  rescuePhase=0;ejectTimer=0;S.willRescue=null;
+  continuing=false;// reset guard
+  setTimeout(()=>{try{showStamp()}catch(e){}},800);
+  setTimeout(()=>{
+    try{
+      const go=document.getElementById('gameover-screen');
+      if(go){
+        go.style.display='flex';
+        go.style.pointerEvents='auto';// ensure tappable
+      }
+      document.getElementById('final-score').textContent=`SCORE: ${S.score}`;
+      document.getElementById('new-record').style.display=(S.score>=S.hiScore&&S.score>0)?'block':'none';
+    }catch(e){console.error('game over display error:',e)}
+  },1800)
+}
 
 function showStamp(){const rank=RANKS.slice().reverse().find(r=>S.score>=r[0]);
   document.getElementById('stamp-rank').textContent=rank?rank[1]:'ROOKIE';
@@ -4132,11 +4157,25 @@ function pickCallsign(name){
 }
 
 // Restart from game over / victory screen (tap button or Space key)
+let restartingFromGameOver=false;
 function restartFromGameOver(){
+  if(restartingFromGameOver)return;
   if(S.phase!=='GAMEOVER'&&S.phase!=='VICTORY')return;
-  S.phase='LAUNCHING';// guard against double-fire
-  showTitle();
-  // On mobile, auto-start countdown will take over from title
+  restartingFromGameOver=true;
+  try{
+    S.phase='LAUNCHING';
+    // Clean up all overlays that might block
+    ['fate-overlay','doom-overlay','rescue-overlay','continue-overlay','catapult-overlay','gameover-screen','victory-screen'].forEach(id=>{
+      const e=document.getElementById(id);
+      if(e){e.style.display='none';
+        if(id==='fate-overlay'||id==='doom-overlay'||id==='rescue-overlay'||id==='continue-overlay'){
+          try{e.remove()}catch(err){}}}
+    });
+    // Reset stamp
+    const st=document.getElementById('stamp');if(st){st.classList.remove('animate');st.style.display='none'}
+    showTitle();
+  }catch(e){console.error('restart error:',e);S.phase='TITLE'}
+  setTimeout(()=>{restartingFromGameOver=false},600);
 }
 
 function confirmCallsign(){
