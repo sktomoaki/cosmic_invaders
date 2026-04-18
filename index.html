@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.39</title>
+<title>COSMIC INVADERS v6.40</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -502,7 +502,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.39 - LOADED
+  COSMIC INVADERS v6.40 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -519,7 +519,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.39 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.40 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -663,7 +663,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.39</div>
+    <div class="version">VERSION 6.40</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (default: JOHN RAMBO)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -789,7 +789,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.39 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.40 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -810,7 +810,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.39 - Universal Auto-Launch
+//  COSMIC INVADERS v6.40 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -824,7 +824,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.39 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.40 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -2214,7 +2214,7 @@ function makeBossMech(){
   pack.position.set(0,2.6,-1.1);g.add(pack);
 
   // Scale down to fit game scale
-  g.scale.setScalar(0.75);// 1.5x bigger for better detail visibility
+  g.scale.setScalar(1.5);// 2x bigger than v6.38 for massive boss presence
   return g}
 
 // ---- Particles ----
@@ -2661,7 +2661,7 @@ function checkCollisions(){const camP=camera.position;
   for(let bi=pBeams.length-1;bi>=0;bi--){const b=pBeams[bi];
     for(let ei=enemies.length-1;ei>=0;ei--){const e=enemies[ei];
       const hr=e.isAsteroid?C.HR_A:C.HR_E;const r=C.HR_B+hr;
-      const bossHr=e.isBoss?4:0;
+      const bossHr=e.isBoss?8:0;// 2x hit radius for 2x-sized boss
       if(dsq(b.mesh.position,e.mesh.position)<(r+bossHr)*(r+bossHr)){e.hp-=b.dmg;scene.remove(b.mesh);pBeams.splice(bi,1);
         if(e.hp<=0){
           if(e.isBoss){
@@ -2735,10 +2735,18 @@ function checkCollisions(){const camP=camera.position;
       playerHit();scene.remove(eb.mesh);eBeams.splice(i,1);break}}}
   // enemies vs player
   if(S.invTimer<=0){for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];
-    const hr=e.isAsteroid?C.HR_A:C.HR_E;
+    const hr=(e.isAsteroid?C.HR_A:C.HR_E)+(e.isBoss?8:0);// boss: 2x collision
     if(dsq(e.mesh.position,camP)<(hr+C.HR_P)*(hr+C.HR_P)){
-      spawnP(e.mesh.position.clone(),e.isAsteroid?0x888888:ECOLORS[e.type%4],15);sfx.hit();
-      scene.remove(e.mesh);if(!e.isBonus)S.waveLeft--;enemies.splice(i,1);playerHit();break}}}}
+      // Boss ram doesn't kill itself - damage player then continue
+      if(e.isBoss){
+        playerHit();
+        // Push boss back slightly so it doesn't hit repeatedly
+        e.mesh.position.z-=5;
+      } else {
+        spawnP(e.mesh.position.clone(),e.isAsteroid?0x888888:ECOLORS[e.type%4],15);sfx.hit();
+        scene.remove(e.mesh);if(!e.isBonus)S.waveLeft--;enemies.splice(i,1);playerHit();
+      }
+      break}}}}
 
 function playerHit(){
   if(S.phase==='GAMEOVER'||S.phase==='VICTORY'||S.phase==='DOCKING')return;
@@ -3992,7 +4000,7 @@ const GALLERY=[
   {name:'BONUS TARGET',desc:'High-value golden target. Appears during bonus stages. Worth 10 points.',
     stats:'HP: 1 | SPEED: FAST | POINTS: 10',make:()=>makeBonusTarget(),scale:1.8},
   {name:'MS-R01 PROTOTYPE',desc:'Experimental mobile suit. Heavily armored. Equipped with bazooka and thrusters. The BOSS.',
-    stats:'HP: 100+ | THREAT: EXTREME | TYPE: BOSS',make:()=>makeBossMech(),scale:.4},
+    stats:'HP: 100+ | THREAT: EXTREME | TYPE: BOSS',make:()=>makeBossMech(),scale:.2},
   {name:'MEGA FORTRESS',desc:'Massive orbital battle station. 8 radial combat arms, central reactor core, outer defensive ring. Home of the enemy.',
     stats:'SIZE: COLOSSAL | THREAT: OVERWHELMING | TYPE: LEVEL END',make:()=>makeMegaFortress(),scale:.15},
   {name:'PLAYER X-WING',desc:'Your craft. Cosmic Invader class. 4 laser cannons with napalm upgrade available.',
@@ -4716,7 +4724,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.39 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.40 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
