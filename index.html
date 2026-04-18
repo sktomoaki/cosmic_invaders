@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.35</title>
+<title>COSMIC INVADERS v6.36</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -237,6 +237,8 @@ canvas.no-click{pointer-events:none}
 #comm-box.wingman .comm-who{color:#0af}
 #comm-box.nav .comm-who{color:#f0f}
 #comm-box.pilot .comm-who{color:#0f0}
+#comm-box.enemy .comm-who{color:#f44}
+#comm-box.enemy .comm-msg{color:#f88;text-shadow:0 0 8px #f44}
 
 /* Callsign Input */
 .callsign-box{margin-top:30px;text-align:center}
@@ -472,7 +474,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.35 - LOADED
+  COSMIC INVADERS v6.36 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -489,7 +491,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.35 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.36 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -633,7 +635,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.35</div>
+    <div class="version">VERSION 6.36</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (default: JOHN RAMBO)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -756,7 +758,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.35 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.36 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -777,7 +779,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.35 - Universal Auto-Launch
+//  COSMIC INVADERS v6.36 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -791,7 +793,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.35 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.36 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1113,7 +1115,35 @@ const CHAR_CFG={
   wingman:{label:'WINGMAN',cls:'wingman',pitch:.95,rate:1.0,vol:.6},
   nav:{label:'NAVIGATOR',cls:'nav',pitch:1.1,rate:1.0,vol:.6},
   pilot:{label:'PILOT',cls:'pilot',pitch:.9,rate:.95,vol:.55},
+  enemy:{label:'ENEMY INTERCEPT',cls:'enemy',pitch:.5,rate:1.05,vol:.55},
 };
+// Gundam-inspired enemy radio intercept lines
+const ENEMY_COMMS_GENERAL=[
+  "Pilot scum! You will regret this!",
+  "Take that, Federation dog!",
+  "I see you, Alpha-1! Fire at will!",
+  "Enemy fighter detected! Engage!",
+  "Vector 3-5-alpha, target acquired!",
+  "Captain! Orders please! They are breaking through!",
+  "My gun is malfunctioning! Cover me!",
+  "You will never reach the fortress!",
+  "For the glory of Zeon!",
+  "Another rookie for the graveyard!",
+  "This will be my finest kill!",
+  "Tch, lucky hit!",
+];
+const ENEMY_COMMS_BOSS_DOWN=[
+  "No! Gaia! Revenge for Gaia!",
+  "Ortega! You bastard, they got Ortega!",
+  "Mash! Go first! I'll cover you!",
+  "You killed my wingman! You will pay!",
+  "Commander! Our leader is down!",
+  "Squad leader is gone! Fall back, fall back!",
+  "Ah! They are stronger than we thought!",
+  "Call for reinforcements! Now!",
+  "This is impossible! He took out the ace!",
+  "Retreat and regroup! Do not engage directly!",
+];
 function getNavCfg(){return{label:selectedNav.name,cls:'nav',pitch:selectedNav.pitch,rate:selectedNav.rate,vol:.6}}
 function pickComm(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function resolveN(text){return text.replace(/#N/g,S.callsign)}
@@ -1206,18 +1236,23 @@ let commCooldown=0;
 function updateComms(dt){
   commCooldown-=dt;
   if(commCooldown>0)return;
-  // Navigator: occasional status + real-world time
-  if(Math.random()<.3){
+  const r=Math.random();
+  // 35% chance: enemy intercept (Gundam-style, more common during boss wave)
+  const bossActive=enemies.some(e=>e.isBoss);
+  const enemyChance=bossActive?.5:.35;
+  if(r<enemyChance&&enemies.length>0){
+    playComm('enemy',pickComm(ENEMY_COMMS_GENERAL));
+  } else if(r<.55){
     const now=new Date();const h=now.getHours(),m=now.getMinutes();
     const period=h<6?'late night':h<9?'early morning':h<12?'morning':h<17?'afternoon':h<21?'evening':'night';
     const timeMsg=`Earth time ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}. ${period.charAt(0).toUpperCase()+period.slice(1)} operations. Stay focused, #N.`;
     playComm('nav',timeMsg);
-  } else if(Math.random()<.5){
+  } else if(r<.78){
     playComm('wingman',pickComm(COMMS.wingman));
   } else {
     playComm('nav',pickComm(COMMS.nav_status));
   }
-  commCooldown=15+Math.random()*20;// 15-35 seconds between comms
+  commCooldown=12+Math.random()*18;// slightly more frequent: 12-30s
 }
 
 if('speechSynthesis' in window)speechSynthesis.getVoices();
@@ -2149,7 +2184,7 @@ function makeBossMech(){
   pack.position.set(0,2.6,-1.1);g.add(pack);
 
   // Scale down to fit game scale
-  g.scale.setScalar(0.5);
+  g.scale.setScalar(0.75);// 1.5x bigger for better detail visibility
   return g}
 
 // ---- Particles ----
@@ -2604,9 +2639,19 @@ function checkCollisions(){const camP=camera.position;
             spawnMegaExplosion(e.mesh.position.clone());
             sfx.bigExplosion();screenFlash(1.2);S.shakeT=2;S.shakeI=2.5;
             scene.remove(e.mesh);enemies.splice(ei,1);
-            addScore(500);S.waveLeft=0;S.kills+=10;checkPowerUp();
-            playComm('hq','Confirmed kill! #N, you took down the R01! Incredible!');
-            setTimeout(()=>playComm('wingman','Nice shot, #N! That was one tough bastard!'),3500);
+            addScore(500);S.waveLeft--;S.kills+=10;checkPowerUp();
+            // Count remaining bosses
+            const remainingBosses=enemies.filter(x=>x.isBoss).length;
+            if(remainingBosses>0){
+              // Enemy intercept: panicked comms from other bosses/units
+              setTimeout(()=>playComm('enemy',pickComm(ENEMY_COMMS_BOSS_DOWN)),800);
+              setTimeout(()=>playComm('wingman','One down, #N! '+remainingBosses+' more to go!'),3200);
+            } else {
+              // Final boss down
+              playComm('hq','Confirmed kill! #N, you took down all three R01 units!');
+              setTimeout(()=>playComm('wingman','Nice shot, #N! That was one tough bastard!'),3500);
+              setTimeout(()=>playComm('enemy','Impossible! All units lost! Abort! Abort!'),6500);
+            }
           } else if(e.isCapsule){
             // ENERGY CAPSULE - restore shield + bonus score
             spawnP(e.mesh.position.clone(),0x00ffff,30,1.5);
@@ -3204,7 +3249,8 @@ function triggerEject(){
   if(S.phase==='EJECTING'||S.phase==='GAMEOVER')return;
   S.phase='EJECTING';ejectTimer=0;
   // DECIDE: 1/3 chance rescue will succeed
-  S.willRescue=Math.random()<.33;
+  // DON'T decide rescue outcome yet - it will be revealed during the FATE phase
+  S.willRescue=null;// undetermined until coin flip
   sfx.stopBGM();sfx.damage();
   // Melancholic panic comms (randomized each time)
   playComm('pilot',pickComm(EJECT_PILOT_COMMS));
@@ -3777,7 +3823,7 @@ const GALLERY=[
   {name:'BONUS TARGET',desc:'High-value golden target. Appears during bonus stages. Worth 10 points.',
     stats:'HP: 1 | SPEED: FAST | POINTS: 10',make:()=>makeBonusTarget(),scale:1.8},
   {name:'MS-R01 PROTOTYPE',desc:'Experimental mobile suit. Heavily armored. Equipped with bazooka and thrusters. The BOSS.',
-    stats:'HP: 100+ | THREAT: EXTREME | TYPE: BOSS',make:()=>makeBossMech(),scale:.6},
+    stats:'HP: 100+ | THREAT: EXTREME | TYPE: BOSS',make:()=>makeBossMech(),scale:.4},
   {name:'MEGA FORTRESS',desc:'Massive orbital battle station. 8 radial combat arms, central reactor core, outer defensive ring. Home of the enemy.',
     stats:'SIZE: COLOSSAL | THREAT: OVERWHELMING | TYPE: LEVEL END',make:()=>makeMegaFortress(),scale:.15},
   {name:'PLAYER X-WING',desc:'Your craft. Cosmic Invader class. 4 laser cannons with napalm upgrade available.',
@@ -4359,7 +4405,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.35 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.36 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
