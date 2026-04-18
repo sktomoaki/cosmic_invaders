@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.51</title>
+<title>COSMIC INVADERS v6.54</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -120,7 +120,7 @@ canvas.no-click{pointer-events:none}
 #shield-gauge .sg-status.critical{color:#f44;animation:ohFlash .4s infinite}
 @keyframes sgFlash{0%{background:rgba(255,255,255,0.8)}100%{background:rgba(255,0,0,0.4)}}
 
-/* Boss HP Bar (v6.51) - shows at top center during any boss encounter */
+/* Boss HP Bar (v6.54) - shows at top center during any boss encounter */
 #boss-hp-wrap{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
   z-index:105;display:none;pointer-events:none;min-width:340px;max-width:70vw;text-align:center}
 @media(max-width:900px){#boss-hp-wrap{min-width:260px;top:calc(48px + env(safe-area-inset-top,0px))}}
@@ -224,11 +224,19 @@ canvas.no-click{pointer-events:none}
 .heat-bar-fill{height:100%;width:0%;transition:width 0.1s,background 0.1s}
 #heat-gauge .h-val{font-size:10px;color:#0aa;margin-top:2px}
 #heat-gauge .overheat-warn{font-size:11px;color:#f44;display:none;animation:ohFlash .3s infinite;margin-top:2px}
-/* Napalm Counter */
-#napalm-box{position:fixed;bottom:75px;right:30px;z-index:100;display:none;text-align:right}
-#napalm-box .n-label{font-size:10px;color:#f80;letter-spacing:2px}
-#napalm-box .n-val{font-size:16px;color:#ff0;text-shadow:0 0 8px #ff0}
-#napalm-box .n-key{font-size:9px;color:#555;margin-top:2px}
+/* Napalm Counter - v6.54: MOVED left-middle, BIG, magenta/orange for distinction */
+/* Avoids overlap with score (top-left #hud), boss HP (top-center), heat gauge (bottom-right) */
+#napalm-box{position:fixed;left:16px;top:50%;transform:translateY(-50%);
+  z-index:105;display:none;text-align:center;pointer-events:none;
+  background:rgba(30,0,20,0.7);border:2px solid #f08;
+  border-radius:8px;padding:10px 14px;
+  box-shadow:0 0 16px rgba(255,20,140,0.55),inset 0 0 12px rgba(255,20,140,0.25)}
+@media(max-width:900px){#napalm-box{left:8px;padding:7px 10px}}
+#napalm-box .n-label{font-size:10px;color:#f08;letter-spacing:3px;margin-bottom:3px;text-shadow:0 0 6px #f08}
+#napalm-box .n-val{font-size:36px;color:#ff4;text-shadow:0 0 14px #ff8800,0 0 6px #ff0;
+  font-weight:bold;line-height:1;font-family:inherit;letter-spacing:2px}
+@media(max-width:900px){#napalm-box .n-val{font-size:28px}}
+#napalm-box .n-key{font-size:9px;color:#f08;margin-top:3px;letter-spacing:2px;text-shadow:0 0 4px #f08}
 
 /* HUD */
 #hud{position:fixed;top:0;left:0;width:100%;z-index:100;display:none;padding:15px 30px;
@@ -540,7 +548,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.51 - LOADED
+  COSMIC INVADERS v6.54 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -557,7 +565,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.51 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.54 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -568,7 +576,7 @@ canvas.no-click{pointer-events:none}
     <div class="laser-unit" id="lu-bl">LU3</div>
     <div class="laser-unit" id="lu-br">LU4</div>
   </div>
-  <!-- Boss HP bar (v6.51) -->
+  <!-- Boss HP bar (v6.54) -->
   <div id="boss-hp-wrap"></div>
   <div id="reticle">
     <div class="rr rtl"></div><div class="rr rtr"></div><div class="rr rbl"></div><div class="rr rbr"></div>
@@ -638,6 +646,18 @@ canvas.no-click{pointer-events:none}
     <div class="op-row" style="justify-content:flex-start;font-size:9px;color:#055;padding-top:0">
       <span id="op-gfx-desc" style="font-size:9px">-</span>
     </div>
+    <!-- v6.54: Input mode override (AUTO/PC/MOBILE) -->
+    <div class="op-row">
+      <div class="op-label">INPUT</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button type="button" class="op-toggle" id="op-input-auto" onclick="setInputMode('auto')">AUTO</button>
+        <button type="button" class="op-toggle" id="op-input-pc" onclick="setInputMode('pc')">PC</button>
+        <button type="button" class="op-toggle" id="op-input-mobile" onclick="setInputMode('mobile')">SP</button>
+      </div>
+    </div>
+    <div class="op-row" style="justify-content:flex-start;font-size:9px;color:#055;padding-top:0">
+      <span id="op-input-desc" style="font-size:9px">-</span>
+    </div>
     <button type="button" class="op-close" onclick="openGallery()" style="border-color:#0ff;color:#0ff;background:rgba(0,40,50,0.4);box-shadow:0 0 10px rgba(0,255,255,0.3);margin-top:8px">&#9654; CHARACTER GALLERY &#9664;</button>
     <button type="button" class="op-close" onclick="closeOptions()">&#9654; CLOSE &#9664;</button>
   </div>
@@ -649,7 +669,7 @@ canvas.no-click{pointer-events:none}
     <div class="gp-desc" id="gp-desc">Basic scout craft</div>
     <div id="gallery-viewport"></div>
     <div class="gp-stats" id="gp-stats">HP: 1 | SPEED: MEDIUM</div>
-    <!-- Zoom & Pitch controls (v6.51) -->
+    <!-- Zoom & Pitch controls (v6.54) -->
     <div class="gp-ctrl" style="display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap">
       <button type="button" class="gp-mini" onclick="galZoom(-1)" title="Zoom In">&#128269;+</button>
       <button type="button" class="gp-mini" onclick="galZoom(1)" title="Zoom Out">&#128269;-</button>
@@ -696,11 +716,11 @@ canvas.no-click{pointer-events:none}
     <div class="h-val" id="heat-val">0%</div>
     <div class="overheat-warn" id="oh-warn">!! OVERHEAT !!</div>
   </div>
-  <!-- Napalm -->
+  <!-- Napalm (v6.54: bigger display, left-middle placement, magenta/yellow) -->
   <div id="napalm-box">
-    <div class="n-label">NAPALM SPARK</div>
+    <div class="n-label">&#9876; NAPALM &#9876;</div>
     <div class="n-val" id="napalm-val">0</div>
-    <div class="n-key">[E] TO FIRE</div>
+    <div class="n-key">[E] FIRE</div>
   </div>
 
   <div id="hud">
@@ -724,7 +744,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.51</div>
+    <div class="version">VERSION 6.54</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (type, pick, or roll the dice)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -859,7 +879,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.51 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.54 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -880,7 +900,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.51 - Universal Auto-Launch
+//  COSMIC INVADERS v6.54 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -894,23 +914,23 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.51 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.54 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
 const C={
   PLAYER_SPEED:18,BEAM_SPEED:120,E_BEAM_SPEED:40,E_BASE_SPEED:6,E_SHOOT_CD:3.0,
   POWER_KILLS:5,MAX_POWER:4,BONUS_THR:100,BONUS_DUR:8,LIVES:3,SHIELD_MAX:6,
-  HR_P:1.5,HR_E:1.8,HR_B:0.8,HR_BV:1.2,HR_A:3.5,
+  HR_P:1.5,HR_E:1.8,HR_B:0.8,HR_BV:1.2,HR_A:5.95,// v6.54: 3.5*1.7 for easier asteroid hits
   AREA_X:28,AREA_Y:18,CAM_Z:0,SPAWN_Z:-120,DESPAWN_Z:10,
   BEAM_FAR:-130,BEAM_FAR_FORT:-200,BEAM_NEAR:15,P_LIFE:1.0,
   FORT_WAVES:5,FORT_DUR:68,CORE_HP:30,// 1.5x longer corridor
   // Heat
   HEAT_MAX:100,COOL_RATE:28,OVERHEAT_UNLOCK:22,
   HEAT_PER_SHOT:[6,5,6,7,0],// per power level (lv4 uses napalm separately)
-  NAPALM_HEAT:40,NAPALM_START:5,NAPALM_MAX:20,
+  NAPALM_HEAT:40,NAPALM_START:5,NAPALM_MAX:999999,// v6.54: unlimited stock
   // Return mission
-  RETURN_DUR:28,
+  RETURN_DUR:56,// v6.54: 2x longer for more suspenseful return
   // Dock
   DOCK_DUR:12,
 };
@@ -963,7 +983,7 @@ const S={
   returnTimer:0, dockTimer:0,dockPhase:0,
   invertY:false,
   callsign:'JOHN RAMBO',
-  shipIdx:0,willRescue:false,
+  shipIdx:1,willRescue:false,// v6.54: default ship = EASY (index 1)
   replayTimer:0,replayCut:0,
   escapeTimer:0,escapeFortMesh:null,
   commTimer:0,lastCommTime:0,
@@ -1028,7 +1048,7 @@ class SFX{
     sg.gain.setValueAtTime(.15,t);sg.gain.exponentialRampToValueAtTime(.001,t+.5);
     sw.connect(sg);sg.connect(this.g);sw.start(t);sw.stop(t+.6)}
   hit(){if(!this.ctx)return;const t=this.ctx.currentTime;
-    // v6.51: Punchier hit with higher-pitched crackle + deep thud + metallic clang
+    // v6.54: Punchier hit with higher-pitched crackle + deep thud + metallic clang
     // Deep impact thud
     this._o('sine',90,t,.25,.45);this._o('sine',70,t+.03,.22,.35);
     // Metallic mid-range clang (square wave for harshness)
@@ -1232,7 +1252,7 @@ const SHIP_ROSTER=[
     playerDmgMult:.85,enemyHpMult:1.3,enemySpeedMult:1.2,label:'ADVANCED',
     make:()=>makeMaintenanceLaunch()},
 ];
-let selectedShip=SHIP_ROSTER[0];
+let selectedShip=SHIP_ROSTER[1];// v6.54: default = EASY (turbo fighter)
 
 const CHAR_CFG={
   hq:{label:'HQ COMMAND',cls:'hq',pitch:.8,rate:.9,vol:.65},
@@ -1756,28 +1776,33 @@ function rebuildCockpit3D(){
   createCockpit3D();
 }
 // ============ PER-SHIP COCKPITS ============
-// Helper: add the 4 forward cannons shared by all cockpits (s-foil positions)
-function _addCockpitCannons(cockpit,mCannon,mStrut,mTip,cannonPos){
+// Helper: add cockpit cannons. v6.54 options: visual=true to render X-wing-style barrels+housings,
+// or visual=false to only add invisible muzzle points (game still fires from those positions).
+function _addCockpitCannons(cockpit,mCannon,mStrut,mTip,cannonPos,visual){
   cannonMuzzles.length=0;
   cannonPos.forEach(cp=>{
     const cg=new THREE.Group();
-    const barrelGeo=new THREE.CylinderGeometry(.05,.05,1.6,4);
-    barrelGeo.rotateX(Math.PI/2);
-    const barrel=new THREE.LineSegments(new THREE.EdgesGeometry(barrelGeo),mCannon);
-    barrel.position.z=-1.2;cg.add(barrel);
-    const housingGeo=new THREE.BoxGeometry(.2,.2,.5);
-    const housing=new THREE.LineSegments(new THREE.EdgesGeometry(housingGeo),mCannon);
-    housing.position.z=-.3;cg.add(housing);
-    const tipGeo=new THREE.OctahedronGeometry(.07);
-    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(tipGeo),mTip.clone());
-    tip.position.z=-2;tip.name='muzzle';cg.add(tip);
+    if(visual!==false){
+      // X-wing style visible barrels (only used by Turbo/Maintenance cockpits)
+      const barrelGeo=new THREE.CylinderGeometry(.05,.05,1.6,4);
+      barrelGeo.rotateX(Math.PI/2);
+      const barrel=new THREE.LineSegments(new THREE.EdgesGeometry(barrelGeo),mCannon);
+      barrel.position.z=-1.2;cg.add(barrel);
+      const housingGeo=new THREE.BoxGeometry(.2,.2,.5);
+      const housing=new THREE.LineSegments(new THREE.EdgesGeometry(housingGeo),mCannon);
+      housing.position.z=-.3;cg.add(housing);
+      const tipGeo=new THREE.OctahedronGeometry(.07);
+      const tip=new THREE.LineSegments(new THREE.EdgesGeometry(tipGeo),mTip.clone());
+      tip.position.z=-2;tip.name='muzzle';cg.add(tip);
+      const strutPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(cp.x>0?-.6:.6,cp.y>0?-.3:.3,.3)];
+      cg.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(strutPts),mStrut));
+    }
+    // Muzzle point always present (for beam spawn position + flash effect)
     const mg=new THREE.BufferGeometry();
     mg.setAttribute('position',new THREE.BufferAttribute(new Float32Array([0,0,0]),3));
     const mPt=new THREE.Points(mg,new THREE.PointsMaterial({color:0x00ff00,size:0,sizeAttenuation:true}));
     mPt.position.z=-2;mPt.name='muzzleGlow';cg.add(mPt);
     cannonMuzzles.push(mPt);
-    const strutPts=[new THREE.Vector3(0,0,0),new THREE.Vector3(cp.x>0?-.6:.6,cp.y>0?-.3:.3,.3)];
-    cg.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(strutPts),mStrut));
     cg.position.set(cp.x,cp.y,-1);cockpit.add(cg);
   });
 }
@@ -1873,9 +1898,9 @@ function _buildCockpitStandard(){
     const nr=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.RingGeometry(.19,.24,6)),mAccent);
     nr.position.set(pos[0],pos[1],pos[2]+1.1);nr.rotation.y=Math.PI/2;cockpit.add(nr);
   });
-  // === 4 FORWARD LASER CANNONS (standard s-foil layout) ===
+  // v6.54: N-1 has no visible X-wing barrels (lasers fire from wingtip nacelles invisibly)
   _addCockpitCannons(cockpit,mCannon,mStrut,mTip,[
-    {x:-2.8,y:1.1},{x:2.8,y:1.1},{x:-2.8,y:-1.1},{x:2.8,y:-1.1}]);
+    {x:-2.8,y:1.1},{x:2.8,y:1.1},{x:-2.8,y:-1.1},{x:2.8,y:-1.1}],false);
   return cockpit}
 
 // EASY (TURBO FIGHTER): wide bubble canopy, royal-blue frame, double-row instruments
@@ -2074,7 +2099,7 @@ function makeCore(){const g=new THREE.Group();
 
 function makeWallSeg(){const g=new THREE.Group();
   // Thick main panel - bright so it reads as a solid obstacle
-  // v6.51: Wall height doubled from 18 to 36 for more imposing fortress corridor
+  // v6.54: Wall height doubled from 18 to 36 for more imposing fortress corridor
   const mBright=new THREE.LineBasicMaterial({color:0xff4400,transparent:true,opacity:.7});
   const mDim=new THREE.LineBasicMaterial({color:0x884400,transparent:true,opacity:.5});
   const mGlow=new THREE.LineBasicMaterial({color:0xff6600,transparent:true,opacity:.9});
@@ -3048,7 +3073,7 @@ const player={x:0,y:0,cooldown:0};
 
 function updatePlayer(dt){
   if(S.phase==='DOCKING'&&!isMobile)return;
-  // v6.51: if boss cinematic is active, let the cinematic drive the camera
+  // v6.54: if boss cinematic is active, let the cinematic drive the camera
   if(bossCinematic&&bossCinematic.active){updateBossCinematic(dt);return}
   const spd=C.PLAYER_SPEED*dt;
   const yDir=S.invertY?-1:1;
@@ -3132,10 +3157,13 @@ const CANNON_MAP={
 
 function fireBeam(){
   const heatCost=C.HEAT_PER_SHOT[Math.min(S.power,3)];
-  S.heat+=heatCost;
-  if(S.heat>=C.HEAT_MAX){S.overheated=true;sfx.overheatWarn();playVoice('overheat');
-    document.getElementById('oh-warn').style.display='block';
-    LU_IDS.forEach(id=>document.getElementById(id).classList.add('overheat'));return}
+  // v6.54: EASY ship (turbo) bypasses overheat entirely
+  const easyMode=(selectedShip&&selectedShip.id==='turbo');
+  if(easyMode){S.heat=0;S.overheated=false}
+  else{S.heat+=heatCost;
+    if(S.heat>=C.HEAT_MAX){S.overheated=true;sfx.overheatWarn();playVoice('overheat');
+      document.getElementById('oh-warn').style.display='block';
+      LU_IDS.forEach(id=>document.getElementById(id).classList.add('overheat'));return}}
   const cannons=CANNON_MAP[S.power]||CANNON_MAP[0];
   const color=PCOLORS[Math.min(S.power,4)];
   // Pick the next cannon in rotation
@@ -3198,7 +3226,14 @@ function updateShieldGauge(flash){
   else if(S.lives<=2){st.textContent='WARNING';st.className='sg-status';st.style.color='#ff0'}
   else{st.textContent='NOMINAL';st.className='sg-status';st.style.color='#0f0'}}
 
-function updateNapalmDisplay(){document.getElementById('napalm-val').textContent=S.napalmAmmo}
+function updateNapalmDisplay(){
+  const el=document.getElementById('napalm-val');if(el)el.textContent=S.napalmAmmo;
+  // v6.54: show the napalm box whenever we have ammo, during any active play phase
+  const box=document.getElementById('napalm-box');if(box){
+    const playing=(S.phase==='PLAYING'||S.phase==='BONUS'||S.phase==='FORTRESS'||S.phase==='RETURN'||S.phase==='DOCKING');
+    box.style.display=(playing&&S.napalmAmmo>0)?'block':'none';
+  }
+}
 
 // ============ ENEMIES ============
 // ==== 3 BOSS PATTERNS ====
@@ -3353,41 +3388,45 @@ function updateCrotchMissileAttack(e,dt){
     // Trigger charge at timer expiration
     if(e.crotchMissileTimer<=0){
       e.crotchChargePhase=1;e.crotchChargeTime=0;
-      // v6.51: START CINEMATIC CLOSE-UP on this boss
-      startBossCinematic(e.mesh,1.8);// duration covers ~1.5s charge + .3s launch blend
+      // v6.54: DOUBLED duration - cinematic now 3.5s, charge 3s
+      startBossCinematic(e.mesh,3.5);
       // Dramatic warning comm
       playComm('enemy','EGASHIRAAAAAAA!!!');
       if(sfx.ctx){const t=sfx.ctx.currentTime;
-        sfx._n(t,.5,.3,4000,500);sfx._o('sawtooth',80,t,.6,.2)}
+        sfx._n(t,.8,.3,4000,500);sfx._o('sawtooth',80,t,1.0,.2)}
     }
     return;
   }
-  // Phase 1: CHARGE (1.5s of smoke + dramatic legs-apart pose)
+  // Phase 1: CHARGE (3s of smoke + dramatic legs-apart pose) - v6.54 doubled
   if(e.crotchChargePhase===1){
     e.crotchChargeTime=(e.crotchChargeTime||0)+dt;
+    const CHARGE_DUR=3.0;
     // Dramatic body arch back (torso leans back, legs spread wider)
-    e.mesh.rotation.x=-.3*Math.min(1,e.crotchChargeTime/1.5);// arch back
+    e.mesh.rotation.x=-.3*Math.min(1,e.crotchChargeTime/CHARGE_DUR);
     // Leg spread (move legs apart) if they still exist
     const lLeg=e.mesh.getObjectByName('leftLeg');
     const rLeg=e.mesh.getObjectByName('rightLeg');
-    if(lLeg&&!e.legLeftLost)lLeg.rotation.z=.4*Math.min(1,e.crotchChargeTime/1.5);
-    if(rLeg&&!e.legRightLost)rLeg.rotation.z=-.4*Math.min(1,e.crotchChargeTime/1.5);
-    // Smoke billowing out around the missile
+    if(lLeg&&!e.legLeftLost)lLeg.rotation.z=.4*Math.min(1,e.crotchChargeTime/CHARGE_DUR);
+    if(rLeg&&!e.legRightLost)rLeg.rotation.z=-.4*Math.min(1,e.crotchChargeTime/CHARGE_DUR);
+    // Smoke billowing out around the missile (now longer/thicker)
     const worldMissile=new THREE.Vector3();missile.getWorldPosition(worldMissile);
-    if(Math.random()<.85){
+    if(Math.random()<.9){
       const smokePos=worldMissile.clone();
       smokePos.x+=(Math.random()-.5)*2;smokePos.y+=(Math.random()-.5)*1.5-.5;
       smokePos.z+=(Math.random()-.5)*1.5;
       spawnP(smokePos,0xffaa44,2,.6);
       spawnP(smokePos,0x888888,2,.4);
     }
-    // Missile shaking intensifies
-    missile.rotation.z=(Math.random()-.5)*.3;
-    missile.rotation.y=(Math.random()-.5)*.2;
-    // Pre-launch rumble
-    if(sfx.ctx&&Math.random()<.15)sfx._n(sfx.ctx.currentTime,.08,.08,3000,400);
-    // After 1.5s → LAUNCH
-    if(e.crotchChargeTime>=1.5){
+    // Missile shaking intensifies over time
+    const shakeAmt=Math.min(1,e.crotchChargeTime/CHARGE_DUR);
+    missile.rotation.z=(Math.random()-.5)*.3*shakeAmt;
+    missile.rotation.y=(Math.random()-.5)*.2*shakeAmt;
+    // Pre-launch rumble (more frequent in later stages)
+    if(sfx.ctx&&Math.random()<(.1+shakeAmt*.15))sfx._n(sfx.ctx.currentTime,.08,.08,3000,400);
+    // Taunting repeat at halfway point
+    if(e.crotchChargeTime>=1.5&&!e.midTaunt){e.midTaunt=true;playComm('enemy','EGA-EGA-EGASHIRA!!!')}
+    // After CHARGE_DUR → LAUNCH
+    if(e.crotchChargeTime>=CHARGE_DUR){
       e.crotchChargePhase=2;
       // Get missile world position + direction
       const worldPos=new THREE.Vector3();missile.getWorldPosition(worldPos);
@@ -3758,14 +3797,122 @@ function updateMegaBossProjectiles(dt){
   }
 }
 
+// v6.54: Signature boss opening attacks - each boss gets its own dramatic intro attack
+// set up as a scheduled event a few seconds after spawn
+function triggerBossOpeningAttack(kind){
+  // Find the boss mesh we just spawned
+  setTimeout(()=>{
+    const boss=enemies.find(e=>e.isBoss&&e.bossPattern===kind);
+    if(!boss)return;
+    // Start cinematic close-up before each signature attack
+    startBossCinematic(boss.mesh,3.5);
+    if(kind==='zeong'){
+      // ZEONG OPENING: "PSYCHO-COMM SLAM" - teleport + remote arm finger barrage
+      playComm('enemy','YOU WILL NOT ESCAPE! PSYCHO-COMM... ENGAGE!');
+      setTimeout(()=>{
+        if(!boss||!boss.mesh)return;
+        // Flash + teleport closer
+        spawnP(boss.mesh.position.clone(),0xffcc00,40,2);
+        if(sfx.ctx){const t=sfx.ctx.currentTime;
+          sfx._o('sawtooth',300,t,.4,.2);sfx._n(t,.5,.3,8000,2000)}
+        boss.baseX=0;boss.mesh.position.z=-18;
+        spawnP(boss.mesh.position.clone(),0xffcc00,40,2);
+        // Launch BOTH remote arms at once (signature)
+        ['leftArm','rightArm'].forEach((armName,idx)=>{
+          setTimeout(()=>{
+            const arm=boss.mesh.getObjectByName(armName);
+            if(!arm)return;
+            const worldPos=new THREE.Vector3();arm.getWorldPosition(worldPos);
+            boss.mesh.remove(arm);arm.position.copy(worldPos);scene.add(arm);
+            megaBossProjectiles.push({mesh:arm,owner:boss,kind:'zeongArm',
+              life:4,firedBeams:false,phase:'approach',armName,
+              vel:new THREE.Vector3((idx===0?-4:4),2,8)});
+            if(idx===0)boss.armLeftLost=true;else boss.armRightLost=true;
+            boss.remoteArmActive=arm;
+          },idx*400);
+        });
+        playComm('enemy','BOTH ARMS! OPEN FIRE!');
+      },2000);
+    } else if(kind==='psycho'){
+      // PSYCHO OPENING: "MEGA PARTICLE CASCADE" - 3 scatter waves in rapid succession
+      playComm('enemy','BEHOLD! INFINITE MEGA PARTICLE BARRAGE!');
+      setTimeout(()=>{
+        if(!boss||!boss.mesh)return;
+        // Triple scatter cannon blast
+        for(let wave=0;wave<3;wave++){
+          setTimeout(()=>{
+            if(!boss.mesh)return;
+            const cannon=boss.mesh.getObjectByName('psychoCannon');
+            if(!cannon)return;
+            const pos=new THREE.Vector3();cannon.getWorldPosition(pos);
+            spawnP(pos,0x33ff88,30,2);
+            if(sfx.ctx){sfx._n(sfx.ctx.currentTime,.5,.35,6000,1000);
+              sfx._o('sawtooth',120,sfx.ctx.currentTime,.7,.3)}
+            const shots=isMobile?14:24;
+            for(let k=0;k<shots;k++){
+              const b=makeEnemyBeam();
+              b.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.color.setHex(0x33ff88)}});
+              b.position.copy(pos);scene.add(b);
+              const ang=(k/shots-.5)*Math.PI*.9;
+              const dx=(camera.position.x-pos.x)*.2+Math.cos(ang)*10;
+              const dy=(camera.position.y-pos.y)*.12+(Math.random()-.5)*6;
+              eBeams.push({mesh:b,vel:new THREE.Vector3(dx,dy,C.E_BEAM_SPEED*.8)});
+            }
+            S.shakeT=.8;S.shakeI=1.5;screenFlash(.4);
+          },wave*500);
+        }
+        playComm('enemy','DIE! DIE! DIE!');
+        // Reset scatter timer so it cools down after opening
+        boss.scatterTimer=9;
+      },2200);
+    } else if(kind==='gipsy'){
+      // GIPSY OPENING: "CHAINSWORD SLASH-RUSH" - both rocket fists + chainsword dash
+      playComm('enemy','KAIJU HUNTER! FEEL MY BLADE!');
+      setTimeout(()=>{
+        if(!boss||!boss.mesh)return;
+        // Dash forward aggressively
+        boss.mesh.position.z=-12;
+        spawnP(boss.mesh.position.clone(),0xff9922,30,2);
+        if(sfx.ctx){const t=sfx.ctx.currentTime;
+          sfx._n(t,.4,.3,4000,800);sfx._o('sawtooth',150,t,.6,.3)}
+        // Launch both fist projectiles in a spread
+        for(let i=0;i<2;i++){
+          setTimeout(()=>{
+            if(!boss.mesh)return;
+            const fist=new THREE.Group();
+            const fistMat=new THREE.LineBasicMaterial({color:0xff9922});
+            fist.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,1.3,1.5)),fistMat));
+            const flame=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.7,1.8,5)),
+              new THREE.LineBasicMaterial({color:0xff6600}));
+            flame.position.y=1.2;flame.rotation.x=Math.PI;fist.add(flame);
+            fist.position.copy(boss.mesh.position);
+            fist.position.x+=(i===0?-2:2);
+            scene.add(fist);
+            megaBossProjectiles.push({mesh:fist,owner:boss,kind:'rocketFist',
+              life:3,vel:new THREE.Vector3((i===0?-3:3),0,30)});
+            if(sfx.ctx){sfx._o('sawtooth',120,sfx.ctx.currentTime,.4,.2)}
+          },i*350);
+        }
+        // Chainsword slash camera shake
+        S.shakeT=1;S.shakeI=2;screenFlash(.5);
+        playComm('enemy','DOUBLE ROCKET PUNCH!');
+        // Delay regular attacks
+        boss.rocketPunchTimer=6;boss.scatterTimer=9;
+      },2200);
+    }
+  },500);// 0.5s after boss spawn - let entry animation finish
+}
+
 function spawnBossMech(cycleMult){
-  // Cycle 2+: pick one of 3 mega bosses randomly
-  if(S.cycle>=2){
+  // v6.54: Cycle 0 (1週目) = MS-R01 trio with crotch missile
+  //        Cycle 1+ (2週目+) = RANDOM pick from Zeong/Psycho/Gipsy with signature opening attack
+  if(S.cycle>=1){
     const picks=['zeong','psycho','gipsy'];
     const p=picks[Math.floor(Math.random()*picks.length)];
     if(p==='zeong')spawnMegaZeong();
     else if(p==='psycho')spawnMegaPsychoGundam();
     else spawnMegaGipsy();
+    triggerBossOpeningAttack(p);
     sfx.bigExplosion();screenFlash(.7);S.shakeT=1.2;S.shakeI=2;
     return;
   }
@@ -4229,7 +4376,7 @@ function checkCollisions(){const camP=camera.position;
   for(let bi=pBeams.length-1;bi>=0;bi--){const b=pBeams[bi];
     for(let ei=enemies.length-1;ei>=0;ei--){const e=enemies[ei];
       const hr=e.isAsteroid?C.HR_A:C.HR_E;const r=C.HR_B+hr;
-      const bossHr=e.isBoss?8:0;// 2x hit radius for 2x-sized boss
+      const bossHr=e.isBoss?14:0;// v6.54: expanded for easier boss hits
       if(dsq(b.mesh.position,e.mesh.position)<(r+bossHr)*(r+bossHr)){e.hp-=b.dmg;scene.remove(b.mesh);pBeams.splice(bi,1);
         if(e.hp<=0){
           if(e.isBoss){
@@ -4320,7 +4467,7 @@ function checkCollisions(){const camP=camera.position;
       playerHit();scene.remove(eb.mesh);eBeams.splice(i,1);break}}}
   // enemies vs player
   if(S.invTimer<=0){for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];
-    const hr=(e.isAsteroid?C.HR_A:C.HR_E)+(e.isBoss?8:0);// boss: 2x collision
+    const hr=(e.isAsteroid?C.HR_A:C.HR_E)+(e.isBoss?10:0);// boss: larger collision (v6.54)
     if(dsq(e.mesh.position,camP)<(hr+C.HR_P)*(hr+C.HR_P)){
       // Boss ram doesn't kill itself - damage player then continue
       if(e.isBoss){
@@ -4567,11 +4714,11 @@ function getCorridorCurve(){
 
 function spawnWallPair(){
   const curve=getCorridorCurve();
-  // Walls (offset by curve for winding corridor). Height doubled in v6.51.
+  // Walls (offset by curve for winding corridor). Height doubled in v6.54.
   [-30,30].forEach(x=>{const w=makeWallSeg();
     w.position.set(x+curve,0,C.SPAWN_Z);scene.add(w);walls.push(w);
     w.userData.curveAtSpawn=curve});
-  // v6.51: floor polygons removed - open space below for more ship movement freedom
+  // v6.54: floor polygons removed - open space below for more ship movement freedom
   // Ceiling girders (occasional)
   if(Math.random()<.5){
     const girM=new THREE.LineBasicMaterial({color:0x884400,transparent:true,opacity:.5});
@@ -4703,17 +4850,46 @@ function updateEscape(dt){
     startReturn()}}
 
 // ============ RETURN MISSION ============
+// v6.54: Return-phase radio chatter pool (4 voices, plays at staged intervals)
+const RETURN_RADIO_SCRIPT=[
+  {t:2,who:'hq',line:'HQ to #N. Good hunting. Commence return to base via asteroid corridor.'},
+  {t:6,who:'pilot',line:'Roger that. Starting evasion pattern delta. Visibility is low.'},
+  {t:10,who:'wingman',line:'Wingman-2 on your wing. Watch those rocks at 3 oclock!'},
+  {t:14,who:'nav',line:'Course correction. Bearing 2-7-0 relative. Asteroid density increasing.'},
+  {t:18,who:'hq',line:'Enemy pursuers detected on long-range scan. Stay sharp, #N.'},
+  {t:22,who:'pilot',line:'Got eyes on them. They are boxing us in through the belt!'},
+  {t:26,who:'wingman',line:'I will cover your six! Punch through!'},
+  {t:30,who:'nav',line:'Halfway home. Hold this speed. We are clear of the densest cluster.'},
+  {t:34,who:'hq',line:'Refueling bay prepped. Welcome home soon, #N.'},
+  {t:38,who:'pilot',line:'Almost there. One more cluster. Steady. Steady.'},
+  {t:42,who:'wingman',line:'Nice stick work! Station in visual range!'},
+  {t:46,who:'nav',line:'Docking clearance granted. Initiating approach vector.'},
+  {t:50,who:'hq',line:'#N, you are cleared to dock. Great run out there.'},
+];
 function startReturn(){S.phase='RETURN';S.returnTimer=0;
   sfx.startReturnBGM();playVoice('returnMission');
   document.getElementById('mission-display').textContent='RETURN TO BASE';
-  announce('ESCAPE THROUGH ASTEROID BELT!')}
+  announce('ESCAPE THROUGH ASTEROID BELT!');
+  // Schedule return radio chatter (randomize 3-4 lines shuffle each run for variety)
+  const lines=RETURN_RADIO_SCRIPT.slice().sort(()=>Math.random()-.5).slice(0,10).sort((a,b)=>a.t-b.t);
+  S._returnRadio=lines.map(o=>Object.assign({fired:false},o));
+}
 
 function updateReturn(dt){S.returnTimer+=dt;
   const progress=Math.min(S.returnTimer/C.RETURN_DUR,1);
   document.getElementById('mission-display').textContent=
     `RETURN TO BASE - ${Math.ceil(progress*100)}%`;
-  // Spawn tons of asteroids
-  if(Math.random()<dt*3){const mesh=makeAsteroid();
+  // v6.54: Fire radio chatter lines at scheduled times
+  if(S._returnRadio){
+    S._returnRadio.forEach(ev=>{
+      if(!ev.fired&&S.returnTimer>=ev.t){
+        ev.fired=true;
+        try{playComm(ev.who,ev.line)}catch(e){}
+      }
+    });
+  }
+  // v6.54: asteroid spawn rate reduced to 1/3 (was dt*3 → dt*1)
+  if(Math.random()<dt*1){const mesh=makeAsteroid();
     mesh.position.set((Math.random()-.5)*50,(Math.random()-.5)*20,C.SPAWN_Z-Math.random()*30);scene.add(mesh);
     enemies.push({mesh,type:99,hp:2,baseX:mesh.position.x,baseY:mesh.position.y,
       sineAmp:2,sineFreq:.2,sinePhase:Math.random()*Math.PI*2,
@@ -4828,46 +5004,107 @@ function updateDocking(dt){S.dockTimer+=dt;
     dockTarget.x=(Math.random()-.5)*2;dockTarget.y=(Math.random()-.5)*1}}
 
 function completeDocking(){
-  // Big docking clamp sound
+  // v6.54: Extended docking sequence with 5s resupply SFX + catapult re-launch
+  // === PHASE 1: DOCKING CLAMP (GACHAN!) ===
   if(sfx.ctx){const t=sfx.ctx.currentTime;
     // Heavy metal clamp: CLANG
-    sfx._o('sine',120,t,.3,.2);sfx._o('triangle',200,t,.15,.15);
-    sfx._n(t,.15,.2,3000,300);
-    // Hydraulic hiss
-    sfx._n(t+.3,.8,.1,8000,5000);
-    // Deep locking thud
-    sfx._o('sine',50,t+.2,.4,.2);
+    sfx._o('sine',120,t,.3,.25);sfx._o('triangle',200,t,.18,.2);
+    sfx._n(t,.15,.3,3000,300);
+    sfx._o('sine',50,t+.1,.4,.25);
     // Success chime
     sfx._o('sine',523,t+.8,.15,.08);sfx._o('sine',659,t+.95,.15,.08);sfx._o('sine',784,t+1.1,.3,.1)}
-
-  screenFlash(.3);S.shakeT=.3;S.shakeI=.8;
+  screenFlash(.3);S.shakeT=.4;S.shakeI=1.2;
+  // v6.54: Removed verbose Japanese onomatopoeia text. Keep SFX only.
   document.getElementById('dock-status').textContent='DOCKING COMPLETE';
   playComm('nav',resolveN('Docking clamps engaged. Welcome home, #N.'));
-  setTimeout(()=>playComm('hq',resolveN('Good to have you back, #N. Commencing resupply.')),3000);
-  setTimeout(()=>playComm('nav',getTimeReport()),6500);
+  // === PHASE 2: PRESSURIZED HISS at 1.5s ===
+  setTimeout(()=>{
+    if(sfx.ctx){const t=sfx.ctx.currentTime;
+      sfx._n(t,1.8,.2,10000,2000);
+      sfx._n(t+.3,1.4,.15,7000,1500);
+      sfx._o('sine',900,t,.4,.1);sfx._o('sine',1100,t+.5,.5,.08);
+    }
+  },1500);
+  // === PHASE 3: MOTOR WHINE at 3s ===
+  setTimeout(()=>{
+    if(sfx.ctx){const t=sfx.ctx.currentTime;
+      const motor=sfx.ctx.createOscillator();
+      const mg=sfx.ctx.createGain();
+      motor.type='sawtooth';
+      motor.frequency.setValueAtTime(200,t);
+      motor.frequency.exponentialRampToValueAtTime(1200,t+1.5);
+      motor.frequency.exponentialRampToValueAtTime(600,t+2);
+      mg.gain.setValueAtTime(.02,t);
+      mg.gain.linearRampToValueAtTime(.18,t+.3);
+      mg.gain.setValueAtTime(.18,t+1.5);
+      mg.gain.exponentialRampToValueAtTime(.001,t+2);
+      motor.connect(mg);mg.connect(sfx.g);motor.start(t);motor.stop(t+2.1);
+      sfx._n(t,1.8,.08,14000,3000);
+    }
+    playComm('hq',resolveN('Resupply in progress. Weapons cooled, napalm reloaded.'));
+  },3000);
 
   // Upgrades
-  S.lives=C.LIVES;// Full shield restore on docking
-  S.napalmAmmo=Math.min(C.NAPALM_START+S.cycle,C.NAPALM_MAX);
+  S.lives=C.LIVES;
+  S.napalmAmmo=(S.napalmAmmo||0)+C.NAPALM_START+S.cycle;// v6.54: add (not cap) for unlimited stock
   S.heat=0;S.overheated=false;
   document.getElementById('oh-warn').style.display='none';
   LU_IDS.forEach(id=>document.getElementById(id).classList.remove('overheat'));
-
   const info=`HULL REPAIRED: ${S.lives} HP\nNAPALM: ${S.napalmAmmo} ROUNDS\nWEAPONS COOLED`;
   document.getElementById('dock-info').textContent=info;
   updateShieldGauge(false);
+  updateNapalmDisplay();
 
+  // === PHASE 4 @ 5s: Re-catapult launch ===
   setTimeout(()=>{
-    announce('LAUNCHING!');sfx.launchSound();
-    playComm('hq',resolveN('All systems go. Launching. Good hunting, #N.'));
-    setTimeout(()=>{
-      if(stationMesh){scene.remove(stationMesh);stationMesh=null}
-      document.getElementById('dock-overlay').style.display='none';
-      S.cycle++;S.wave++;S.waveLeft=0;S.phase='PLAYING';
-      document.getElementById('mission-display').textContent='';
-      sfx.startBGM(1);spawnWave(S.wave);updateHUD();updateNapalmDisplay();
-    },2500);
-  },5000)}
+    document.getElementById('dock-status').textContent='RE-LAUNCH CONFIRMED';
+    playComm('hq',resolveN('All systems green. Catapult re-launch sequence initiated.'));
+    if(stationMesh){scene.remove(stationMesh);stationMesh=null}
+    document.getElementById('dock-overlay').style.display='none';
+    // Reset state for next cycle's mission
+    S.cycle++;S.wave++;S.waveLeft=0;
+    // Run the cinematic catapult launch again (brief version)
+    runRedockedCatapult();
+  },5500);
+}
+
+// v6.54: Re-catapult launch after docking (shorter version - 4s animation + brief chatter)
+function runRedockedCatapult(){
+  S.phase='LAUNCHING';
+  // Show catapult overlay for dramatic text
+  const co=document.getElementById('catapult-overlay');
+  if(co)co.style.display='flex';
+  const catText=document.getElementById('cat-text');
+  const catCount=document.getElementById('cat-count');
+  if(catText){catText.textContent='CATAPULT RE-LAUNCH';catText.style.color='#ff0';catText.style.fontSize='26px'}
+  if(catCount){catCount.textContent='3';catCount.style.color='#ff0';catCount.style.fontSize='48px'}
+  // Hide HUD briefly
+  ['hud','shield-gauge','heat-gauge','napalm-box','reticle','cockpit-frame','boss-hp-wrap'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.style.display='none'});
+  if(sfx.ctx){sfx._o('sine',600,sfx.ctx.currentTime,.15,.1)}
+  setTimeout(()=>{if(catCount){catCount.textContent='2';if(sfx.ctx)sfx._o('sine',600,sfx.ctx.currentTime,.15,.1)}},1000);
+  setTimeout(()=>{if(catCount){catCount.textContent='1';if(sfx.ctx)sfx._o('sine',800,sfx.ctx.currentTime,.15,.1)}},2000);
+  setTimeout(()=>{
+    if(catText){catText.textContent='LAUNCH!'}
+    if(catCount){catCount.textContent=''}
+    if(sfx.ctx)sfx._o('sine',1200,sfx.ctx.currentTime,.3,.15);
+    try{sfx.launchSound()}catch(e){}
+    runCatapultSequence();
+  },3000);
+  // After launch anim - brief radio then gameplay resume
+  setTimeout(()=>playComm('pilot','Roger! Back in the fight!'),6500);
+  setTimeout(()=>{
+    if(co)co.style.display='none';
+    // Resume gameplay at the new wave
+    S.phase='PLAYING';
+    ['hud','cockpit-frame','reticle','shield-gauge','heat-gauge'].forEach(id=>{
+      const e=document.getElementById(id);if(e)e.style.display='block'});
+    document.getElementById('mission-display').textContent='';
+    sfx.startBGM(Math.min(((S.wave-1)%C.FORT_WAVES)+1,5));
+    spawnWave(S.wave);
+    updateHUD();updateNapalmDisplay();
+  },7500);
+}
 
 // ============ GAME OVER / VICTORY ============
 // ============ ESCAPE POD EJECTION ============
@@ -4973,7 +5210,7 @@ function spawnSearchPods(){
       pod.position.set(Math.cos(ang)*radius,8+i*3,Math.sin(ang)*radius)
     }
     pod.userData.ang=ang;pod.userData.radius=radius;pod.userData.speed=.6+i*.1;
-    // v6.51: 4x bigger rescue pods so they read clearly against the vast space
+    // v6.54: 4x bigger rescue pods so they read clearly against the vast space
     pod.scale.setScalar(3.2);
     scene.add(pod);searchPods.push(pod);
   }
@@ -5089,7 +5326,11 @@ function updateEject(dt){
   if(ejectTimer>=14&&rescuePhase===1){
     rescuePhase=2;
     // Decide NOW (after dramatic build-up)
-    if(S.willRescue===null)S.willRescue=Math.random()<.5;// 50/50 suspense
+    if(S.willRescue===null){
+      // v6.54: EASY mode = always rescued (unlimited continues)
+      const easyMode=(selectedShip&&selectedShip.id==='turbo');
+      S.willRescue=easyMode?true:(Math.random()<.5);
+    }
     resolveFateCoin();
     if(S.willRescue){
       // RESCUE SUCCESS - promote one of the search pods to hero rescue ship
@@ -5322,6 +5563,8 @@ function showContinueScreen(){
 
 function pickShip(i){
   S.shipIdx=i;
+  // v6.54: IMPORTANT - sync selectedShip, otherwise continue rebuilds cockpit with wrong data
+  selectedShip=SHIP_ROSTER[i]||SHIP_ROSTER[0];
   document.querySelectorAll('.ship-opt').forEach((b,j)=>{
     if(j===i){b.style.background='rgba(0,120,80,0.5)';b.style.borderColor='#0f8';b.style.color='#fff';b.style.boxShadow='0 0 12px rgba(0,255,136,0.6)';}
     else{b.style.background='transparent';b.style.borderColor='#088';b.style.color='#0aa';b.style.boxShadow='none'}
@@ -5332,6 +5575,8 @@ function pickShip(i){
 let continuing=false;
 function continueWithShip(){
   if(continuing)return;continuing=true;// guard against double-click freeze
+  // v6.54: Make absolutely sure selectedShip matches shipIdx before cockpit rebuild
+  try{selectedShip=SHIP_ROSTER[S.shipIdx||0]||SHIP_ROSTER[0]}catch(e){}
   try{
     // === AGGRESSIVE OVERLAY CLEANUP ===
     ['fate-overlay','doom-overlay','rescue-overlay','search-overlay','continue-overlay',
@@ -5392,13 +5637,24 @@ function continueWithShip(){
     try{if(typeof updateHeatGauge==='function')updateHeatGauge()}catch(e){}
     try{if(typeof rebuildCockpit3D==='function')rebuildCockpit3D()}catch(e){}
     // === RESPAWN WAVE ===
-    spawnWave(S.wave);
+    try{spawnWave(S.wave||1)}catch(e){console.error('spawnWave failed:',e)}
     try{sfx.startBGM(Math.min(((S.wave-1)%C.FORT_WAVES)+1,5))}catch(e){}
     try{playComm('hq','#N, you are back in the fight!')}catch(e){}
-    console.log('[CONTINUE] resumed at wave '+S.wave+' cycle '+S.cycle);
+    // Guard against keyboard restart-to-title while we just re-entered play
+    try{spaceReady=false;setTimeout(()=>{spaceReady=true},800)}catch(e){}
+    // Extra safety: force phase and input state, clear any leftover keys
+    S.phase='PLAYING';
+    try{for(const k in keys)keys[k]=false}catch(e){}
+    console.log('[CONTINUE] resumed at wave '+S.wave+' cycle '+S.cycle+' phase='+S.phase);
   }catch(err){console.error('continueWithShip error:',err);
-    // Fallback: force game over to unstick
-    try{S.phase='GAMEOVER';triggerGameOver()}catch(e){console.error('fallback failed:',e)}}
+    // DO NOT fall through to gameover (that was causing "returns to title" behavior)
+    // Try a soft recovery instead
+    try{S.phase='PLAYING';S.lives=C.LIVES;S.invTimer=3;
+      const show=id=>{const e=document.getElementById(id);if(e)e.style.display='block'};
+      show('hud');show('cockpit-frame');show('reticle');show('shield-gauge');show('heat-gauge');
+      showTouchControls(true);updateHUD();
+      if(enemies.length===0){try{spawnWave(1)}catch(e){}}
+    }catch(e){console.error('soft recovery failed:',e)}}
   setTimeout(()=>continuing=false,500);
 }
 
@@ -5461,7 +5717,7 @@ function updateHUD(){document.getElementById('score-display').textContent=S.scor
   updateBossHP();
 }
 
-// Boss HP Bar (v6.51) - aggregates all bosses currently on screen
+// Boss HP Bar (v6.54) - aggregates all bosses currently on screen
 function updateBossHP(){
   const wrap=document.getElementById('boss-hp-wrap');
   if(!wrap)return;
@@ -5510,7 +5766,7 @@ function hideAllUI(){
 
 function showCockpit(show){const d=show?'block':'none';
   ['cockpit-frame','reticle','speed-indicator','hud','heat-gauge','shield-gauge','mini-radar'].forEach(id=>document.getElementById(id).style.display=d);
-  document.getElementById('napalm-box').style.display=(show&&S.power>=C.MAX_POWER)?'block':'none';
+  document.getElementById('napalm-box').style.display=(show&&S.napalmAmmo>0)?'block':'none';
   if(show){updateShieldGauge(false);showTouchControls(true)}
   else{showTouchControls(false)}}
 
@@ -5652,12 +5908,12 @@ function playNavPreview(i){
   selectedNav=prev}
 
 function buildShipUI(){
-  S.shipIdx=0;selectedShip=SHIP_ROSTER[0];
+  S.shipIdx=1;selectedShip=SHIP_ROSTER[1];// v6.54: default = EASY
   const box=document.getElementById('ship-options');if(!box)return;box.innerHTML='';
   SHIP_ROSTER.forEach((ship,i)=>{
     const btn=document.createElement('button');
     btn.type='button';
-    btn.className='ns-opt'+(i===0?' selected':'');
+    btn.className='ns-opt'+(i===1?' selected':'');// v6.54: EASY default highlighted
     btn.textContent=ship.name;btn.dataset.idx=i;
     btn.addEventListener('click',function(e){e.stopPropagation();e.preventDefault();selectShip(i)});
     let lastT=0;
@@ -5665,7 +5921,7 @@ function buildShipUI(){
       const n=Date.now();if(n-lastT<300)return;lastT=n;
       e.stopPropagation();e.preventDefault();selectShip(i)},{passive:false});
     box.appendChild(btn)});
-  document.getElementById('ship-desc').textContent=SHIP_ROSTER[0].desc}
+  document.getElementById('ship-desc').textContent=SHIP_ROSTER[1].desc}
 function selectShip(i){
   S.shipIdx=i;selectedShip=SHIP_ROSTER[i];
   const box=document.getElementById('ship-options');
@@ -5790,6 +6046,16 @@ function openOptions(){
     const b=document.getElementById('op-gfx-'+k);if(b)b.classList.toggle('on',OPT.gfxQuality===k)});
   const desc=document.getElementById('op-gfx-desc');
   if(desc)desc.textContent=(GFX_LEVELS[OPT.gfxQuality]||GFX_LEVELS.medium).label;
+  // v6.54: input mode buttons highlight
+  try{
+    const stored=localStorage.getItem('ciMobileMode')||'auto';
+    ['auto','pc','mobile'].forEach(m=>{
+      const b=document.getElementById('op-input-'+m);if(b)b.classList.toggle('on',stored===m);
+    });
+    const id=document.getElementById('op-input-desc');
+    if(id){const cur=isMobile?'MOBILE (touch controls on)':'PC (keyboard/mouse)';
+      id.textContent=stored==='auto'?('AUTO → '+cur):('MANUAL: '+cur)}
+  }catch(e){}
 }
 // ============ CHARACTER GALLERY ============
 const GALLERY=[
@@ -6044,7 +6310,7 @@ function toggleDebug(){
 if(location.search.indexOf('debug')>=0){setTimeout(()=>toggleDebug(),500)}
 
 // Callsign pool - default + 8 random picks (cult movie/TV pilots)
-const CALLSIGN_POOL=['JOHN RAMBO','PEEWEE','MALLICK','KEN','MARCY','HASSELHOFF','DEVON','RC3','HG'];
+const CALLSIGN_POOL=['JOHN RAMBO','PEEWEE','MARIC','KEN','MARCY','HASSELHOFF','DEVON','RC3','HG','JACKIE'];
 
 // Fill preset buttons on page load
 function buildCallsignPresets(){
@@ -6123,6 +6389,8 @@ function restartFromGameOver(){
     try{if(megaBossProjectiles){megaBossProjectiles.forEach(p=>{try{scene.remove(p.mesh)}catch(e){}});megaBossProjectiles.length=0}}catch(e){}
     // Clean boss cinematic
     try{if(bossCinematic)endBossCinematic()}catch(e){}
+    // Clean hangar tunnel rush (v6.54)
+    try{clearHangarTunnelRush()}catch(e){}
     // Reset stamp
     const st=document.getElementById('stamp');if(st){st.classList.remove('animate');st.style.display='none'}
     showTitle();
@@ -6200,13 +6468,71 @@ function catapultLaunch(){
     sfx.launchSound();
     runCatapultSequence();// 3-second dramatic launch
   },5200);
-  setTimeout(()=>{co.style.display='none';actualStartGame()},8500)// extended to accommodate the sequence
+  // v6.54: After 3s launch animation, hold for ~4s of radio chatter before starting game
+  // Post-launch radio chatter (3 voices + Roger)
+  setTimeout(()=>{
+    catText.textContent='IN FLIGHT';
+    catText.style.color='#0f8';
+    catText.style.fontSize='24px';
+    catCount.textContent='COMMS CHECK...';
+    catCount.style.fontSize='14px';
+    catCount.style.color='#0aa';
+  },8200);
+  setTimeout(()=>playComm('hq','Control to '+(S.callsign||'Alpha-1')+', launch confirmed. Heading into combat zone.'),8300);
+  setTimeout(()=>playComm('wingman','Wingman-2 to Control. Visual on '+(S.callsign||'Alpha-1')+'. On your six!'),9700);
+  setTimeout(()=>playComm('nav','Navigator here. Course plotted. All systems nominal. Weapons hot.'),11100);
+  setTimeout(()=>{
+    catCount.textContent='ROGER - ENGAGING';
+    catCount.style.color='#ff0';
+    playComm('pilot','Roger! ラジャー! '+(S.callsign||'Alpha-1')+' engaging!');
+    sfx._o('square',1000,sfx.ctx.currentTime,.2,.1);
+  },12500);
+  setTimeout(()=>{co.style.display='none';actualStartGame()},13800);// extended for radio drama
 }
 
 // ===== DRAMATIC 3-SECOND LAUNCH SEQUENCE =====
 let catapultActive=false;
+// v6.54: Rushing 3D hangar tunnel (walls+floor+ceiling zooming past for real launch feel)
+let hangarTunnelMeshes=[];
+function buildHangarTunnelRush(){
+  hangarTunnelMeshes.forEach(m=>{try{scene.remove(m)}catch(e){}});hangarTunnelMeshes=[];
+  const mWall=new THREE.LineBasicMaterial({color:0xff6600,transparent:true,opacity:.7});
+  const mFloor=new THREE.LineBasicMaterial({color:0xff8800,transparent:true,opacity:.8});
+  const mGrid=new THREE.LineBasicMaterial({color:0xffaa00,transparent:true,opacity:.6});
+  for(let i=0;i<14;i++){
+    const z=-180+i*14;
+    const lw=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.6,14,12)),mWall);
+    lw.position.set(-10,0,z);scene.add(lw);hangarTunnelMeshes.push(lw);
+    const rw=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.6,14,12)),mWall);
+    rw.position.set(10,0,z);scene.add(rw);hangarTunnelMeshes.push(rw);
+    const fl=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(22,.4,12)),mFloor);
+    fl.position.set(0,-7,z);scene.add(fl);hangarTunnelMeshes.push(fl);
+    const ce=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(22,.4,12)),mFloor);
+    ce.position.set(0,7,z);scene.add(ce);hangarTunnelMeshes.push(ce);
+    if(i%3===0){
+      const ring=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(8,.15,6,12)),mGrid);
+      ring.position.set(0,0,z);ring.rotation.y=Math.PI/2;scene.add(ring);hangarTunnelMeshes.push(ring);
+    }
+  }
+}
+function updateHangarTunnelRush(dt){
+  if(hangarTunnelMeshes.length===0)return;
+  const speed=140;
+  for(let i=hangarTunnelMeshes.length-1;i>=0;i--){
+    const m=hangarTunnelMeshes[i];
+    m.position.z+=speed*dt;
+    if(m.position.z>20){m.position.z=-180}
+  }
+}
+function clearHangarTunnelRush(){
+  hangarTunnelMeshes.forEach(m=>{try{scene.remove(m)}catch(e){}});hangarTunnelMeshes=[];
+}
 function runCatapultSequence(){
-  catapultActive=true;// v6.51: tells updateTitle to stop hijacking the camera
+  catapultActive=true;// v6.54: tells updateTitle to stop hijacking the camera
+  // v6.54: Hide hangar immediately on launch (it is behind us)
+  if(titlePlanet)titlePlanet.visible=false;
+  ['hangar-status','hangar-status2'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none'});
+  buildHangarTunnelRush();// v6.54: build the 3D hangar tunnel
   const tunnel=document.getElementById('cat-tunnel');
   const lines=document.getElementById('cat-speedlines');
   const flash=document.getElementById('cat-flash');
@@ -6258,8 +6584,13 @@ function runCatapultSequence(){
   const startTime=performance.now();
   const baseCamZ=camera.position.z;
   const baseCamY=camera.position.y;
+  let lastFrameTime=startTime;
   const animateLaunch=()=>{
-    const t=(performance.now()-startTime)/1000;
+    const now=performance.now();
+    const frameDt=(now-lastFrameTime)/1000;lastFrameTime=now;
+    const t=(now-startTime)/1000;
+    // Drive the rushing hangar tunnel every frame
+    updateHangarTunnelRush(frameDt);
     if(t>=3){
       // End of launch
       tunnel.style.display='none';
@@ -6267,6 +6598,7 @@ function runCatapultSequence(){
       camera.rotation.set(0,0,0);
       camera.position.set(0,0,C.CAM_Z);
       catapultActive=false;// release camera back to normal flow
+      clearHangarTunnelRush();// clean up 3D tunnel meshes
       return;
     }
     // t: 0 → 3s
@@ -6350,7 +6682,7 @@ function actualStartGame(){
   const shipMult=(selectedShip&&selectedShip.hpMult)||1;
   S.phase='PLAYING';S.score=0;S.lives=Math.ceil(C.LIVES*shipMult);S.power=0;S.kills=0;S.wave=1;S.waveLeft=0;
   S.nextBonus=C.BONUS_THR;S.invTimer=0;S.gameTime=0;S.fortTimer=0;S.coreHP=0;S.coreAlive=false;
-  S.shakeT=0;S.cycle=0;S.heat=0;S.overheated=false;S.napalmAmmo=0;S.returnTimer=0;S.dockTimer=0;S.dockPhase=0;
+  S.shakeT=0;S.cycle=0;S.heat=0;S.overheated=false;S.napalmAmmo=C.NAPALM_START;S.returnTimer=0;S.dockTimer=0;S.dockPhase=0;
   S.replayTimer=0;S.replayCut=0;S.escapeTimer=0;S.lastCommTime=0;commCooldown=8;
   player.x=0;player.y=0;fortPhase=0;
   enemies.forEach(e=>scene.remove(e.mesh));enemies.length=0;
@@ -6395,12 +6727,17 @@ window.addEventListener('keydown',e=>{
       if(titleStep===0)confirmCallsign();
       else if(titleStep===1)confirmLaunch();
       return}}
-  // Game over / Victory restart
+  // Game over / Victory restart (but NOT during CONTINUE screen - v6.54)
   if((e.code==='Enter'||e.code==='Space')&&(S.phase==='GAMEOVER'||S.phase==='VICTORY')&&spaceReady){
     e.preventDefault();spaceReady=false;
     S.phase='LAUNCHING';// guard
     showTitle();// go back to hangar
     setTimeout(()=>{spaceReady=true},300);return}
+  // Allow Enter on CONTINUE screen to trigger continueWithShip (keyboard accessibility)
+  if(e.code==='Enter'&&S.phase==='CONTINUE'&&spaceReady){
+    e.preventDefault();spaceReady=false;
+    try{continueWithShip()}catch(er){}
+    setTimeout(()=>{spaceReady=true},800);return}
   // Space for shooting during gameplay
   if(e.code==='Space'&&S.phase!=='TITLE'){e.preventDefault()}
   // Napalm
@@ -6420,7 +6757,7 @@ const HANGAR_CAMS=[
 ];
 let hangarCamIdx=0,hangarCamT=0;
 function updateTitle(dt){titleT+=dt;if(!titlePlanet)return;
-  // v6.51: skip hangar camera override during catapult launch sequence
+  // v6.54: skip hangar camera override during catapult launch sequence
   // (otherwise the launch rotation/shake gets clobbered every frame)
   if(!catapultActive){
     hangarCamT+=dt;
@@ -6479,22 +6816,44 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
   updateStars(dt);updateSpeedLines(dt);updatePersistentFortress(dt);renderer.render(scene,camera)}
 
 // ---- Mobile Touch System ----
-// Mobile detection: require UA evidence OR (coarse-pointer + small screen) combo.
-// This avoids false positives on touch-screen laptops / desktop browsers that expose touch events.
-const isMobile=(function(){
+// v6.54: Mobile detection with manual override option (OPT.inputMode: 'auto'|'mobile'|'pc')
+// Stored in localStorage key 'ciMobileMode'
+function detectIsMobile(){
+  // Check manual override first (localStorage)
+  try{
+    const forced=localStorage.getItem('ciMobileMode');
+    if(forced==='mobile')return true;
+    if(forced==='pc')return false;
+  }catch(e){}
   const ua=navigator.userAgent||'';
   const iosUA=/iPad|iPhone|iPod/i.test(ua);
   const androidUA=/Android/i.test(ua);
   const mobileUA=/Mobile|mobi/i.test(ua);
   const coarsePointer=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
   const noHover=!!(window.matchMedia&&window.matchMedia('(hover:none)').matches);
-  const smallScreen=window.innerWidth<800;
+  const touchSupport=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  const smallScreen=window.innerWidth<900;
   // Trust mobile UA strings outright
   if(iosUA||androidUA||mobileUA)return true;
-  // Otherwise require BOTH narrow screen AND (coarse pointer OR no hover)
-  if(smallScreen&&(coarsePointer||noHover))return true;
+  // Desktop-class: mouse + wide screen + hover support
+  if(!touchSupport&&!smallScreen)return false;
+  // Narrow screen AND touch-capable AND no-hover = phone/tablet
+  if(smallScreen&&touchSupport&&(noHover||coarsePointer))return true;
   return false;
-})();
+}
+let isMobile=detectIsMobile();
+// Helper to set manual override and reload
+function setInputMode(mode){
+  try{
+    if(mode==='auto')localStorage.removeItem('ciMobileMode');
+    else localStorage.setItem('ciMobileMode',mode);
+    isMobile=detectIsMobile();
+    // Refresh UI that depends on isMobile
+    if(typeof applyOptions==='function')applyOptions();
+    // Force reload to rebuild touch controls/UI
+    setTimeout(()=>location.reload(),300);
+  }catch(e){}
+}
 const touch={stickX:0,stickY:0,firing:false,stickActive:false};
 
 function setupTouch(){
@@ -6752,7 +7111,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.51 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.54 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
