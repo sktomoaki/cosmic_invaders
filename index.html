@@ -543,13 +543,17 @@ canvas.no-click{pointer-events:none}
 </style>
 </head>
 <body>
-<!-- Version banner - shows immediately even before JS loads. Proves what version is loaded. -->
+<!-- v6.55: version banner only shown before game loads; hidden immediately on title. -->
 <div id="version-banner" style="position:fixed;top:0;left:0;right:0;z-index:99999;
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
   COSMIC INVADERS v6.54 - LOADED
 </div>
+<style>
+  /* Auto-hide banner once game reaches TITLE or beyond */
+  body.game-ready #version-banner{display:none!important}
+</style>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
   <div style="position:fixed;top:40px;left:10px;right:10px;z-index:99998;
@@ -1057,6 +1061,22 @@ class SFX{
     this._n(t,.15,.3,8000,2000);this._n(t+.05,.12,.25,12000,4000);
     // Tail release (body shake)
     this._o('sine',140,t+.08,.2,.2)}
+  turretFire(){if(!this.ctx)return;const t=this.ctx.currentTime;
+    // v6.55: "BASHUN!" - low compressed thump + metallic chamber release
+    // Deep kick (low sine thump, fast decay)
+    this._o('sine',60,t,.15,.45);
+    this._o('sine',85,t,.13,.35);
+    // Mid-range "shu" body (sawtooth sweep downward)
+    const sw=this.ctx.createOscillator();const sg=this.ctx.createGain();
+    sw.type='sawtooth';sw.frequency.setValueAtTime(260,t);
+    sw.frequency.exponentialRampToValueAtTime(45,t+.28);
+    sg.gain.setValueAtTime(.35,t);sg.gain.exponentialRampToValueAtTime(.001,t+.3);
+    sw.connect(sg);sg.connect(this.g);sw.start(t);sw.stop(t+.32);
+    // Burst noise tail (chamber air)
+    this._n(t,.12,.28,2500,200);
+    // Muzzle click
+    this._o('square',180,t,.05,.15);
+  }
   bossHit(){if(!this.ctx)return;const t=this.ctx.currentTime;
     // Big boss-specific impact with extra weight
     this._o('sawtooth',60,t,.3,.5);this._o('sine',100,t,.3,.4);
@@ -2122,10 +2142,73 @@ function makeWallSeg(){const g=new THREE.Group();
     pt.position.set(x,y,z);g.add(pt)});
   return g}
 
+// v6.55: turrets 4x bigger. Two variants: wall-mounted (horizontal arm) + floor-mounted (upright).
 function makeTurret(){const g=new THREE.Group();const m=new THREE.LineBasicMaterial({color:0xff6600});
-  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,1.5,1.5)),m));
-  const b=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.15,.15,2,4)),m);
-  b.rotation.x=Math.PI/2;b.position.z=1;g.add(b);return g}
+  const mDark=new THREE.LineBasicMaterial({color:0xaa4400});
+  // Main base cube (4x: 1.5→6)
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(6,6,6)),m));
+  // Inner armor block
+  const inner=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4,4,4)),mDark);
+  g.add(inner);
+  // Twin barrels (4x longer, thicker)
+  [-1.5,1.5].forEach(off=>{
+    const b=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.6,8,6)),m);
+    b.rotation.x=Math.PI/2;b.position.set(off,0,4);g.add(b);
+    // muzzle tip
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.5)),m);
+    tip.position.set(off,0,8);g.add(tip);
+  });
+  // Rotation housing
+  const ring=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(3.5,.3,4,10)),m);
+  ring.rotation.x=Math.PI/2;g.add(ring);
+  return g}
+// Wall-mounted turret: horizontal arm poking out from fortress wall
+function makeWallTurret(){
+  const g=new THREE.Group();const m=new THREE.LineBasicMaterial({color:0xff4422});
+  const mDark=new THREE.LineBasicMaterial({color:0xaa3311});
+  // Mount base (flattened box, attaches to wall side)
+  const mount=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(3,5,5)),m);
+  g.add(mount);
+  // Extending arm toward corridor center
+  const arm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(6,2,2)),mDark);
+  arm.position.x=4;g.add(arm);
+  // Cannon head at end of arm (octagonal housing)
+  const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(2.2,2.5,3,8)),m);
+  head.rotation.z=Math.PI/2;head.position.x=8;g.add(head);
+  // Cannon barrel - long thick
+  const barrel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.6,7,6)),m);
+  barrel.rotation.x=Math.PI/2;barrel.position.set(8,0,4);g.add(barrel);
+  // Muzzle
+  const muzzle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.6)),m);
+  muzzle.position.set(8,0,8);g.add(muzzle);
+  // Support strut
+  const strut=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(5,.4,.4)),mDark);
+  strut.position.set(3,-1.5,0);strut.rotation.z=-.3;g.add(strut);
+  return g}
+// Floor-mounted turret: big upright turret on the trench floor
+function makeFloorTurret(){
+  const g=new THREE.Group();const m=new THREE.LineBasicMaterial({color:0xff5500});
+  const mDark=new THREE.LineBasicMaterial({color:0xaa3300});
+  // Wide base plate
+  const base=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(4,5,1.5,8)),m);
+  g.add(base);
+  // Central column
+  const col=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(2,2.5,4,6)),mDark);
+  col.position.y=2.5;g.add(col);
+  // Rotating top (turret head - dome)
+  const dome=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(3,8,5,0,Math.PI*2,0,Math.PI/2)),m);
+  dome.position.y=4.5;g.add(dome);
+  // Twin barrels forward (pointing toward player)
+  [-1.2,1.2].forEach(ox=>{
+    const b=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.5,.5,7,5)),m);
+    b.rotation.x=Math.PI/2;b.position.set(ox,4.5,3.5);g.add(b);
+    const muzzle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.45)),m);
+    muzzle.position.set(ox,4.5,7);g.add(muzzle);
+  });
+  // Rotation band
+  const band=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(2.8,.2,4,10)),m);
+  band.rotation.x=Math.PI/2;band.position.y=4.3;g.add(band);
+  return g}
 
 // Space Station
 function makeStation(){const g=new THREE.Group();const m=new THREE.LineBasicMaterial({color:0x00ff88});
@@ -4375,7 +4458,9 @@ function checkCollisions(){const camP=camera.position;
   // pBeams vs enemies
   for(let bi=pBeams.length-1;bi>=0;bi--){const b=pBeams[bi];
     for(let ei=enemies.length-1;ei>=0;ei--){const e=enemies[ei];
-      const hr=e.isAsteroid?C.HR_A:C.HR_E;const r=C.HR_B+hr;
+      // v6.55: big fortress turrets get a big hitbox (6 units instead of C.HR_E 1.8)
+      const hr=e.isAsteroid?C.HR_A:(e.isBigTurret?6:C.HR_E);
+      const r=C.HR_B+hr;
       const bossHr=e.isBoss?14:0;// v6.54: expanded for easier boss hits
       if(dsq(b.mesh.position,e.mesh.position)<(r+bossHr)*(r+bossHr)){e.hp-=b.dmg;scene.remove(b.mesh);pBeams.splice(bi,1);
         if(e.hp<=0){
@@ -4586,7 +4671,10 @@ function updateFortress(dt){S.fortTimer+=dt;
   if(fortPhase===0&&S.fortTimer>7)fortPhase=1;
   if(fortPhase===1&&S.fortTimer>30){fortPhase=2;spawnCore2()}
   if(fortPhase>=1){wallSpT-=dt;if(wallSpT<=0){spawnWallPair();wallSpT=.7}}
-  turSpT-=dt;if(turSpT<=0){spawnFortTurret();turSpT=Math.max(.8,2.5-S.fortTimer*.03)}
+  // v6.55: Turrets only spawn AFTER walls have appeared (phase>=1) AND we have walls in scene
+  if(fortPhase>=1&&walls.length>0){
+    turSpT-=dt;if(turSpT<=0){spawnFortTurret();turSpT=Math.max(.8,2.5-S.fortTimer*.03)}
+  }
   // Walls scroll
   for(let i=walls.length-1;i>=0;i--){walls[i].position.z+=30*dt;
     if(walls[i].position.z>20){scene.remove(walls[i]);walls.splice(i,1)}}
@@ -4676,31 +4764,51 @@ function updateFortress(dt){S.fortTimer+=dt;
     scanBlip.style.top='15%';
     scanBlip.style.left=(50+Math.sin(S.fortTimer*2)*20)+'%'}}
 
+// v6.55: Death Star trench-run style floor - detailed wireframe with greebles,
+// pipes, raised blocks, scattered equipment. Restored from v6.45 (simpler/denser).
 function makeFortressFloor(){
-  // Floor height = 1/3 of wall height (wall = 18, floor = 6)
   const g=new THREE.Group();
-  const mBright=new THREE.LineBasicMaterial({color:0xff4400,transparent:true,opacity:.6});
-  const mDim=new THREE.LineBasicMaterial({color:0x884400,transparent:true,opacity:.4});
-  const mGlow=new THREE.LineBasicMaterial({color:0xff6600,transparent:true,opacity:.8});
-  // Main thick floor slab (6 high = 1/3 of wall 18)
-  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(60,6,18)),mBright));
-  // Cross ribs (scaled up in height proportionally)
-  for(let i=-2;i<=2;i++){const r=new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(60,1.6,.5)),mDim);
-    r.position.z=i*3.5;g.add(r)}
-  for(let i=-4;i<=4;i++){const r=new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,1.6,18)),mDim);
-    r.position.x=i*6;g.add(r)}
-  // Raised center track (taller)
-  const track=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(58,3.2,4)),mGlow);
-  track.position.y=2;g.add(track);
-  // Warning lights along edges (at top of thicker floor)
-  for(let x=-25;x<=25;x+=8){
+  const mBase=new THREE.LineBasicMaterial({color:0x886655,transparent:true,opacity:.55});
+  const mDim=new THREE.LineBasicMaterial({color:0x664433,transparent:true,opacity:.45});
+  const mGlow=new THREE.LineBasicMaterial({color:0xff6600,transparent:true,opacity:.75});
+  const mPipe=new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.5});
+  // Main deck slab (60 wide, 3 thick, 18 deep)
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(60,3,18)),mBase));
+  // Edge rails (low parapet along both corridor sides)
+  [-8.5,8.5].forEach(z=>{
+    const rail=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(60,.6,.6)),mDim);
+    rail.position.set(0,1.7,z);g.add(rail);
+  });
+  // Scattered raised equipment blocks (greebles)
+  for(let i=0;i<5;i++){
+    const bw=1+Math.random()*2,bh=.5+Math.random()*1.5,bd=1+Math.random()*2;
+    const bx=(Math.random()-.5)*48,bz=(Math.random()-.5)*12;
+    const blk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(bw,bh,bd)),mDim);
+    blk.position.set(bx,1.5+bh/2,bz);g.add(blk);
+  }
+  // Pipes running lengthwise along the trench (Death Star signature)
+  [-4,0,4].forEach(z=>{
+    const pipe=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.3,.3,60,6)),mPipe);
+    pipe.rotation.z=Math.PI/2;pipe.position.set(0,1.9,z);g.add(pipe);
+  });
+  // Cross ribs (support beams every 3 units across the 60-wide floor)
+  for(let x=-27;x<=27;x+=4.5){
+    const rib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,1.1,18)),mDim);
+    rib.position.set(x,1.0,0);g.add(rib);
+  }
+  // Small glowing exhaust vents (look-and-feel nods to Death Star)
+  for(let x=-24;x<=24;x+=6){
+    const vent=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,.15,1.5)),mGlow);
+    vent.position.set(x,1.58,(Math.random()-.5)*10);g.add(vent);
+  }
+  // Warning lights (small point pairs)
+  for(let x=-25;x<=25;x+=10){
     const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(new Float32Array([0,0,0]),3));
-    const pt=new THREE.Points(pg,new THREE.PointsMaterial({color:0xff2200,size:4,sizeAttenuation:true}));
-    pt.position.set(x,4,-8);g.add(pt);
-    const pt2=pt.clone();pt2.position.set(x,4,8);g.add(pt2)}
-  g.position.y=-6;
+    const pt=new THREE.Points(pg,new THREE.PointsMaterial({color:0xff3300,size:4,sizeAttenuation:true}));
+    pt.position.set(x,1.8,-8.3);g.add(pt);
+    const pt2=pt.clone();pt2.position.set(x,1.8,8.3);g.add(pt2);
+  }
+  g.position.y=-15;// position below camera (walls span ±18 now)
   return g}
 
 // Corridor curves: enabled for cycle >= 1, or from cycle 0 if difficulty = 'advanced'
@@ -4718,7 +4826,11 @@ function spawnWallPair(){
   [-30,30].forEach(x=>{const w=makeWallSeg();
     w.position.set(x+curve,0,C.SPAWN_Z);scene.add(w);walls.push(w);
     w.userData.curveAtSpawn=curve});
-  // v6.54: floor polygons removed - open space below for more ship movement freedom
+  // v6.55: Death Star trench-run style floor RESTORED
+  const floor=makeFortressFloor();
+  floor.position.x=curve;floor.position.z=C.SPAWN_Z;
+  scene.add(floor);walls.push(floor);
+  floor.userData.curveAtSpawn=curve;
   // Ceiling girders (occasional)
   if(Math.random()<.5){
     const girM=new THREE.LineBasicMaterial({color:0x884400,transparent:true,opacity:.5});
@@ -4727,11 +4839,27 @@ function spawnWallPair(){
     gir.userData.curveAtSpawn=curve}
 }
 
-function spawnFortTurret(){const side=Math.random()>.5?1:-1;const mesh=makeTurret();
-  mesh.position.set(side*(20+Math.random()*8),(Math.random()-.5)*10,C.SPAWN_Z);scene.add(mesh);
-  enemies.push({mesh,type:1,hp:2,baseX:mesh.position.x,baseY:mesh.position.y,
-    sineAmp:0,sineFreq:0,sinePhase:0,speedZ:15,shootTimer:.5+Math.random(),shootCD:1.2,
-    spinRate:0,spiralR:0,spiralA:0,isTurret:true});S.waveLeft++}
+function spawnFortTurret(){
+  // v6.55: 50/50 wall-mounted vs floor-mounted turret. Both 4x bigger with bigger hit radius.
+  const isFloor=Math.random()<.5;
+  const side=Math.random()>.5?1:-1;
+  let mesh,x,y;
+  if(isFloor){
+    mesh=makeFloorTurret();
+    // Floor turret: placed on the trench floor (y=-14), centered-ish x
+    x=(Math.random()-.5)*30;y=-14;
+    // Orient so twin barrels face player (look toward +z = player direction, default already correct)
+  } else {
+    mesh=makeWallTurret();
+    // Wall turret: attached to the tall wall at x=±25, pointing inward
+    x=side*25;y=(Math.random()-.5)*20;
+    mesh.rotation.y=side<0?0:Math.PI;// flip when on right wall
+  }
+  mesh.position.set(x,y,C.SPAWN_Z);scene.add(mesh);
+  enemies.push({mesh,type:1,hp:3,baseX:x,baseY:y,
+    sineAmp:0,sineFreq:0,sinePhase:0,speedZ:15,shootTimer:.5+Math.random(),shootCD:1.4,
+    spinRate:0,spiralR:0,spiralA:0,isTurret:true,isBigTurret:true});
+  S.waveLeft++}
 
 function spawnCore2(){if(coreMesh)scene.remove(coreMesh);coreMesh=makeCore();
   coreInitialZ=-100;coreMesh.position.set(0,0,coreInitialZ);coreMesh.visible=true;scene.add(coreMesh);
@@ -5772,6 +5900,10 @@ function showCockpit(show){const d=show?'block':'none';
 
 function showTitle(){S.phase='TITLE';hideAllUI();showCockpit(false);
   try{catapultActive=false}catch(e){}// safety reset
+  // v6.55: hide the version/auto-launch banner once we reach the title
+  try{document.body.classList.add('game-ready');
+    const vb=document.getElementById('version-banner');if(vb)vb.style.display='none';
+  }catch(e){}
   document.querySelector('canvas').classList.add('no-click');
   document.getElementById('title-screen').style.display='flex';
   document.getElementById('title-hiscore').textContent=`HI-SCORE: ${S.hiScore}`;
