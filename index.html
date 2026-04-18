@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.36</title>
+<title>COSMIC INVADERS v6.39</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -277,8 +277,36 @@ canvas.no-click{pointer-events:none}
 /* Catapult overlay */
 #catapult-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:190;
   display:none;pointer-events:none;flex-direction:column;align-items:center;justify-content:center}
-#catapult-overlay .cat-text{font-size:28px;color:#0f0;letter-spacing:6px;text-shadow:0 0 15px #0f0}
-#catapult-overlay .cat-count{font-size:64px;color:#ff0;margin-top:10px;text-shadow:0 0 20px #ff0;font-weight:bold}
+#catapult-overlay .cat-text{font-size:28px;color:#0f0;letter-spacing:6px;text-shadow:0 0 15px #0f0;
+  z-index:2;position:relative}
+#catapult-overlay .cat-count{font-size:64px;color:#ff0;margin-top:10px;text-shadow:0 0 20px #ff0;font-weight:bold;
+  z-index:2;position:relative}
+/* Catapult tunnel - concentric rings zooming outward */
+#cat-tunnel{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;
+  display:none;pointer-events:none;overflow:hidden;perspective:400px;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,0) 0%,rgba(0,0,0,0.4) 70%,rgba(0,0,0,0.85) 100%)}
+#cat-tunnel .ring{position:absolute;top:50%;left:50%;border:2px solid #0ff;border-radius:50%;
+  width:100px;height:100px;margin:-50px 0 0 -50px;
+  animation:tunnelZoom 1.2s linear infinite;box-shadow:0 0 20px #0ff,inset 0 0 20px #0ff}
+@keyframes tunnelZoom{
+  0%{transform:translateZ(-2000px) scale(.1);opacity:0}
+  20%{opacity:1}
+  100%{transform:translateZ(500px) scale(20);opacity:0}
+}
+/* Speed lines - streaks from center outward */
+#cat-speedlines{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;
+  display:none;pointer-events:none;overflow:hidden}
+#cat-speedlines .streak{position:absolute;top:50%;left:50%;width:2px;height:300px;
+  background:linear-gradient(to bottom,transparent,#fff,transparent);
+  transform-origin:50% 0;animation:streakShoot .6s linear infinite}
+@keyframes streakShoot{
+  0%{transform:translate(-50%,-50%) rotate(var(--ang)) translateY(0) scaleY(.2);opacity:0}
+  20%{opacity:1}
+  100%{transform:translate(-50%,-50%) rotate(var(--ang)) translateY(100vh) scaleY(1.5);opacity:0}
+}
+/* Screen blur on launch */
+#cat-flash{position:fixed;top:0;left:0;width:100%;height:100%;z-index:3;
+  display:none;pointer-events:none;background:#fff;opacity:0;transition:opacity .15s}
 
 /* Replay Overlay */
 #replay-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:140;
@@ -474,7 +502,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.36 - LOADED
+  COSMIC INVADERS v6.39 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -491,7 +519,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.36 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.39 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -635,7 +663,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.36</div>
+    <div class="version">VERSION 6.39</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (default: JOHN RAMBO)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -705,6 +733,9 @@ canvas.no-click{pointer-events:none}
       <input type="range" min="1" max="5" value="1" oninput="sfx.setBGMLayer(+this.value);document.getElementById('val-bgml').textContent=this.value">
       <span id="val-bgml">1</span></div>
   </div>
+  <div id="cat-tunnel"></div>
+  <div id="cat-speedlines"></div>
+  <div id="cat-flash"></div>
   <div id="catapult-overlay">
     <div class="cat-text" id="cat-text">CATAPULT STANDBY</div>
     <div class="cat-count" id="cat-count"></div>
@@ -758,7 +789,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.36 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.39 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -779,7 +810,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.36 - Universal Auto-Launch
+//  COSMIC INVADERS v6.39 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -793,7 +824,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.36 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.39 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1237,10 +1268,9 @@ function updateComms(dt){
   commCooldown-=dt;
   if(commCooldown>0)return;
   const r=Math.random();
-  // 35% chance: enemy intercept (Gundam-style, more common during boss wave)
+  // Enemy intercept ONLY during boss fight (not general gameplay)
   const bossActive=enemies.some(e=>e.isBoss);
-  const enemyChance=bossActive?.5:.35;
-  if(r<enemyChance&&enemies.length>0){
+  if(bossActive&&r<.5){
     playComm('enemy',pickComm(ENEMY_COMMS_GENERAL));
   } else if(r<.55){
     const now=new Date();const h=now.getHours(),m=now.getMinutes();
@@ -2665,13 +2695,20 @@ function checkCollisions(){const camP=camera.position;
             // Heal sound - ascending sine arpeggio
             if(sfx.ctx){const t=sfx.ctx.currentTime;
               [523,659,784,1047,1319].forEach((f,k)=>sfx._o('sine',f,t+k*.08,.2,.12))}
-            // Restore shield
-            S.lives=Math.min(S.lives+1,C.SHIELD_MAX);
-            if(typeof updateShieldGauge==='function')updateShieldGauge(false);
+            // Restore shield OR refill napalm if shield is already full
+            if(S.lives>=C.SHIELD_MAX){
+              // Shield full → restock napalm (+2)
+              S.napalmAmmo=Math.min((S.napalmAmmo||0)+2,C.NAPALM_START+4);
+              if(typeof updateNapalmDisplay==='function')updateNapalmDisplay();
+              addScore(50);
+              playComm('nav','Shield full! Napalm reloaded!');
+            } else {
+              S.lives=Math.min(S.lives+1,C.SHIELD_MAX);
+              if(typeof updateShieldGauge==='function')updateShieldGauge(false);
+              addScore(30);
+              playComm('nav','Shield energy restored!');
+            }
             updateHUD();
-            addScore(30);
-            // Comm feedback
-            playComm('nav','Shield energy restored!');
             scene.remove(e.mesh);enemies.splice(ei,1);
           } else {
             const ec=e.isBonus?0xffd700:e.isAsteroid?0x888888:ECOLORS[e.type%4];
@@ -2734,11 +2771,12 @@ function checkPowerUp(){const nl=Math.min(C.MAX_POWER,Math.floor(S.kills/C.POWER
 // ============ BONUS ============
 function triggerBonus(){S.phase='BONUS';S.bonusTimer=C.BONUS_DUR;S.nextBonus+=C.BONUS_THR;
   sfx.bonusStart();playVoice('bonus');eBeams.forEach(b=>scene.remove(b.mesh));eBeams.length=0;
-  // Determine capsule count: always 1-2 per bonus stage (random)
-  const capsuleCount=1+Math.floor(Math.random()*2);
+  // Bonus stage: 5 targets, 1 capsule (reduced from 10/2 for performance)
+  const BONUS_TOTAL=5;
+  const capsuleCount=1;
   const capsuleIdx=new Set();
-  while(capsuleIdx.size<capsuleCount)capsuleIdx.add(Math.floor(Math.random()*10));
-  for(let i=0;i<10;i++){
+  while(capsuleIdx.size<capsuleCount)capsuleIdx.add(Math.floor(Math.random()*BONUS_TOTAL));
+  for(let i=0;i<BONUS_TOTAL;i++){
     const isCapsule=capsuleIdx.has(i);
     const mesh=isCapsule?makeEnergyCapsule():makeBonusTarget();
     mesh.position.set((Math.random()-.5)*40,(Math.random()-.5)*15,C.SPAWN_Z+Math.random()*40);scene.add(mesh);
@@ -3342,52 +3380,55 @@ function updateEject(dt){
       sfx._o('sine',110,sfx.ctx.currentTime,.6,.04);
       sfx._o('sine',82,sfx.ctx.currentTime+.3,.6,.03)}
   }
-  // Phase 5: RESCUE DECISION at 9s
+  // Phase 5: FATE COIN FLIP starts at 9s
   if(ejectTimer>=9&&rescuePhase===0){
-    rescuePhase=1;
+    rescuePhase=1;// coin-flipping
+    startFateCoinFlip();
+  }
+  // Phase 5b: FATE resolves at 14s (coin flip takes ~5s)
+  if(ejectTimer>=14&&rescuePhase===1){
+    rescuePhase=2;
+    // Decide NOW (after dramatic build-up)
+    if(S.willRescue===null)S.willRescue=Math.random()<.5;// 50/50 suspense
+    resolveFateCoin();
     if(S.willRescue){
       // RESCUE SUCCESS - spawn rescue ship
       rescueShip=new THREE.Group();
       const rm=new THREE.LineBasicMaterial({color:0x00ff88,transparent:true,opacity:.9});
-      // Rescue cruiser - elongated shape
       rescueShip.add(new THREE.LineSegments(new THREE.EdgesGeometry(
         new THREE.CylinderGeometry(1,1.5,5,6)),rm));
       rescueShip.children[0].rotation.x=Math.PI/2;
-      // Cross marker (medical/rescue)
       const mBar1=new THREE.LineSegments(new THREE.EdgesGeometry(
         new THREE.BoxGeometry(2,.3,.1)),rm);
       mBar1.position.y=1;rescueShip.add(mBar1);
       const mBar2=new THREE.LineSegments(new THREE.EdgesGeometry(
         new THREE.BoxGeometry(.3,1.5,.1)),rm);
       mBar2.position.y=1;rescueShip.add(mBar2);
-      // Engines
       [[-.7,0,2.5],[.7,0,2.5]].forEach(([x,y,z])=>{
         const eg=new THREE.LineSegments(new THREE.EdgesGeometry(
           new THREE.RingGeometry(.15,.3,8)),
           new THREE.LineBasicMaterial({color:0x00aaff}));
         eg.position.set(x,y,z);rescueShip.add(eg)});
-      // Spawn far away, behind camera, will fly toward pod
       rescueShip.position.copy(ejectPod?ejectPod.position:camera.position);
       rescueShip.position.z+=60;rescueShip.position.y+=10;
       scene.add(rescueShip);
-      // RESCUE music - hopeful
       if(sfx.ctx){const t=sfx.ctx.currentTime;
         [261,329,392,523,659,784,1047].forEach((f,k)=>{
           sfx._o('sine',f,t+k*.15,.3,.08);
           sfx._o('triangle',f*2,t+k*.15,.25,.04)})}
       playComm('hq','RESCUE BIRD ACQUIRED YOUR POD! HANG ON!');
-      // Pinball-style bonus text
       showRescueOverlay();
     } else {
-      // NO RESCUE
+      // NO RESCUE - fate denied
+      showDoomOverlay();
       setTimeout(()=>{
         if(ejectPod){scene.remove(ejectPod);ejectPod=null}
         triggerGameOver();
-      },1000);
+      },3500);
     }
   }
-  // Phase 6: Rescue ship approaches (9-13s)
-  if(ejectTimer>9&&ejectTimer<13&&rescueShip){
+  // Phase 6: Rescue ship approaches (14-18s)
+  if(ejectTimer>14&&ejectTimer<18&&rescueShip){
     // Rescue ship flies toward pod
     if(ejectPod){const dx=ejectPod.position.x-rescueShip.position.x;
       const dy=ejectPod.position.y-rescueShip.position.y;
@@ -3400,7 +3441,7 @@ function updateEject(dt){
       if(Math.random()<.6)spawnP(rescueShip.position.clone().add(new THREE.Vector3(0,0,2)),0x00aaff,2,.5);
     }
     // After 3.5s of approach, dock
-    if(ejectTimer>12.5){
+    if(ejectTimer>17.5){
       if(rescueShip&&ejectPod){
         // Docking flash
         spawnP(ejectPod.position.clone(),0x00ff88,20,1);
@@ -3410,13 +3451,132 @@ function updateEject(dt){
       }
     }
   }
-  // Phase 7: Continue screen (13s+)
-  if(ejectTimer>=13.5&&rescuePhase===1){
-    rescuePhase=2;
+  // Update FATE coin spinning/fading
+  if(fateCoin)updateFateCoin(sdt);
+  // Phase 7: Continue screen (18.5s+)
+  if(ejectTimer>=18.5&&rescuePhase===2&&S.willRescue){
+    rescuePhase=3;
     if(rescueShip){scene.remove(rescueShip);rescueShip=null}
+  if(fateCoin){scene.remove(fateCoin);fateCoin=null}
+  if(fateHeartbeatIv){clearInterval(fateHeartbeatIv);fateHeartbeatIv=null}
+  ['fate-overlay','doom-overlay','rescue-overlay'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});
     if(ejectPod){scene.remove(ejectPod);ejectPod=null}
     showContinueScreen();
   }
+}
+
+// ===== FATE COIN FLIP =====
+let fateCoin=null,fateSpinStart=0,fateHeartbeatIv=null;
+function startFateCoinFlip(){
+  // Create a gold 3D wireframe coin (double-sided cylinder) in front of camera
+  fateCoin=new THREE.Group();
+  const mGold=new THREE.LineBasicMaterial({color:0xffd700});
+  const mDark=new THREE.LineBasicMaterial({color:0x886600});
+  // Main coin body (flat cylinder)
+  const coin=new THREE.CylinderGeometry(2,2,.3,16);
+  fateCoin.add(new THREE.LineSegments(new THREE.EdgesGeometry(coin),mGold));
+  // Front face marker (star = rescue)
+  const star=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1,0)),mGold);
+  star.position.y=.18;fateCoin.add(star);
+  // Back face marker (cross = doom)
+  const crossH=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.2,.25,.1)),mDark);
+  crossH.position.y=-.18;fateCoin.add(crossH);
+  const crossV=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.25,.1,2.2)),mDark);
+  crossV.position.y=-.18;fateCoin.add(crossV);
+  // Outer aura ring
+  const aura=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(2.8,.1,6,24)),
+    new THREE.LineBasicMaterial({color:0xffaa00,transparent:true,opacity:.6}));
+  fateCoin.add(aura);
+  fateCoin.name='fateAura';aura.name='aura';
+  // Position in front of camera
+  fateCoin.position.set(camera.position.x,camera.position.y+2,camera.position.z-15);
+  scene.add(fateCoin);
+  fateSpinStart=ejectTimer;
+  // Tension overlay
+  const ov=document.createElement('div');ov.id='fate-overlay';
+  ov.style.cssText='position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:215;'+
+    'text-align:center;color:#ffd700;font-family:Courier New,monospace;font-weight:bold;'+
+    'pointer-events:none;text-shadow:0 0 20px #ffd700';
+  ov.innerHTML='<div style="font-size:28px;letter-spacing:8px;animation:blink .4s step-end infinite">'+
+    'FATE UNKNOWN</div>'+
+    '<div style="font-size:14px;color:#fff;margin-top:10px;letter-spacing:4px">'+
+    'STAR = RESCUE &middot; CROSS = LOST</div>';
+  document.body.appendChild(ov);
+  // Suspenseful heartbeat
+  let hb=0;
+  fateHeartbeatIv=setInterval(()=>{
+    if(!sfx.ctx||!fateCoin)return;
+    const t=sfx.ctx.currentTime;
+    // Two-thump heartbeat
+    sfx._o('sine',55,t,.1,.15);sfx._o('sine',40,t,.15,.2);
+    sfx._o('sine',55,t+.12,.08,.12);sfx._o('sine',40,t+.12,.1,.15);
+    hb++;
+  },700);
+  // Prayer chime
+  if(sfx.ctx){const t=sfx.ctx.currentTime;
+    [880,1046,1318].forEach((f,k)=>sfx._o('sine',f,t+k*.3,.8,.06))}
+  playComm('pilot','Please... please let me make it...');
+  setTimeout(()=>playComm('nav','Come on #N... fight it! Don\'t give up!'),2800);
+}
+
+function resolveFateCoin(){
+  if(fateHeartbeatIv){clearInterval(fateHeartbeatIv);fateHeartbeatIv=null}
+  const ov=document.getElementById('fate-overlay');if(ov)ov.remove();
+  if(fateCoin){
+    // Snap coin to final position showing either star (rescue) or cross (doom)
+    fateCoin.rotation.x=S.willRescue?0:Math.PI;
+    fateCoin.rotation.z=0;
+    fateCoin.rotation.y=0;
+  }
+  // Dramatic reveal sound
+  if(sfx.ctx){const t=sfx.ctx.currentTime;
+    if(S.willRescue){
+      // Triumphant chord
+      [523,659,784].forEach(f=>sfx._o('sine',f,t,1.2,.1))
+    } else {
+      // Doom chord
+      [220,185,165].forEach(f=>sfx._o('sawtooth',f,t,1.5,.1))
+    }
+  }
+  screenFlash(S.willRescue?.8:1.2);
+}
+
+function updateFateCoin(dt){
+  if(!fateCoin)return;
+  const spinTime=ejectTimer-fateSpinStart;
+  if(rescuePhase===1){
+    // Fast random spin that slows down over time
+    const spinSpeed=Math.max(.5,8-spinTime*1.5);
+    fateCoin.rotation.x+=spinSpeed*dt;
+    fateCoin.rotation.y+=spinSpeed*.7*dt;
+    fateCoin.rotation.z+=dt;
+    // Aura pulse
+    const aura=fateCoin.getObjectByName('aura');
+    if(aura){const s=1+Math.sin(spinTime*6)*.15;aura.scale.set(s,s,s)}
+  } else {
+    // Post-resolve: slow rotation showing result
+    fateCoin.rotation.z+=dt*.3;
+    fateCoin.position.y+=dt*.5;
+    // Fade out
+    fateCoin.traverse(o=>{if(o.material&&o.material.transparent===undefined){
+      o.material.transparent=true}if(o.material){o.material.opacity=Math.max(0,(o.material.opacity||1)-dt*.4)}});
+    if(ejectTimer-fateSpinStart>8){scene.remove(fateCoin);fateCoin=null}
+  }
+}
+
+function showDoomOverlay(){
+  const ov=document.createElement('div');ov.id='doom-overlay';
+  ov.style.cssText='position:fixed;top:25%;left:50%;transform:translateX(-50%);z-index:215;'+
+    'text-align:center;color:#f00;font-family:Courier New,monospace;font-weight:bold;'+
+    'pointer-events:none;text-shadow:0 0 25px #f00;animation:tP 1s ease-in-out';
+  ov.innerHTML='<div style="font-size:44px;letter-spacing:10px">PILOT LOST</div>'+
+    '<div style="font-size:14px;color:#faa;margin-top:10px">Rescue failed... mission over</div>';
+  document.body.appendChild(ov);
+  setTimeout(()=>ov.remove(),3500);
+  // Sad tone
+  if(sfx.ctx){const t=sfx.ctx.currentTime;
+    [220,196,174,146,110].forEach((f,k)=>{
+      sfx._o('sine',f,t+k*.4,.8,.12);sfx._o('sine',f*.5,t+k*.4,.9,.08)})}
 }
 
 function showRescueOverlay(){
@@ -3471,33 +3631,42 @@ function pickShip(i){
   if(sfx.ctx)sfx._o('sine',800+i*100,sfx.ctx.currentTime,.08,.08);
 }
 
+let continuing=false;
 function continueWithShip(){
-  const ov=document.getElementById('continue-overlay');if(ov)ov.remove();
-  // Restore lives and continue
-  S.lives=C.LIVES;
-  S.invTimer=3;// brief invincibility
-  S.phase='PLAYING';
-  // Clean up
-  if(ejectPod){scene.remove(ejectPod);ejectPod=null}
-  if(rescueShip){scene.remove(rescueShip);rescueShip=null}
-  if(destroyedShip){scene.remove(destroyedShip);destroyedShip=null}
-  // Reset camera
-  camera.position.set(0,0,C.CAM_Z);camera.rotation.set(0,0,0);
-  // Show HUD back
-  document.getElementById('hud').style.display='block';
-  document.getElementById('cockpit-frame').style.display='block';
-  document.getElementById('reticle').style.display='block';
-  document.getElementById('shield-gauge').style.display='block';
-  document.getElementById('heat-gauge').style.display='block';
-  showTouchControls(true);
-  updateHUD();updateShieldGauge(false);
-  // Rebuild cockpit with new ship colors
-  if(typeof rebuildCockpit3D==='function')rebuildCockpit3D();
-  // Respawn wave
-  enemies.forEach(e=>scene.remove(e.mesh));enemies.length=0;
-  spawnWave(S.wave);
-  sfx.startBGM(Math.min(((S.wave-1)%C.FORT_WAVES)+1,5));
-  playComm('hq','#N, you are back in the fight! Show them what you are made of!');
+  if(continuing)return;continuing=true;// guard against double-click freeze
+  try{
+    const ov=document.getElementById('continue-overlay');if(ov)ov.remove();
+    // Clear ALL remnants
+    ['fate-overlay','doom-overlay','rescue-overlay','continue-overlay','catapult-overlay'].forEach(id=>{
+      const e=document.getElementById(id);if(e)e.style.display='none';if(e&&e.parentNode)e.remove?.()||(e.style.display='none')});
+    if(fateHeartbeatIv){clearInterval(fateHeartbeatIv);fateHeartbeatIv=null}
+    if(ejectPod){scene.remove(ejectPod);ejectPod=null}
+    if(rescueShip){scene.remove(rescueShip);rescueShip=null}
+    if(fateCoin){scene.remove(fateCoin);fateCoin=null}
+    if(destroyedShip){scene.remove(destroyedShip);destroyedShip=null}
+    // Restore state
+    S.lives=C.LIVES;
+    S.invTimer=3;
+    S.phase='PLAYING';
+    S.willRescue=null;
+    rescuePhase=0;ejectTimer=0;
+    // Reset camera
+    camera.position.set(0,0,C.CAM_Z);camera.rotation.set(0,0,0);camera.lookAt(0,0,-100);
+    // Show HUD
+    const show=id=>{const e=document.getElementById(id);if(e)e.style.display='block'};
+    show('hud');show('cockpit-frame');show('reticle');show('shield-gauge');show('heat-gauge');
+    showTouchControls(true);
+    updateHUD();if(typeof updateShieldGauge==='function')updateShieldGauge(false);
+    if(typeof rebuildCockpit3D==='function')rebuildCockpit3D();
+    // Respawn wave
+    enemies.forEach(e=>scene.remove(e.mesh));enemies.length=0;
+    spawnWave(S.wave);
+    sfx.startBGM(Math.min(((S.wave-1)%C.FORT_WAVES)+1,5));
+    playComm('hq','#N, you are back in the fight! Show them what you are made of!');
+  }catch(err){console.error('continueWithShip error:',err);
+    // Fallback: force game over to unstick
+    S.phase='GAMEOVER';triggerGameOver();}
+  setTimeout(()=>continuing=false,500);
 }
 
 function triggerGameOver(){S.phase='GAMEOVER';sfx.stopBGM();sfx.gameOver();playVoice('gameover');
@@ -4017,17 +4186,159 @@ function catapultLaunch(){
   const catCount=document.getElementById('cat-count');
   catText.textContent=S.callsign+', CATAPULT STANDBY';catCount.textContent='';
   sfx.radioStatic(.3);
-  const t0=sfx.ctx.currentTime;
   setTimeout(()=>playComm('nav',S.callsign+', all systems green. Catapult sequence initiated.'),500);
+  // Countdown 3-2-1
   setTimeout(()=>{catText.textContent='LAUNCH IN';catCount.textContent='3';
     sfx._o('sine',600,sfx.ctx.currentTime,.15,.1)},2500);
   setTimeout(()=>{catCount.textContent='2';
     sfx._o('sine',600,sfx.ctx.currentTime,.15,.1)},3500);
   setTimeout(()=>{catCount.textContent='1';
     sfx._o('sine',800,sfx.ctx.currentTime,.15,.1)},4500);
-  setTimeout(()=>{catText.textContent='LAUNCH!';catCount.textContent='';
-    sfx._o('sine',1200,sfx.ctx.currentTime,.3,.15);sfx.launchSound()},5200);
-  setTimeout(()=>{co.style.display='none';actualStartGame()},6000)}
+  // LAUNCH! Begin dramatic sequence
+  setTimeout(()=>{
+    catText.textContent='LAUNCH!';catCount.textContent='';
+    sfx._o('sine',1200,sfx.ctx.currentTime,.3,.15);
+    sfx.launchSound();
+    runCatapultSequence();// 3-second dramatic launch
+  },5200);
+  setTimeout(()=>{co.style.display='none';actualStartGame()},8500)// extended to accommodate the sequence
+}
+
+// ===== DRAMATIC 3-SECOND LAUNCH SEQUENCE =====
+function runCatapultSequence(){
+  const tunnel=document.getElementById('cat-tunnel');
+  const lines=document.getElementById('cat-speedlines');
+  const flash=document.getElementById('cat-flash');
+
+  // Random launch angle (like random rollercoaster start)
+  // Choose a random "approach": dive / ascend / barrel-roll / straight blast
+  const launchTypes=[
+    {name:'ASCEND',rotX:-.4,rotZ:0,rotY:0,msg:'CLIMBING - ANGLE UP!'},
+    {name:'DIVE',rotX:.45,rotZ:0,rotY:0,msg:'DIVING - GO GO GO!'},
+    {name:'BARREL',rotX:0,rotZ:Math.PI*2,rotY:0,msg:'BARREL ROLL!'},
+    {name:'BANK-L',rotX:-.2,rotZ:.6,rotY:.3,msg:'BANKING LEFT!'},
+    {name:'BANK-R',rotX:-.2,rotZ:-.6,rotY:-.3,msg:'BANKING RIGHT!'},
+    {name:'CORKSCREW',rotX:-.3,rotZ:Math.PI*3,rotY:Math.PI,msg:'CORKSCREW EXIT!'},
+    {name:'STRAIGHT',rotX:0,rotZ:0,rotY:0,msg:'FULL BURN STRAIGHT!'},
+    {name:'LOOP',rotX:Math.PI*1.5,rotZ:0,rotY:0,msg:'LOOP ENTRY!'},
+  ];
+  const lt=launchTypes[Math.floor(Math.random()*launchTypes.length)];
+  const catText=document.getElementById('cat-text');
+  catText.textContent=lt.msg;
+  catText.style.color='#ff0';catText.style.fontSize='36px';
+
+  // Activate tunnel (build the rings dynamically)
+  tunnel.innerHTML='';
+  const ringCount=6;
+  for(let i=0;i<ringCount;i++){
+    const r=document.createElement('div');r.className='ring';
+    r.style.animationDelay=(i*.2)+'s';
+    // Alternate colors for tunnel
+    const colors=['#0ff','#ff0','#f0f','#0f0','#fa0','#fff'];
+    r.style.borderColor=colors[i%colors.length];
+    r.style.boxShadow=`0 0 20px ${colors[i%colors.length]},inset 0 0 20px ${colors[i%colors.length]}`;
+    tunnel.appendChild(r);
+  }
+  tunnel.style.display='block';
+
+  // Activate speed lines (30 radial streaks)
+  lines.innerHTML='';
+  for(let i=0;i<30;i++){
+    const s=document.createElement('div');s.className='streak';
+    const ang=(i/30)*360+Math.random()*12;
+    s.style.setProperty('--ang',ang+'deg');
+    s.style.animationDelay=(Math.random()*.5)+'s';
+    s.style.animationDuration=(.4+Math.random()*.4)+'s';
+    lines.appendChild(s);
+  }
+  lines.style.display='block';
+
+  // Camera shake + rotation animation (Three.js)
+  const startTime=performance.now();
+  const baseCamZ=camera.position.z;
+  const baseCamY=camera.position.y;
+  const animateLaunch=()=>{
+    const t=(performance.now()-startTime)/1000;
+    if(t>=3){
+      // End of launch
+      tunnel.style.display='none';
+      lines.style.display='none';
+      camera.rotation.set(0,0,0);
+      camera.position.set(0,0,C.CAM_Z);
+      return;
+    }
+    // t: 0 → 3s
+    const progress=t/3;// 0 → 1
+    // Apply rotation based on launch type (eased)
+    const ease=progress<.5?2*progress*progress:1-Math.pow(-2*progress+2,2)/2;
+    camera.rotation.x=lt.rotX*ease;
+    camera.rotation.y=lt.rotY*ease;
+    camera.rotation.z=lt.rotZ*ease*(Math.sin(progress*Math.PI));// spin mid-way
+    // Shake intensifying → peak → calming
+    const shakeIntensity=Math.sin(progress*Math.PI)*2;
+    camera.position.x=(Math.random()-.5)*shakeIntensity;
+    camera.position.y=baseCamY+(Math.random()-.5)*shakeIntensity;
+    // Forward thrust sensation
+    camera.position.z=baseCamZ-progress*8;
+    requestAnimationFrame(animateLaunch);
+  };
+  animateLaunch();
+
+  // Engine burn sound - continuous rumble with rising pitch
+  if(sfx.ctx){
+    const t=sfx.ctx.currentTime;
+    // Low rumble
+    const rumble=sfx.ctx.createOscillator();
+    const rg=sfx.ctx.createGain();
+    rumble.type='sawtooth';
+    rumble.frequency.setValueAtTime(50,t);
+    rumble.frequency.exponentialRampToValueAtTime(200,t+2.5);
+    rg.gain.setValueAtTime(.01,t);
+    rg.gain.linearRampToValueAtTime(.25,t+.3);
+    rg.gain.setValueAtTime(.25,t+2.5);
+    rg.gain.exponentialRampToValueAtTime(.001,t+3);
+    rumble.connect(rg);rg.connect(sfx.g);
+    rumble.start(t);rumble.stop(t+3.1);
+    // High whoosh (sweeping up)
+    const whoosh=sfx.ctx.createOscillator();
+    const wg=sfx.ctx.createGain();
+    whoosh.type='sawtooth';
+    whoosh.frequency.setValueAtTime(200,t);
+    whoosh.frequency.exponentialRampToValueAtTime(2000,t+2);
+    whoosh.frequency.exponentialRampToValueAtTime(100,t+3);
+    wg.gain.setValueAtTime(.05,t);
+    wg.gain.linearRampToValueAtTime(.12,t+1);
+    wg.gain.exponentialRampToValueAtTime(.001,t+3);
+    const wf=sfx.ctx.createBiquadFilter();wf.type='highpass';wf.frequency.value=500;
+    whoosh.connect(wf);wf.connect(wg);wg.connect(sfx.g);
+    whoosh.start(t);whoosh.stop(t+3.1);
+    // Pulsing heartbeat thrust
+    for(let i=0;i<12;i++){
+      sfx._o('sine',80,t+i*.2,.1,.15);
+      sfx._o('sine',60,t+i*.2,.12,.1);
+    }
+    // Triumphant burst at end
+    [523,659,784,1047].forEach((f,k)=>{
+      sfx._o('sawtooth',f,t+2.7+k*.06,.3,.08);
+      sfx._o('sine',f*2,t+2.7+k*.06,.25,.05);
+    });
+  }
+
+  // Screen flashes for impact
+  flash.style.display='block';
+  flash.style.opacity='0';
+  setTimeout(()=>{flash.style.opacity='.8';setTimeout(()=>flash.style.opacity='0',100)},50);
+  setTimeout(()=>{flash.style.opacity='.5';setTimeout(()=>flash.style.opacity='0',120)},800);
+  setTimeout(()=>{flash.style.opacity='.3';setTimeout(()=>flash.style.opacity='0',100)},1800);
+  // End flash
+  setTimeout(()=>{flash.style.opacity='1';
+    setTimeout(()=>{flash.style.opacity='0';
+      setTimeout(()=>flash.style.display='none',200)},150)},2800);
+
+  // Commentary during launch
+  setTimeout(()=>playComm('pilot','Here we go!'),200);
+  setTimeout(()=>playComm('hq','Punch it, '+S.callsign+'!'),1500);
+}
 
 function actualStartGame(){
   sfx.init();sfx.resume();
@@ -4405,7 +4716,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.36 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.39 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
