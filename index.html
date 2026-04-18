@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.40</title>
+<title>COSMIC INVADERS v6.41</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -502,7 +502,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.40 - LOADED
+  COSMIC INVADERS v6.41 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -519,7 +519,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.40 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.41 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -663,7 +663,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.40</div>
+    <div class="version">VERSION 6.41</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (default: JOHN RAMBO)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -789,7 +789,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.40 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.41 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -810,7 +810,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.40 - Universal Auto-Launch
+//  COSMIC INVADERS v6.41 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -824,7 +824,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.40 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.41 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -4617,18 +4617,17 @@ function applyTouchInput(dt){
 let persistentFortMesh=null;
 function createPersistentFortress(){
   persistentFortMesh=makeMegaFortress();
-  persistentFortMesh.position.set(0,20,-700);// very far, slightly up
+  persistentFortMesh.position.set(0,18,-450);// visible from stage 1 (closer)
   persistentFortMesh.rotation.x=.15;persistentFortMesh.rotation.y=.3;
-  persistentFortMesh.scale.setScalar(.4);// start small
+  persistentFortMesh.scale.setScalar(.6);// visible size
   scene.add(persistentFortMesh)}
 function updatePersistentFortress(dt){
   if(!persistentFortMesh)return;
   // Grow and approach with wave progression (across full game)
-  // Scale from 0.4 → 2.5 as waves progress through cycles
   const totalWave=S.cycle*C.FORT_WAVES+(S.wave||1);
-  const progress=Math.min(totalWave/10,1);// caps at wave 10
-  const targetScale=.4+progress*2.1;
-  const targetZ=-700+progress*400;
+  const progress=Math.min(totalWave/10,1);
+  const targetScale=.6+progress*1.9;// 0.6 → 2.5
+  const targetZ=-450+progress*200;// -450 → -250
   persistentFortMesh.scale.x+=(targetScale-persistentFortMesh.scale.x)*.3*dt;
   persistentFortMesh.scale.y=persistentFortMesh.scale.x;
   persistentFortMesh.scale.z=persistentFortMesh.scale.x;
@@ -4763,7 +4762,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.40 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.41 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
