@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.41</title>
+<title>COSMIC INVADERS v6.42</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -502,7 +502,7 @@ canvas.no-click{pointer-events:none}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.41 - LOADED
+  COSMIC INVADERS v6.42 - LOADED
 </div>
 <!-- Shows if JavaScript is disabled - explains how to fix -->
 <noscript>
@@ -519,7 +519,7 @@ canvas.no-click{pointer-events:none}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.41 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.42 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -585,6 +585,18 @@ canvas.no-click{pointer-events:none}
     <div class="op-row">
       <div class="op-label">RADAR</div>
       <button type="button" class="op-toggle on" id="op-radar" onclick="toggleOpRadar()">ON</button>
+    </div>
+    <div class="op-row">
+      <div class="op-label">GRAPHICS</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button type="button" class="op-toggle" id="op-gfx-low" onclick="setGfxQuality('low')">LOW</button>
+        <button type="button" class="op-toggle" id="op-gfx-medium" onclick="setGfxQuality('medium')">MED</button>
+        <button type="button" class="op-toggle" id="op-gfx-high" onclick="setGfxQuality('high')">HIGH</button>
+        <button type="button" class="op-toggle" id="op-gfx-auto" onclick="setGfxQuality('auto')">AUTO</button>
+      </div>
+    </div>
+    <div class="op-row" style="justify-content:flex-start;font-size:9px;color:#055;padding-top:0">
+      <span id="op-gfx-desc" style="font-size:9px">-</span>
     </div>
     <button type="button" class="op-close" onclick="openGallery()" style="border-color:#0ff;color:#0ff;background:rgba(0,40,50,0.4);box-shadow:0 0 10px rgba(0,255,255,0.3);margin-top:8px">&#9654; CHARACTER GALLERY &#9664;</button>
     <button type="button" class="op-close" onclick="closeOptions()">&#9654; CLOSE &#9664;</button>
@@ -663,7 +675,7 @@ canvas.no-click{pointer-events:none}
     <div id="hangar-status2">FLEET COMMAND ONLINE<br>WEAPONS: LOADED<br>FUEL: 100%</div>
     <h1>COSMIC<br>INVADERS</h1>
     <div class="subtitle">&#9654; CATAPULT BAY - LAUNCH PREP &#9664;</div>
-    <div class="version">VERSION 6.41</div>
+    <div class="version">VERSION 6.42</div>
     <div class="callsign-box" id="step-callsign">
       <div class="cs-label">PILOT CALLSIGN (default: JOHN RAMBO)</div>
       <input type="text" id="callsign-input-main" placeholder="JOHN RAMBO" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -789,7 +801,7 @@ canvas.no-click{pointer-events:none}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.41 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.42 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -810,7 +822,7 @@ window._threeCheckTimer=setTimeout(function(){
   onerror="document.getElementById('version-banner').innerHTML='ERROR: Three.js CDN blocked.<br><span style=\'font-size:11px\'>iPhone offline? Try with internet.</span>';document.getElementById('version-banner').style.color='#f00';document.getElementById('version-banner').style.borderBottomColor='#f00';"></script>
 <script>
 // =========================================================
-//  COSMIC INVADERS v6.41 - Universal Auto-Launch
+//  COSMIC INVADERS v6.42 - Universal Auto-Launch
 // =========================================================
 // Clear the Three.js timeout since we got here
 clearTimeout(window._threeCheckTimer);
@@ -824,7 +836,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.41 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.42 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1325,10 +1337,16 @@ function setupThree(){scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x0000
   window.addEventListener('resize',()=>{const w2=innerWidth,h2=innerHeight;
     camera.aspect=w2/h2;camera.updateProjectionMatrix();renderer.setSize(w2,h2)})}
 
-function createStars(){const N=3000,geo=new THREE.BufferGeometry(),pos=new Float32Array(N*3);
+function createStars(){
+  const N=(typeof getGfx==='function'?getGfx().stars:1500);
+  const geo=new THREE.BufferGeometry(),pos=new Float32Array(N*3);
   for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*300;pos[i*3+1]=(Math.random()-.5)*200;pos[i*3+2]=Math.random()*-250}
   geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  starField=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.5,sizeAttenuation:true}));scene.add(starField)}
+  starField=new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.5,sizeAttenuation:true}));
+  scene.add(starField)}
+function rebuildStars(){
+  if(starField){scene.remove(starField);starField.geometry.dispose();starField.material.dispose()}
+  createStars()}
 
 function updateStars(dt){const p=starField.geometry.attributes.position;
   const spd=S.phase==='RETURN'?100:S.phase==='FORTRESS'?80:40;
@@ -1336,11 +1354,17 @@ function updateStars(dt){const p=starField.geometry.attributes.position;
     if(p.array[i*3+2]>20){p.array[i*3+2]=-250;p.array[i*3]=(Math.random()-.5)*300;p.array[i*3+1]=(Math.random()-.5)*200}}
   p.needsUpdate=true}
 
-function createSpeedLines(){const N=200,geo=new THREE.BufferGeometry(),pos=new Float32Array(N*6);
+function createSpeedLines(){
+  const N=(typeof getGfx==='function'?getGfx().speedLines:140);
+  const geo=new THREE.BufferGeometry(),pos=new Float32Array(N*6);
   for(let i=0;i<N;i++){const x=(Math.random()-.5)*80,y=(Math.random()-.5)*60,z=Math.random()*-150;
     pos[i*6]=x;pos[i*6+1]=y;pos[i*6+2]=z;pos[i*6+3]=x;pos[i*6+4]=y;pos[i*6+5]=z-1.5}
   geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  speedLines=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x0044aa,transparent:true,opacity:.3}));scene.add(speedLines)}
+  speedLines=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x0044aa,transparent:true,opacity:.3}));
+  scene.add(speedLines)}
+function rebuildSpeedLines(){
+  if(speedLines){scene.remove(speedLines);speedLines.geometry.dispose();speedLines.material.dispose()}
+  createSpeedLines()}
 
 function updateSpeedLines(dt){const p=speedLines.geometry.attributes.position;
   const spd=S.phase==='RETURN'?150:S.phase==='FORTRESS'?120:60;
@@ -2213,8 +2237,12 @@ function makeBossMech(){
   return g}
 
 // ---- Particles ----
-function spawnP(pos,color,count,vs){const v=vs||1;
-  for(let i=0;i<count;i++){const s=.08+Math.random()*.3;
+function spawnP(pos,color,count,vs){
+  const v=vs||1;
+  // Apply graphics quality multiplier to particle count
+  const mult=(typeof getGfx==='function'?getGfx().particleMult:1);
+  const actualCount=Math.max(1,Math.ceil(count*mult));
+  for(let i=0;i<actualCount;i++){const s=.08+Math.random()*.3;
     const geo=new THREE.BoxGeometry(s,s,s);const mat=new THREE.LineBasicMaterial({color,transparent:true,opacity:1});
     const mesh=new THREE.LineSegments(new THREE.EdgesGeometry(geo),mat);mesh.position.copy(pos);scene.add(mesh);
     particles.push({mesh,vel:new THREE.Vector3((Math.random()-.5)*25*v,(Math.random()-.5)*25*v,(Math.random()-.5)*25*v),
@@ -3976,7 +4004,16 @@ function playHangarPA(){
 let titleStep=0;
 // ============ OPTIONS MENU ============
 const OPT={masterVol:0.55,bgmVol:1.0,sfxVol:1.0,voiceVol:0.6,sensitivity:1.0,
-  invertY:false,touchUI:true,radar:true};
+  invertY:false,touchUI:true,radar:true,
+  gfxQuality:'medium'};// 'low' | 'medium' | 'high' | 'auto'
+// Graphics quality presets
+const GFX_LEVELS={
+  low:{stars:500,speedLines:60,particleMult:.3,label:'LOW (smooth on older devices)'},
+  medium:{stars:1500,speedLines:140,particleMult:.6,label:'MEDIUM (balanced)'},
+  high:{stars:3000,speedLines:200,particleMult:1.0,label:'HIGH (best visuals)'},
+  auto:{stars:1500,speedLines:140,particleMult:.6,label:'AUTO (adjusts to FPS)'},
+};
+function getGfx(){return GFX_LEVELS[OPT.gfxQuality]||GFX_LEVELS.medium}
 // Load saved options
 try{const s=localStorage.getItem('ciOpt');if(s){Object.assign(OPT,JSON.parse(s))}}catch(e){}
 function saveOpt(){try{localStorage.setItem('ciOpt',JSON.stringify(OPT))}catch(e){}}
@@ -4009,6 +4046,11 @@ function openOptions(){
   document.getElementById('op-touch-ui').classList.toggle('on',OPT.touchUI);
   document.getElementById('op-radar').textContent=OPT.radar?'ON':'OFF';
   document.getElementById('op-radar').classList.toggle('on',OPT.radar);
+  // GFX quality buttons
+  ['low','medium','high','auto'].forEach(k=>{
+    const b=document.getElementById('op-gfx-'+k);if(b)b.classList.toggle('on',OPT.gfxQuality===k)});
+  const desc=document.getElementById('op-gfx-desc');
+  if(desc)desc.textContent=(GFX_LEVELS[OPT.gfxQuality]||GFX_LEVELS.medium).label;
 }
 // ============ CHARACTER GALLERY ============
 const GALLERY=[
@@ -4106,6 +4148,18 @@ function toggleOpTouchUI(){OPT.touchUI=!OPT.touchUI;
 function toggleOpRadar(){OPT.radar=!OPT.radar;
   const b=document.getElementById('op-radar');b.textContent=OPT.radar?'ON':'OFF';
   b.classList.toggle('on',OPT.radar);applyOptions()}
+
+function setGfxQuality(q){
+  OPT.gfxQuality=q;saveOpt();
+  // Update UI highlights
+  ['low','medium','high','auto'].forEach(k=>{
+    const b=document.getElementById('op-gfx-'+k);if(b)b.classList.toggle('on',k===q)});
+  const desc=document.getElementById('op-gfx-desc');
+  if(desc)desc.textContent=GFX_LEVELS[q].label;
+  // Rebuild star/speedline with new counts
+  if(typeof rebuildStars==='function')rebuildStars();
+  if(typeof rebuildSpeedLines==='function')rebuildSpeedLines();
+  if(sfx.ctx)sfx._o('sine',1200,sfx.ctx.currentTime,.06,.05)}
 // Slider live-update
 function wireSliders(){
   const slids=[
@@ -4478,7 +4532,35 @@ function updateTitle(dt){titleT+=dt;if(!titlePlanet)return;
     c.material.size=Math.sin(titleT*3+c.position.x)>.3?3:0}})}
 
 // ============ MAIN LOOP ============
+// FPS monitor for AUTO quality mode
+let fpsFrames=0,fpsLastCheck=performance.now(),fpsAvg=60,autoLastAdjust=0;
+function updateAutoQuality(){
+  if(OPT.gfxQuality!=='auto')return;
+  const now=performance.now();
+  fpsFrames++;
+  if(now-fpsLastCheck>=1000){
+    fpsAvg=fpsFrames*1000/(now-fpsLastCheck);
+    fpsFrames=0;fpsLastCheck=now;
+    // Adjust every 5 seconds max
+    if(now-autoLastAdjust>5000){
+      const g=getGfx();
+      if(fpsAvg<30&&g.stars>600){
+        g.stars=Math.max(500,g.stars-400);
+        g.speedLines=Math.max(60,g.speedLines-30);
+        g.particleMult=Math.max(.3,g.particleMult-.15);
+        rebuildStars();rebuildSpeedLines();autoLastAdjust=now;
+      }else if(fpsAvg>55&&g.stars<3000){
+        g.stars=Math.min(3000,g.stars+200);
+        g.speedLines=Math.min(200,g.speedLines+20);
+        g.particleMult=Math.min(1,g.particleMult+.1);
+        autoLastAdjust=now;
+      }
+    }
+  }
+}
+
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);
+  updateAutoQuality();
   switch(S.phase){
     case 'TITLE':updateTitle(dt);break;
     case 'PLAYING':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateComms(dt);updateRadar();break;
@@ -4762,7 +4844,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.41 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.42 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
