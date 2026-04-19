@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.93</title>
+<title>COSMIC INVADERS v6.94</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -585,7 +585,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.93 - LOADED
+  COSMIC INVADERS v6.94 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -606,7 +606,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.69 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.94 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -959,7 +959,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.69 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.94 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -994,7 +994,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.69 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.94 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1769,8 +1769,9 @@ const JP_PHRASE_MAP={
   'Roger! Back in the fight!':'了解！ 戦線復帰！',
   'Roger! Firing line locked! All escorts, break off NOW!':'了解！ 射線確保！ 護衛機全機、直ちに離脱！',
   'SCATTER MEGA PARTICLE CANNON!':'拡散メガ粒子砲！',
-  'Shield energy restored!':'シールドエネルギー回復！',
-  'Shield full! Napalm reloaded!':'シールド満タン！ ナパーム再装填！',
+  'Shield energy restored!':'エネルギー回復！',
+  'Shield full! Napalm reloaded!':'シールドフルなのでナパーム補給！',
+  'Mission failed. Awaiting your next challenge.':'ミッション失敗、またのチャレンジをお待ちしております。',
   'Sliced in half! Incredible!':'真っ二つ！ 信じられない！',
   'So you made it this far... I am CHARIZARD, pilot of the ZEONG!':'ここまで来たか…私がジオングのパイロット、シャリザードだ！',
   'TARGET ACQUIRED - APPROACHING EXHAUST PORT':'目標捕捉 - 排気口へ接近',
@@ -2147,8 +2148,50 @@ function englishToKatakana(w){
   return k;
 }
 
+// v6.94: Milestones where Haruka should still call the pilot by name (callsign).
+// For all other lines, the "#N" callsign token is stripped before translation so the focus is on
+// the message content rather than the pilot's name.
+const HARUKA_MILESTONE_PATTERNS=[
+  /cleared for combat/i,
+  /ALL PATROLS ELIMINATED/i,
+  /MISSION COMPLETE/i,
+  /Welcome back/i,
+  /PSYCHO GUNDAM NEUTRALIZED/i,
+  /Outstanding work/i,
+  /Punch it/i,
+  /CONGRATULATIONS/i,
+  /you are cleared/i,
+  /Mission failed/i,
+  /Bridge is waiting/i,
+  /Good hunting/i,
+  /Listen carefully/i
+];
+function isHarukaMilestone(text){
+  if(!text)return false;
+  for(let i=0;i<HARUKA_MILESTONE_PATTERNS.length;i++){
+    if(HARUKA_MILESTONE_PATTERNS[i].test(text))return true;
+  }
+  return false;
+}
+function stripCallsignTokens(text){
+  if(!text)return text;
+  // Drop "#N" plus a trailing comma/exclam/question/period and any following whitespace.
+  // Also drop a leading ", #N" pattern (callsign as appositive).
+  return text
+    .replace(/,?\s*#N[,!\?\.]?\s*/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/^[\s,!\?\.]+/,'')
+    .trim();
+}
+
 function playComm(char,text,onComplete){
   if(!text)return;
+  // v6.94: in Haruka mode, omit the callsign on non-milestone lines so the translation reads naturally.
+  try{
+    if(selectedNav&&selectedNav.lang==='ja-JP'&&!isHarukaMilestone(text)){
+      text=stripCallsignTokens(text);
+    }
+  }catch(e){}
   text=resolveN(text);
   const cfg=char==='nav'?getNavCfg():(CHAR_CFG[char]||CHAR_CFG.hq);
   // v6.91: HARUKA MODE = Japanese-only mode spoken entirely by Haruka.
@@ -5292,10 +5335,19 @@ function makeForestTacticalPilot(){
     leg.position.set(side*.22,1.1,0);
     g.add(leg);
   });
+  // v6.94: model was built with visor at +Z (front toward +Z) but every weapon/movement/camera
+  // formula in this file uses -Math.sin/-Math.cos for forestPilot.rotation.y, which assumes the
+  // model is built facing -Z. Wrap the entire skeleton inside an inner group rotated 180° so the
+  // visible face matches the formulas (face direction = -Z when rotation.y=0). This fixes the
+  // 'walking backwards / front-back inverted' feeling reported in v6.93.
+  const wrap=new THREE.Group();wrap.name='forestPilotInner';
+  while(g.children.length){const c=g.children[0];g.remove(c);wrap.add(c)}
+  wrap.rotation.y=Math.PI;
+  g.add(wrap);
   return g;
 }
 
-// v6.89: Animate walk cycle - called every frame with moving/dt/speed
+// v6.89/v6.94: Animate walk cycle - now Fortnite-style with bigger bounce, head sway, and arm pump.
 function animateForestPilotWalk(pilot,moving,dt,speed){
   if(!pilot)return;
   pilot.userData.walkT=(pilot.userData.walkT||0)+dt*(moving?8*speed:0);
@@ -5306,25 +5358,36 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
   const rArm=pilot.getObjectByName('rArm');
   const head=pilot.getObjectByName('head');
   const body=pilot.getObjectByName('body');
+  const hips=pilot.getObjectByName('hips');
   if(moving){
-    // Leg swing: lLeg forward when rLeg back
-    const legSwing=Math.sin(t)*.5;
+    // Leg swing - exaggerated stride
+    const legSwing=Math.sin(t)*.65;
     if(lLeg)lLeg.rotation.x=legSwing;
     if(rLeg)rLeg.rotation.x=-legSwing;
-    // Arm swing: opposite to legs
-    const armSwing=Math.sin(t+Math.PI)*.6;
+    // v6.94: bigger arm pump (was .6, now .9 ≈ 51°) - shoulders pump opposite to legs
+    const armSwing=Math.sin(t+Math.PI)*.9;
     if(lArm)lArm.rotation.x=armSwing;
     if(rArm)rArm.rotation.x=-armSwing;
-    // Arm side bob
-    if(lArm)lArm.rotation.z=.05+Math.sin(t*2)*.05;
-    if(rArm)rArm.rotation.z=-.05-Math.sin(t*2)*.05;
-    // Head slight bob
+    // v6.94: arm side fan (out-in motion ±0.15 rad on top of base outward angle)
+    if(lArm)lArm.rotation.z=.15+Math.sin(t*2)*.15;
+    if(rArm)rArm.rotation.z=-.15-Math.sin(t*2)*.15;
+    // v6.94: head bounce (4x bigger) + head sway (look L/R with step) + slight tilt
     if(head){
-      head.position.y=2.9+Math.abs(Math.sin(t))*.04;
-      head.rotation.z=Math.sin(t*.5)*.02;
+      head.position.y=2.9+Math.abs(Math.sin(t))*.16;
+      head.rotation.y=Math.sin(t*.5)*.10;// ±0.1 rad sway with step
+      head.rotation.z=Math.sin(t*.5)*.05;
+      head.rotation.x=Math.sin(t)*.03;// subtle nod
     }
-    // Body bob up/down on each step
-    if(body)body.position.y=1.85+Math.abs(Math.sin(t))*.05;
+    // v6.94: body bounce (3x bigger) + slight side-lean with step
+    if(body){
+      body.position.y=1.85+Math.abs(Math.sin(t))*.14;
+      body.rotation.z=Math.sin(t*.5)*.06;// hip-shift lean
+      body.rotation.x=Math.sin(t*2)*.02;// micro forward-lean each step
+    }
+    // v6.94: hip swivel (counter-rotates body slightly)
+    if(hips){
+      hips.rotation.y=Math.sin(t)*.08;
+    }
   } else {
     // Idle - slow breathing + slight sway
     const idle=Math.sin(pilot.userData.idleT=(pilot.userData.idleT||0)+dt)*1;
@@ -5332,10 +5395,20 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
     if(rLeg)rLeg.rotation.x+=(0-rLeg.rotation.x)*.2;
     if(lArm)lArm.rotation.x+=(0-lArm.rotation.x)*.2;
     if(rArm)rArm.rotation.x+=(0-rArm.rotation.x)*.2;
-    if(lArm)lArm.rotation.z+=(.08-lArm.rotation.z)*.1;
-    if(rArm)rArm.rotation.z+=(-.08-rArm.rotation.z)*.1;
-    if(head){head.rotation.z+=(0-head.rotation.z)*.1;head.position.y+=(2.9-head.position.y)*.2}
-    if(body)body.position.y+=((1.85+idle*.02)-body.position.y)*.1;
+    if(lArm)lArm.rotation.z+=(.12-lArm.rotation.z)*.1;
+    if(rArm)rArm.rotation.z+=(-.12-rArm.rotation.z)*.1;
+    if(head){
+      head.rotation.z+=(0-head.rotation.z)*.1;
+      head.rotation.y+=(0-head.rotation.y)*.1;
+      head.rotation.x+=(0-head.rotation.x)*.1;
+      head.position.y+=(2.9-head.position.y)*.2;
+    }
+    if(body){
+      body.position.y+=((1.85+idle*.04)-body.position.y)*.1;
+      body.rotation.z+=(0-body.rotation.z)*.1;
+      body.rotation.x+=(0-body.rotation.x)*.1;
+    }
+    if(hips)hips.rotation.y+=(0-hips.rotation.y)*.1;
   }
 }
 
@@ -9786,6 +9859,33 @@ function wfCineStart(){
   if(cockpitObj&&cockpitObj.parent)cockpitObj.parent.remove(cockpitObj);
   scene.fog=null;
 }
+// v6.94: Universal scene cleanup. MUST be called at the start of every scene transition that does NOT itself manage wfCineGroup,
+// to prevent leftover bridge/cine meshes (and stale forest meshes/HUD) from being visible in the next scene.
+// Used by: actualStartGame, startForestOnFootMode, launchForestPhaseTest, enterForestSpeederEscape (defensive), etc.
+function cleanupSceneCompletely(){
+  // 1. End cinematic bridge/dock/elevator/modbay if active (tears down wfCineGroup + restores camera/cockpit)
+  try{
+    if(wfCineActive&&typeof wfCineEnd==='function'){
+      wfCineEnd();
+    }
+    // Belt-and-suspenders: some transition paths leave wfCineGroup attached even when wfCineActive=false
+    if(wfCineGroup){
+      try{scene.remove(wfCineGroup)}catch(e){}
+      wfCineGroup=null;
+    }
+  }catch(e){}
+  // 2. End forest scene (forest group + HUD + cockpit restore + dungeon/guardian/bike clear)
+  try{
+    if(typeof forestScene!=='undefined'&&forestScene&&typeof endForestOnFoot==='function'){
+      endForestOnFoot();
+    }
+  }catch(e){}
+  // 3. Remove stale DOM scene overlays that the above functions do not own
+  ['stage-select','bridge-overlay','wfcine-sub','wfcine-exit','forest-landing','forest-onfoot'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.remove();
+  });
+}
+
 function wfCineEnd(){
   if(!wfCineActive)return;
   if(wfCineGroup){try{scene.remove(wfCineGroup)}catch(e){}wfCineGroup=null}
@@ -11393,6 +11493,8 @@ function clearForestCorpses(){
   forestCorpses.length=0;
 }
 function startForestOnFootMode(){
+  // v6.94: tear down any leftover bridge/cine meshes + DOM overlays before building the forest scene
+  try{cleanupSceneCompletely()}catch(e){}
   S.phase='FOREST';
   S.onFootMode=true;
   // Hide all spaceship UI
@@ -11533,17 +11635,17 @@ function buildForestScene(){
   gun.position.set(.65,1.0,.2);
   forestPilot.add(gun);
   // v6.82: LIGHT SABER mesh (cyan glowing blade) - hidden by default, shown when weapon='saber'
+  // v6.94: Hilt always visible while held; blade+core appear ONLY during the swing animation
   const sab=new THREE.Group();sab.name='pilotSaber';
   const sabHilt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.08,.08,.35,6)),
     new THREE.LineBasicMaterial({color:0x666666}));
-  sabHilt.rotation.x=Math.PI/2;sab.add(sabHilt);
+  sabHilt.rotation.x=Math.PI/2;sabHilt.name='saberHilt';sab.add(sabHilt);
   const sabBlade=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.06,.06,1.8,6)),
     new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.95}));
-  sabBlade.position.z=-1.2;sabBlade.rotation.x=Math.PI/2;sab.add(sabBlade);
-  // Inner bright core
+  sabBlade.position.z=-1.2;sabBlade.rotation.x=Math.PI/2;sabBlade.visible=false;sabBlade.name='saberBlade';sab.add(sabBlade);
   const sabCore=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.03,.03,1.8,5)),
     new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.9}));
-  sabCore.position.z=-1.2;sabCore.rotation.x=Math.PI/2;sab.add(sabCore);
+  sabCore.position.z=-1.2;sabCore.rotation.x=Math.PI/2;sabCore.visible=false;sabCore.name='saberCore';sab.add(sabCore);
   sab.position.set(.65,1.0,.2);
   sab.visible=false;
   forestPilot.add(sab);
@@ -11939,6 +12041,20 @@ function updateForestHUD(){
     else if(forestState.wave>0){obj.textContent=`OBJ: Clear wave ${forestState.wave}/${forestState.waveTotal}`}
     else{obj.textContent='OBJ: Await patrols'}
   }
+  // v6.94: DR. AUTO-FIRE indicator badge - only visible during the bike phase
+  {
+    let dr=document.getElementById('forest-hud-drauto');
+    if(forestState.phase==='bike'){
+      if(!dr){
+        dr=document.createElement('div');dr.id='forest-hud-drauto';
+        dr.style.cssText='font-size:11px;color:#4fa;margin-top:2px;letter-spacing:1px;text-shadow:0 0 8px #4fa';
+        const hud=document.getElementById('forest-hud');if(hud)hud.appendChild(dr);
+      }
+      if(dr)dr.textContent=isHarukaMode()?'★ ドクター 自動射撃 ★':'★ DR. AUTO-FIRE ★';
+    } else if(dr){
+      dr.remove();
+    }
+  }
 }
 
 // v6.81: Radar goggles HUD - shows pilot + guard blips on a 140px circle covering a 60m radius
@@ -12034,6 +12150,8 @@ function updateForestOnFoot(dt){
   forestPilot.position.z=Math.max(-50,Math.min(50,forestPilot.position.z));
   // v6.89: Walk cycle animation (faster cycle when sprinting)
   try{animateForestPilotWalk(forestPilot,moving,dt,sprint?1.5:(moving?1:0))}catch(e){}
+  // v6.94: drive the saber swing animation (arm rotation + blade extend/retract)
+  try{updateSaberSwing()}catch(e){}
   // v6.89: Update forest corpses (bodies that topple after death)
   try{updateForestCorpses(dt)}catch(e){}
   // CAMERA: third-person behind pilot (smooth follow)
@@ -12347,19 +12465,65 @@ function fireForestSaber(){
   if(!forestPilot||!forestScene)return;
   const fwdX=-Math.sin(forestPilot.rotation.y);
   const fwdZ=-Math.cos(forestPilot.rotation.y);
-  // Visual swing: cyan arc sweep
+  // v6.94: trigger the saber swing animation (arm swings + blade extends + retracts)
+  try{
+    const sabGroup=forestPilot.getObjectByName('pilotSaber');
+    if(sabGroup){
+      sabGroup.userData.swingActive=true;
+      sabGroup.userData.swingStartT=performance.now()/1000;
+      sabGroup.userData.swingDur=0.45;
+    }
+  }catch(e){}
+  // v6.94: VROOM saber sound (low sweep + harmonic + noise) — replaces the older saber hum
+  try{if(sfx.ctx){const t=sfx.ctx.currentTime;
+    const o1=sfx.ctx.createOscillator();const g1=sfx.ctx.createGain();
+    o1.type='sawtooth';
+    o1.frequency.setValueAtTime(180,t);
+    o1.frequency.exponentialRampToValueAtTime(80,t+0.35);
+    g1.gain.setValueAtTime(0,t);
+    g1.gain.linearRampToValueAtTime(.28,t+0.05);
+    g1.gain.exponentialRampToValueAtTime(.001,t+0.42);
+    o1.connect(g1);g1.connect(sfx.g);
+    o1.start(t);o1.stop(t+0.45);
+    const o2=sfx.ctx.createOscillator();const g2=sfx.ctx.createGain();
+    o2.type='triangle';
+    o2.frequency.setValueAtTime(720,t);
+    o2.frequency.exponentialRampToValueAtTime(280,t+0.3);
+    g2.gain.setValueAtTime(0,t);
+    g2.gain.linearRampToValueAtTime(.18,t+0.05);
+    g2.gain.exponentialRampToValueAtTime(.001,t+0.35);
+    o2.connect(g2);g2.connect(sfx.g);
+    o2.start(t);o2.stop(t+0.4);
+    sfx._n(t,.3,.12,5500,900);
+  }}catch(e){}
+  // v6.94: thicker arc trail - draw 3 stacked arcs (height varied) + extra particles
   const arcMat=new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.95});
-  const arcGeo=new THREE.BufferGeometry();
-  const pts=[];const segs=10;const arcR=3;const arcSweep=Math.PI*.8;
+  const arcMat2=new THREE.LineBasicMaterial({color:0x88f6ff,transparent:true,opacity:.7});
+  const arcMat3=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55});
+  const segs=14;const arcR=3;const arcSweep=Math.PI*.85;
+  const buildArc=(r,yoff)=>{
+    const pts=[];
+    for(let i=0;i<=segs;i++){
+      const a=-arcSweep*.5+arcSweep*(i/segs);
+      const x=forestPilot.position.x+Math.sin(forestPilot.rotation.y+a)*(-r);
+      const z=forestPilot.position.z+Math.cos(forestPilot.rotation.y+a)*(-r);
+      pts.push(new THREE.Vector3(x,forestPilot.position.y+1.2+yoff,z));
+    }
+    const g=new THREE.BufferGeometry();g.setFromPoints(pts);
+    return g;
+  };
+  const arc=new THREE.Line(buildArc(arcR,0),arcMat);
+  const arc2=new THREE.Line(buildArc(arcR-.12,.05),arcMat2);
+  const arc3=new THREE.Line(buildArc(arcR+.12,-.05),arcMat3);
+  forestScene.add(arc);forestScene.add(arc2);forestScene.add(arc3);
+  // Tip-trail particles (2x density vs v6.93)
   for(let i=0;i<=segs;i++){
     const a=-arcSweep*.5+arcSweep*(i/segs);
     const x=forestPilot.position.x+Math.sin(forestPilot.rotation.y+a)*(-arcR);
     const z=forestPilot.position.z+Math.cos(forestPilot.rotation.y+a)*(-arcR);
-    pts.push(new THREE.Vector3(x,forestPilot.position.y+1.2,z));
+    try{spawnP(new THREE.Vector3(x,forestPilot.position.y+1.2,z),0x44eeff,2,.5)}catch(e){}
+    if(i%2===0)try{spawnP(new THREE.Vector3(x,forestPilot.position.y+1.2,z),0xffffff,1,.4)}catch(e){}
   }
-  arcGeo.setFromPoints(pts);
-  const arc=new THREE.Line(arcGeo,arcMat);
-  forestScene.add(arc);
   // Hit detection: any guards inside the forward cone
   forestGuards.forEach(g=>{
     const dx=g.mesh.position.x-forestPilot.position.x;
@@ -12391,13 +12555,49 @@ function fireForestSaber(){
       damageGuardianPilot(3);
     }
   }
-  try{if(sfx.ctx){const t=sfx.ctx.currentTime;
-    // Saber hum + swoosh
-    sfx._o('sine',220,t,.3,.18);
-    sfx._o('triangle',880,t,.15,.12);
-    sfx._n(t,.2,.15,6000,1000);
-  }}catch(e){}
-  setTimeout(()=>{try{forestScene.remove(arc)}catch(e){}},250);
+  // v6.94: cleanup all 3 trail arcs (was 1 in v6.93)
+  setTimeout(()=>{
+    try{forestScene.remove(arc)}catch(e){}
+    try{forestScene.remove(arc2)}catch(e){}
+    try{forestScene.remove(arc3)}catch(e){}
+  },300);
+}
+
+// v6.94: per-frame saber swing animation - rotates the saber group + extends/retracts the blade.
+// Called from updateForestOnFoot every frame; uses sab.userData.swingActive set by fireForestSaber.
+function updateSaberSwing(){
+  if(!forestPilot)return;
+  const sabGroup=forestPilot.getObjectByName('pilotSaber');
+  if(!sabGroup)return;
+  const blade=sabGroup.getObjectByName('saberBlade');
+  const core=sabGroup.getObjectByName('saberCore');
+  const u=sabGroup.userData;
+  if(!u.swingActive){
+    sabGroup.rotation.y=0;sabGroup.rotation.z=0;
+    if(blade)blade.visible=false;
+    if(core)core.visible=false;
+    return;
+  }
+  const now=performance.now()/1000;
+  const dur=u.swingDur||0.45;
+  const t=Math.max(0,Math.min(1,(now-u.swingStartT)/dur));
+  if(t>=1){
+    u.swingActive=false;
+    sabGroup.rotation.y=0;sabGroup.rotation.z=0;
+    if(blade)blade.visible=false;
+    if(core)core.visible=false;
+    return;
+  }
+  // Swing arc: cocked back (+0.5π) → forward (-0.5π) over the duration
+  sabGroup.rotation.y=Math.PI*0.5-Math.PI*1.0*t;
+  // Slight downward chop on the same arc
+  sabGroup.rotation.z=-Math.sin(t*Math.PI)*0.25;
+  // Blade extension envelope: ramp 0..0.18, hold 0.18..0.72, retract 0.72..1.0
+  let bladeScale=1;
+  if(t<0.18)bladeScale=t/0.18;
+  else if(t>0.72)bladeScale=(1-t)/0.28;
+  if(blade){blade.visible=true;blade.scale.z=bladeScale}
+  if(core){core.visible=true;core.scale.z=bladeScale}
 }
 
 // v6.82/83: Switch active weapon (1=laser, 2=saber, 3=whip, 4=bomb)
@@ -13064,12 +13264,17 @@ function updateForestDungeon(dt){
   }
 }
 
-// v6.85: SPEEDER BIKE CHASE — 20s forward scroll through jungle with 3 pursuer bikes
+// v6.85: SPEEDER BIKE CHASE — v6.94 doubled to 44s through jungle with 3+3+2 pursuer waves
 let forestBike=null;
+// v6.94: ground undulation for the bike chase corridor
+function bikeTerrainHeight(z){
+  return Math.sin(z*0.04)*0.5+Math.sin(z*0.11+0.7)*0.22;
+}
 function enterForestSpeederEscape(){
   if(!forestState||!forestScene)return;
+  // v6.94: defensive - if any bridge/cine mesh somehow leaked into this scene, drop it now
+  try{if(wfCineGroup){scene.remove(wfCineGroup);wfCineGroup=null;wfCineActive=false;}}catch(e){}
   forestState.phase='bike';
-  // Clear previous dungeon/guards - keep forestScene but strip it
   for(let i=forestScene.children.length-1;i>=0;i--){
     try{forestScene.remove(forestScene.children[i])}catch(e){}
   }
@@ -13077,20 +13282,21 @@ function enterForestSpeederEscape(){
   forestBeams=[];
   forestDungeon=null;
   scene.background=new THREE.Color(0x003311);
-  // Rebuild a long jungle corridor that scrolls
   buildBikeScene();
-  // Bike state
   forestBike={
     state:'ride',
-    t:0,totalT:22,// 22s chase
-    laneX:0,// pilot bike lateral pos (-1..1)
+    t:0,totalT:44,// v6.94: doubled (was 22s)
+    laneX:0,
     targetLaneX:0,
     shootCD:0,
-    pursuers:[],// {mesh, laneX, speed, fireT, hp}
+    pursuers:[],
     forwardSpeed:40,
-    scrollPos:0,// world z offset
+    scrollPos:0,
+    doctorAutoFireT:0,// v6.94: doctor auto-fire timer
+    bikeShakeT:0,// v6.94: ram shake
+    nextWaveAt:18,// v6.94: spawn second wave at t=18s
+    nextWaveAt2:32,// v6.94: spawn third wave at t=32s
   };
-  // Spawn pursuers
   for(let i=0;i<3;i++){
     spawnBikePursuer(i);
   }
@@ -13099,14 +13305,13 @@ function enterForestSpeederEscape(){
     ['pilot','Hang on doctor! Full throttle!'],
     ['hktamaan','There is a destruct button in my pack! This whole planet is an artificial base!'],
     ['pilot','Wait, WHAT? The whole PLANET?!'],
+    ['hktamaan','I will cover our rear with my blaster. Just keep us alive!'],
   ])}catch(e){}
-  // Ride BGM
   if(sfx.ctx){const t=sfx.ctx.currentTime;
-    for(let k=0;k<20;k++){
+    for(let k=0;k<40;k++){
       sfx._o('sawtooth',80+Math.sin(k*.3)*20,t+k,.3,.04);
     }
   }
-  // Update mobile weapon button / HUD
   try{updateForestHUD()}catch(e){}
 }
 
@@ -13114,17 +13319,23 @@ function buildBikeScene(){
   const mGround=new THREE.LineBasicMaterial({color:0x226633,transparent:true,opacity:.6});
   const mTrunk=new THREE.LineBasicMaterial({color:0x884422,transparent:true,opacity:.7});
   const mLeaves=new THREE.LineBasicMaterial({color:0x44ff66,transparent:true,opacity:.75});
-  // Long corridor ground - 200m long + 40m wide
+  // v6.94: longer corridor (-400..+40 = 440m) + ground undulation polylines
   for(let x=-20;x<=20;x+=4){
-    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(x,0,-200),new THREE.Vector3(x,0,20)]),mGround));
+    const pts=[];
+    for(let z=-400;z<=40;z+=8){
+      pts.push(new THREE.Vector3(x,bikeTerrainHeight(z),z));
+    }
+    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mGround));
   }
-  for(let z=-200;z<=20;z+=4){
-    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-20,0,z),new THREE.Vector3(20,0,z)]),mGround));
+  for(let z=-400;z<=40;z+=8){
+    const pts=[];
+    for(let x=-20;x<=20;x+=4){
+      pts.push(new THREE.Vector3(x,bikeTerrainHeight(z),z));
+    }
+    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mGround));
   }
-  // Dense trees on the sides (60 per side)
-  for(let i=0;i<60;i++){
+  // v6.94: 120 trees per side (was 60), spread over 440m
+  for(let i=0;i<120;i++){
     [-1,1].forEach(side=>{
       const tree=new THREE.Group();
       const h=3+Math.random()*3;
@@ -13135,12 +13346,12 @@ function buildBikeScene(){
         const cone=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(size,h*.5,6)),mLeaves);
         cone.position.y=h*.6+l*h*.25;tree.add(cone);
       }
-      tree.position.set(side*(22+Math.random()*6),0,-200+(i/60)*220);
+      const tz=-400+(i/120)*440;
+      tree.position.set(side*(22+Math.random()*6),bikeTerrainHeight(tz),tz);
       tree.name='bikeTree';
       forestScene.add(tree);
     });
   }
-  // Player bike (pilot rides it) - replaces the on-foot pilot
   if(forestPilot){try{forestScene.remove(forestPilot)}catch(e){}}
   forestPilot=makeSpeederBike(true);
   forestPilot.position.set(0,1,-5);
@@ -13148,25 +13359,22 @@ function buildBikeScene(){
   forestScene.add(forestPilot);
 }
 
-// Build a speeder bike mesh; withRider=true adds pilot + doctor on top
-function makeSpeederBike(withRider){
+// Build a speeder bike mesh; withRider=true adds pilot + doctor on top.
+// v6.94: options.enemyRider=true adds an imperial-trooper figure (used for enemy bikes).
+function makeSpeederBike(withRider,options){
+  options=options||{};
   const g=new THREE.Group();g.name='speederBike';
   const mBody=new THREE.LineBasicMaterial({color:0x999999});
   const mAcc=new THREE.LineBasicMaterial({color:0xff8844});
   const mGlow=new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.8});
-  // Long chassis
   const chassis=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.8,.4,3.5)),mBody);
   chassis.position.y=.3;g.add(chassis);
-  // Front engine cone
   const front=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.5,1.2,6)),mBody);
   front.position.set(0,.3,2);front.rotation.x=-Math.PI/2;g.add(front);
-  // Rear exhaust glow
   const exhaust=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.3)),mGlow);
   exhaust.position.set(0,.3,-2);g.add(exhaust);
-  // Handlebars
   const bar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.05,.05,1.2,4)),mAcc);
   bar.rotation.z=Math.PI/2;bar.position.set(0,.7,1.5);g.add(bar);
-  // Repulsor disks (no wheels - hover)
   [-.6,.6].forEach(sz=>{
     const disk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.4,.08,4,8)),mGlow);
     disk.position.set(0,.1,sz*2.5);disk.rotation.x=Math.PI/2;g.add(disk);
@@ -13175,8 +13383,8 @@ function makeSpeederBike(withRider){
     const pilot=makePilotFigure();
     pilot.scale.setScalar(.7);
     pilot.position.set(0,.8,.5);pilot.rotation.y=Math.PI;
+    pilot.traverse(o=>{o.userData.preserveColor=true});
     g.add(pilot);
-    // Doctor riding behind
     const doc=new THREE.Group();doc.name='bikeDoctor';
     const body=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.3,.4,1.2,6)),
       new THREE.LineBasicMaterial({color:0x44ffaa,transparent:true,opacity:.9}));
@@ -13184,35 +13392,94 @@ function makeSpeederBike(withRider){
     const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.22,5,4)),
       new THREE.LineBasicMaterial({color:0xffcc88}));
     head.position.y=1.4;doc.add(head);
+    // v6.94: doctor's blaster pistol pointed back toward the pursuers
+    const blaster=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.16,.5)),
+      new THREE.LineBasicMaterial({color:0x222244}));
+    blaster.position.set(.3,.9,-.4);blaster.name='docBlaster';doc.add(blaster);
+    doc.traverse(o=>{o.userData.preserveColor=true});
     doc.position.set(0,.8,-1);
     g.add(doc);
+  }
+  if(options.enemyRider){
+    // v6.94: imperial trooper figure on the enemy bike (kept white so the dark-red bike tint skips it)
+    const trooper=makeImperialTrooper();
+    trooper.scale.setScalar(.6);
+    trooper.position.set(0,.85,.3);
+    trooper.rotation.y=Math.PI;
+    trooper.traverse(o=>{o.userData.preserveColor=true});
+    g.add(trooper);
   }
   return g;
 }
 
+// v6.94: minimal wireframe imperial trooper figure for enemy bike riders
+function makeImperialTrooper(){
+  const t=new THREE.Group();t.name='imperialTrooper';
+  const mWhite=new THREE.LineBasicMaterial({color:0xeeeeee});
+  const mDark=new THREE.LineBasicMaterial({color:0x333344});
+  const mVisor=new THREE.LineBasicMaterial({color:0x111111});
+  const helm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.32,6,5)),mWhite);
+  helm.position.y=2.4;t.add(helm);
+  const visor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,.12,.06)),mVisor);
+  visor.position.set(0,2.4,.3);t.add(visor);
+  const torso=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.7,.9,.4)),mWhite);
+  torso.position.y=1.55;t.add(torso);
+  const chest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.4,.1)),mDark);
+  chest.position.set(0,1.7,.2);t.add(chest);
+  [-1,1].forEach(s=>{
+    const arm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,1.0,5)),mWhite);
+    arm.position.set(s*.45,1.0,0);t.add(arm);
+  });
+  [-1,1].forEach(s=>{
+    const leg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.13,1.1,5)),mWhite);
+    leg.position.set(s*.18,.45,0);t.add(leg);
+  });
+  // Blaster carbine
+  const carbine=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.16,.16,.6)),mDark);
+  carbine.position.set(.4,1.1,.4);t.add(carbine);
+  return t;
+}
+
 function spawnBikePursuer(idx){
   if(!forestBike||!forestScene)return;
-  const bike=makeSpeederBike(false);
-  // Enemy bike tint (darker red)
+  // v6.94: enemy bikes now carry an imperial-trooper rider
+  const bike=makeSpeederBike(false,{enemyRider:true});
+  // Tint only the bike chassis dark red - leave the trooper white (rider meshes have preserveColor flag)
   bike.traverse(o=>{
+    if(o.userData&&o.userData.preserveColor)return;
     if(o.material&&o.material.color)o.material.color.setHex(0x882211);
   });
-  bike.position.set(-6+idx*6,1,-60);// behind player
+  // v6.94: spawn BEHIND the player (positive +Z = behind, since the bike faces -Z)
+  bike.position.set(-6+idx*6,1,15+idx*4);
   bike.rotation.y=Math.PI;
   forestScene.add(bike);
   forestBike.pursuers.push({
     mesh:bike,
     laneX:-6+idx*6,
-    speed:35+Math.random()*5,
-    fireT:1+Math.random(),
-    hp:2,
+    targetLaneX:-6+idx*6,
+    speed:5+Math.random()*2,// approach rate (m/s in -Z direction relative to player)
+    fireT:1.5+Math.random(),
+    hp:3,
+    pushVx:0,// lateral push velocity from player rams
+    _destroyed:false,
   });
 }
 
 function updateForestBike(dt){
   if(!forestBike||!forestPilot)return;
   forestBike.t+=dt;
-  // Steering input (lateral)
+  // v6.94: spawn additional waves at scheduled times (now that the chase is 2x longer)
+  if(forestBike.nextWaveAt!=null&&forestBike.t>=forestBike.nextWaveAt){
+    forestBike.nextWaveAt=null;
+    for(let i=0;i<3;i++)spawnBikePursuer(i);
+    try{playComm('nav','More pursuers incoming!')}catch(e){}
+  }
+  if(forestBike.nextWaveAt2!=null&&forestBike.t>=forestBike.nextWaveAt2){
+    forestBike.nextWaveAt2=null;
+    for(let i=0;i<2;i++)spawnBikePursuer(i*2);
+    try{playComm('nav','Last wave of pursuers - hold the line!')}catch(e){}
+  }
+  // Steering input
   let steer=0;
   if(keys['KeyA']||keys['ArrowLeft'])steer-=1;
   if(keys['KeyD']||keys['ArrowRight'])steer+=1;
@@ -13220,55 +13487,74 @@ function updateForestBike(dt){
   forestBike.targetLaneX=Math.max(-16,Math.min(16,forestBike.targetLaneX+steer*dt*18));
   forestBike.laneX+=(forestBike.targetLaneX-forestBike.laneX)*dt*5;
   forestPilot.position.x=forestBike.laneX;
-  forestPilot.rotation.z=(forestBike.targetLaneX-forestBike.laneX)*.05;// bank
-  forestPilot.position.y=1+Math.sin(forestBike.t*8)*.1;
-  // Forward speed adds to scroll pos but we keep forestPilot at fixed z and move trees backward
+  forestPilot.rotation.z=(forestBike.targetLaneX-forestBike.laneX)*.05;
+  // v6.94: terrain-follow + bobbing
+  forestPilot.position.y=1+Math.sin(forestBike.t*8)*.1+bikeTerrainHeight(forestBike.scrollPos);
+  // v6.94: ram impact shake
+  if(forestBike.bikeShakeT>0){
+    forestBike.bikeShakeT-=dt;
+    forestPilot.position.y+=Math.sin(forestBike.t*60)*.15;
+  }
   forestBike.scrollPos+=forestBike.forwardSpeed*dt;
-  // Scroll the environment: move all bikeTrees backward (into the distance) and recycle
+  // Scroll the environment
   forestScene.children.forEach(c=>{
     if(c.name==='bikeTree'){
       c.position.z+=forestBike.forwardSpeed*dt;
       if(c.position.z>25){
-        c.position.z-=220;// recycle far ahead (away from player)
+        c.position.z-=440;// v6.94: longer recycle distance
         c.position.x=(Math.random()<.5?-1:1)*(22+Math.random()*6);
+        c.position.y=bikeTerrainHeight(c.position.z+forestBike.scrollPos);
       }
     }
   });
   // Pursuers
   forestBike.pursuers.forEach(p=>{
-    if(!p.mesh||!p.mesh.parent)return;
-    // Try to match pilot lateral pos with lag
-    p.laneX+=(forestBike.laneX-p.laneX)*dt*1.5;
+    if(!p.mesh||!p.mesh.parent||p._destroyed)return;
+    // Apply ram-induced lateral push velocity
+    p.laneX+=p.pushVx*dt;
+    p.pushVx*=Math.max(0,1-dt*2);// damp push
+    // Without active ram, drift slowly back toward original lane
+    if(Math.abs(p.pushVx)<.5){
+      p.laneX+=(p.targetLaneX-p.laneX)*dt*.3;
+    }
     p.mesh.position.x=p.laneX;
-    // Gradually close distance (relative speed = p.speed - forward)
-    p.mesh.position.z+=(forestBike.forwardSpeed-p.speed)*dt;
-    // Bobbing
-    p.mesh.position.y=1+Math.sin(forestBike.t*7+p.laneX)*.1;
-    // If too close behind, they overtake and fly past player
-    if(p.mesh.position.z>10){
-      // Escape past - no longer a threat
+    // v6.94: pursuer chases by moving in -Z direction (toward player at z=-5)
+    p.mesh.position.z-=p.speed*dt;
+    // Terrain-follow
+    p.mesh.position.y=1+Math.sin(forestBike.t*7+p.laneX)*.1+bikeTerrainHeight(forestBike.scrollPos+p.mesh.position.z);
+    // If pursuer overshoots way past player, despawn
+    if(p.mesh.position.z<-30){
       try{forestScene.remove(p.mesh)}catch(e){}
-      p.mesh.parent=null;
+      p.mesh.parent=null;p._destroyed=true;
+      return;
     }
     // Pursuer fires at player
     p.fireT-=dt;
     if(p.fireT<=0&&p.mesh.parent){
-      p.fireT=1.5+Math.random();
+      p.fireT=2+Math.random();
       firePursuerLaser(p);
     }
   });
-  // Pilot fires (backward at pursuers)
+  // v6.94: ram collisions + tree-kill
+  bikeRamCollision(dt);
+  // Manual back-fire (Space/touch)
   forestState.beamCD-=dt;
   const firing=keys['Space']||(touch&&touch.firing);
   if(firing&&forestState.beamCD<=0){
     fireBikeBackShot();
     forestState.beamCD=.3;
   }
+  // v6.94: doctor auto-fires backward at the nearest pursuer every ~0.7s
+  forestBike.doctorAutoFireT-=dt;
+  if(forestBike.doctorAutoFireT<=0){
+    forestBike.doctorAutoFireT=.7;
+    fireDoctorAutoShot();
+  }
   // Camera follows bike from behind
   const camBehind=8,camY=3;
-  const desiredX=forestPilot.position.x*.5;// follow lateral with lag
+  const desiredX=forestPilot.position.x*.5;
   camera.position.x+=(desiredX-camera.position.x)*dt*4;
-  camera.position.y+=(camY-camera.position.y)*dt*4;
+  camera.position.y+=((camY+forestPilot.position.y-1)-camera.position.y)*dt*4;
   camera.position.z+=((forestPilot.position.z+camBehind)-camera.position.z)*dt*4;
   camera.lookAt(forestPilot.position.x,forestPilot.position.y+1,forestPilot.position.z-5);
   // Update beams
@@ -13276,33 +13562,32 @@ function updateForestBike(dt){
     const b=forestBeams[i];
     b.mesh.position.addScaledVector(b.vel,dt);
     b.life-=dt;
-    if(b.life<=0||Math.abs(b.mesh.position.z)>100){
+    if(b.life<=0||Math.abs(b.mesh.position.z)>120){
       try{forestScene.remove(b.mesh)}catch(e){}
       forestBeams.splice(i,1);continue;
     }
-    // Player beam vs pursuer
     if(!b.hostile){
+      let consumed=false;
       for(let pi=0;pi<forestBike.pursuers.length;pi++){
         const p=forestBike.pursuers[pi];
-        if(!p.mesh||!p.mesh.parent)continue;
+        if(!p.mesh||!p.mesh.parent||p._destroyed)continue;
         const dx=p.mesh.position.x-b.mesh.position.x;
         const dz=p.mesh.position.z-b.mesh.position.z;
         if(dx*dx+dz*dz<2.5){
           p.hp--;
           try{spawnP(p.mesh.position.clone(),0xff4422,12,1.2)}catch(e){}
           try{forestScene.remove(b.mesh)}catch(e){}
-          forestBeams.splice(i,1);
+          forestBeams.splice(i,1);consumed=true;
           if(p.hp<=0){
             try{spawnMegaExplosion(p.mesh.position.clone());sfx.bigExplosion&&sfx.bigExplosion();forestScene.remove(p.mesh)}catch(e){}
-            p.mesh.parent=null;
-            try{playComm('wingman','Nice one! Pursuer down!')}catch(e){}
+            p.mesh.parent=null;p._destroyed=true;
+            try{playComm('wingman',b.fromDoctor?'Nice shot, doctor!':'Nice one! Pursuer down!')}catch(e){}
           }
           break;
         }
       }
-      continue;
+      if(consumed)continue;
     }
-    // Hostile beam vs player
     if(b.hostile){
       const dx=b.mesh.position.x-forestPilot.position.x;
       const dy=(b.mesh.position.y||0)-(forestPilot.position.y+.5);
@@ -13317,11 +13602,104 @@ function updateForestBike(dt){
     }
   }
   if(forestState.pilotInvTimer>0)forestState.pilotInvTimer-=dt;
-  // End of chase — cinematic reaches the ship
   if(forestBike.t>=forestBike.totalT){
     forestBike.state='arrived';
     forestState.phase='planet_destruct';
     playPlanetDestructCinematic();
+  }
+}
+
+// v6.94: doctor's auto-fire — locks onto the nearest pursuer behind the bike
+function fireDoctorAutoShot(){
+  if(!forestPilot||!forestScene||!forestBike)return;
+  let target=null,nearestD=Infinity;
+  forestBike.pursuers.forEach(p=>{
+    if(!p.mesh||!p.mesh.parent||p._destroyed)return;
+    const dz=p.mesh.position.z-forestPilot.position.z;
+    if(dz<=0)return;// in front of player - skip
+    if(dz<nearestD){nearestD=dz;target=p}
+  });
+  if(!target)return;
+  const beam=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,1.2,5)),
+    new THREE.LineBasicMaterial({color:0x44ffaa}));
+  beam.rotation.x=Math.PI/2;
+  const px=forestPilot.position.x+.3,py=forestPilot.position.y+.9,pz=forestPilot.position.z+1.5;
+  beam.position.set(px,py,pz);
+  forestScene.add(beam);
+  const tdx=target.mesh.position.x-px;
+  const tdy=(target.mesh.position.y+.4)-py;
+  const tdz=target.mesh.position.z-pz;
+  const d=Math.hypot(tdx,tdy,tdz)||1;
+  forestBeams.push({mesh:beam,vel:new THREE.Vector3(tdx/d*36,tdy/d*36,tdz/d*36),life:1.6,dmg:1,fromDoctor:true});
+  try{if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('triangle',1400,t,.05,.06);sfx._n(t,.04,.08,5000,1200)}}catch(e){}
+}
+
+// v6.94: ram + tree-kill collision system for the bike chase
+function bikeRamCollision(dt){
+  if(!forestBike||!forestPilot)return;
+  forestBike.pursuers.forEach(p=>{
+    if(!p.mesh||!p.mesh.parent||p._destroyed)return;
+    // Player vs pursuer (lateral ram)
+    const dx=forestPilot.position.x-p.mesh.position.x;
+    const dz=forestPilot.position.z-p.mesh.position.z;
+    if(Math.abs(dx)<1.6&&Math.abs(dz)<3.5){
+      const pushDir=-Math.sign(dx)||1;// push pursuer away from player
+      p.pushVx+=pushDir*8;
+      p.speed=Math.max(2,p.speed-2);// briefly slowed by impact
+      forestBike.bikeShakeT=.18;
+      try{spawnP(p.mesh.position.clone(),0xffff44,5,.5)}catch(e){}
+      try{if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('square',180,t,.06,.15);sfx._n(t,.06,.2,800,200)}}catch(e){}
+      // Mild bike damage to player on ram
+      if((forestState.pilotInvTimer||0)<=0){
+        forestState.pilotHP=Math.max(0,forestState.pilotHP-1);
+        forestState.pilotInvTimer=1.0;
+        try{screenFlash(.25)}catch(e){}
+      }
+    }
+    // Pursuer vs trees (only when shoved beyond the corridor)
+    if(Math.abs(p.laneX)>17){
+      let nearestTree=null,nd=Infinity;
+      forestScene.children.forEach(c=>{
+        if(c.name==='bikeTree'){
+          const tdx=c.position.x-p.mesh.position.x;
+          const tdz=c.position.z-p.mesh.position.z;
+          const td2=tdx*tdx+tdz*tdz;
+          if(td2<nd){nd=td2;nearestTree=c}
+        }
+      });
+      if(nearestTree&&nd<6.5){
+        const wreckPos=p.mesh.position.clone();
+        try{
+          spawnMegaExplosion(wreckPos);
+          if(sfx.bigExplosion)sfx.bigExplosion();
+          forestScene.remove(p.mesh);
+          spawnP(nearestTree.position.clone(),0xff8844,25,1.5);
+          spawnP(wreckPos,0x442211,18,1.2);
+        }catch(e){}
+        p.mesh.parent=null;p._destroyed=true;
+        try{playComm('wingman','Tree-kill! Pusher down!')}catch(e){}
+      }
+    }
+  });
+  // Player damage from clipping a tree at the corridor edge
+  if(Math.abs(forestPilot.position.x)>17){
+    let nearestTree=null,nd=Infinity;
+    forestScene.children.forEach(c=>{
+      if(c.name==='bikeTree'){
+        const tdx=c.position.x-forestPilot.position.x;
+        const tdz=c.position.z-forestPilot.position.z;
+        const td2=tdx*tdx+tdz*tdz;
+        if(td2<nd){nd=td2;nearestTree=c}
+      }
+    });
+    if(nearestTree&&nd<5&&(forestState.pilotInvTimer||0)<=0){
+      forestState.pilotHP=Math.max(0,forestState.pilotHP-1);
+      forestState.pilotInvTimer=1.5;
+      forestBike.bikeShakeT=.3;
+      try{spawnP(forestPilot.position.clone(),0xff4444,20,1.2);sfx.damage&&sfx.damage();screenFlash(.6)}catch(e){}
+      // Push the player back into the corridor
+      forestBike.targetLaneX=Math.sign(forestPilot.position.x)*15;
+    }
   }
 }
 
@@ -14145,6 +14523,8 @@ function triggerGameOver(){
   try{sfx.stopBGM()}catch(e){}
   try{sfx.gameOver()}catch(e){}
   try{playVoice('gameover')}catch(e){}
+  // v6.94: HQ farewell on mission failure - JP map provides "ミッション失敗、またのチャレンジをお待ちしております。"
+  try{setTimeout(()=>{try{playComm('hq','Mission failed. Awaiting your next challenge.')}catch(e){}},1200)}catch(e){}
   // Hard cleanup: remove any stuck overlays that block touches
   ['fate-overlay','doom-overlay','rescue-overlay','continue-overlay','catapult-overlay','cat-tunnel','cat-speedlines','cat-flash'].forEach(id=>{
     const e=document.getElementById(id);if(e){e.style.display='none';if(e.classList&&e.parentNode&&(id==='fate-overlay'||id==='doom-overlay'||id==='rescue-overlay'||id==='continue-overlay')){try{e.remove()}catch(err){}}}
@@ -15369,6 +15749,8 @@ function runCatapultSequence(){
 
 function actualStartGame(){
   sfx.init();sfx.resume();
+  // v6.94: defense - tear down any leftover bridge/forest scene meshes/overlays from earlier sessions
+  try{cleanupSceneCompletely()}catch(e){}
   document.querySelector('canvas').classList.remove('no-click');
   // Rebuild cockpit with selected ship color
   if(typeof rebuildCockpit3D==='function')rebuildCockpit3D();
@@ -16273,7 +16655,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.69 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.94 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
