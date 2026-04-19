@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.75</title>
+<title>COSMIC INVADERS v6.77</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -584,7 +584,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.75 - LOADED
+  COSMIC INVADERS v6.77 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -1239,23 +1239,63 @@ class SFX{
     [440,370,311,261,220,185,147].forEach((f,i)=>{this._o('sawtooth',f,t+i*.3,.45,.1);this._o('sine',f*.5,t+i*.3,.5,.07)})}
   stamp(){if(!this.ctx)return;const t=this.ctx.currentTime;this._n(t,.1,.3,5000,200);this._o('sine',250,t,.15,.2)}
   bigExplosion(){if(!this.ctx)return;const t=this.ctx.currentTime;
-    // v6.70: Deep cinematic boom with enhanced low-end and longer tail
-    this._o('sine',32,t,2.4,.4);// deeper sub-bass (was 40 Hz, now 32 Hz)
-    this._o('sine',50,t+.08,2,.32);
-    this._o('sine',72,t+.15,1.6,.25);
-    // Heavy noise blast with low-pass tail
-    this._n(t,1.8,.45,2500,40);
-    this._n(t+.1,1.4,.3,4500,80);
-    // Rumbling sweep
-    const sw=this.ctx.createOscillator(),sg=this.ctx.createGain();sw.type='sawtooth';
-    sw.frequency.setValueAtTime(45,t);sw.frequency.exponentialRampToValueAtTime(2200,t+.8);
-    sw.frequency.exponentialRampToValueAtTime(25,t+2.3);sg.gain.setValueAtTime(.2,t);
-    sg.gain.setValueAtTime(.25,t+.5);sg.gain.exponentialRampToValueAtTime(.001,t+2.4);
-    sw.connect(sg);sg.connect(this.g);sw.start(t);sw.stop(t+2.5);
-    // Debris crackle trailing
-    for(let i=0;i<6;i++)this._n(t+i*.22,.35,.14,9000,300);
-    // Final "boom" slap
-    this._o('sine',28,t+.25,.8,.5);
+    // v6.77: CATHARTIC EXPLOSION - designed around audio-psychology principles
+    //   1) micro-silence gap (30ms) before the hit so the loud slap feels louder (contrast masking)
+    //   2) high-freq TRANSIENT CLICK at t+0 for instant visual-sync feedback (3-10kHz)
+    //   3) DEEP SUB-BASS body thump (30-60Hz) so the body "feels" the kill
+    //   4) mid-range PUNCH (150-400Hz) for perceived loudness
+    //   5) BRIGHT SPIKE at 8-14kHz for dopamine kick (Berlyne arousal-potential)
+    //   6) downward pitch sweep for "thing collapsing / closure" cue
+    //   7) randomized variant to prevent habituation
+    //   8) long soft low tail for relaxation / reward resolution
+    const t0=t+.03;// (1) 30ms pre-silence - exploited by the caller having played hit() just before
+    const variant=Math.floor(Math.random()*3);
+    // (2) HI-FREQ TRANSIENT CLICK - very short but intense
+    this._n(t0,.03,.55,9000,2000);
+    this._o('square',Math.random()<.5?1800:2400,t0,.05,.3);
+    // (3) DEEP SUB-BASS BODY THUMP - triple-layered low sines
+    const subA=this.ctx.createOscillator();const sgA=this.ctx.createGain();
+    subA.type='sine';subA.frequency.setValueAtTime(28,t0);
+    subA.frequency.exponentialRampToValueAtTime(18,t0+2.8);
+    sgA.gain.setValueAtTime(0,t0);sgA.gain.linearRampToValueAtTime(.5,t0+.02);
+    sgA.gain.setValueAtTime(.5,t0+.3);sgA.gain.exponentialRampToValueAtTime(.001,t0+2.9);
+    subA.connect(sgA);sgA.connect(this.g);subA.start(t0);subA.stop(t0+3);
+    this._o('sine',42,t0+.02,1.8,.38);
+    this._o('sine',58,t0+.06,1.5,.3);
+    // (4) MID-RANGE PUNCH - perceived loudness (Fletcher-Munson sweet spot)
+    this._o('sawtooth',180,t0+.01,.18,.35);
+    this._o('sawtooth',260,t0+.03,.14,.28);
+    this._o('square',340,t0+.02,.1,.22);
+    // (5) BRIGHT HIGH SPIKE - dopamine kick
+    this._n(t0+.01,.12,.35,12000,3000);
+    this._o('triangle',variant===0?5200:variant===1?6800:8400,t0+.02,.08,.18);
+    // (6) DOWNWARD PITCH SWEEP - "collapsing / falling" resolution cue
+    const sw=this.ctx.createOscillator();const sg=this.ctx.createGain();
+    sw.type='sawtooth';sw.frequency.setValueAtTime(480,t0+.02);
+    sw.frequency.exponentialRampToValueAtTime(60,t0+.9);
+    sw.frequency.exponentialRampToValueAtTime(20,t0+2.6);
+    sg.gain.setValueAtTime(0,t0);sg.gain.linearRampToValueAtTime(.3,t0+.04);
+    sg.gain.setValueAtTime(.3,t0+.5);sg.gain.exponentialRampToValueAtTime(.001,t0+2.7);
+    sw.connect(sg);sg.connect(this.g);sw.start(t0);sw.stop(t0+2.8);
+    // (7) VARIANT-specific flavor (prevents habituation)
+    if(variant===0){
+      // "BWOOOOOM" - heavy rolling thunder
+      this._n(t0+.08,1.4,.3,2500,80);
+      this._o('sine',36,t0+.2,1,.32);
+    } else if(variant===1){
+      // "KABOOOOSH" - crackling debris
+      for(let i=0;i<8;i++)this._n(t0+.1+i*.12,.22,.18,8000+Math.random()*4000,600);
+    } else {
+      // "DOGOOOOON" - deep drum-like echo
+      [.15,.4,.75].forEach(d=>this._o('sine',32,t0+d,.6,.28));
+      this._n(t0+.1,.8,.22,3500,200);
+    }
+    // (8) SOFT LOW TAIL - relaxation / reward resolution (descending sigh)
+    const tail=this.ctx.createOscillator();const tg=this.ctx.createGain();
+    tail.type='sine';tail.frequency.setValueAtTime(80,t0+.8);
+    tail.frequency.exponentialRampToValueAtTime(32,t0+2.6);
+    tg.gain.setValueAtTime(.18,t0+.8);tg.gain.exponentialRampToValueAtTime(.001,t0+2.7);
+    tail.connect(tg);tg.connect(this.g);tail.start(t0+.8);tail.stop(t0+2.8);
   }
   fanfare(){if(!this.ctx)return;const t=this.ctx.currentTime;const bt=60/140;
     const mel=[[262,1],[330,1],[392,1],[523,2],[0,.5],[392,.5],[523,.5],[659,.5],[784,3],[0,1],[523,1],[659,1],[784,1],[1047,4]];
@@ -1379,6 +1419,9 @@ const NAV_ROSTER=[
   {id:'helga',name:'HELGA STORM',desc:'Tough as nails. Never sugarcoats.',pitch:.6,rate:.95,gender:'female',vIdx:2},
   {id:'airi',name:'AIRI SAKAMOTO',desc:'Gentle voice, nerves of steel.',pitch:1.7,rate:.9,gender:'female',vIdx:3},
   {id:'rila',name:'RILA NOVA',desc:'Energetic singer-turned-navigator.',pitch:1.4,rate:1.2,gender:'female',vIdx:4},
+  // v6.77: HARUKA IKUTA - Japanese navigator. Selecting her switches nav lines to Japanese
+  // and enables a translator mode (JP subtitle appears alongside each foreign voice line).
+  {id:'haruka',name:'HARUKA IKUTA',desc:'Japanese interpreter nav. 全ての通信を日本語で翻訳。',pitch:1.25,rate:1.0,gender:'female',vIdx:5,lang:'ja-JP',translator:true},
   {id:'bob',name:'BOB WAKEFIELD',desc:'Easygoing veteran. Always has your back.',pitch:.55,rate:.9,gender:'male',vIdx:0},
   {id:'gonzales',name:'GONZALES REYES',desc:'Gruff but brilliant. Combat-tested nav.',pitch:.3,rate:.8,gender:'male',vIdx:1},
 ];
@@ -1488,17 +1531,62 @@ function applyPhonetics(s){
   return s;
 }
 
+// v6.77: Lightweight English → Japanese translator for Haruka Ikuta's nav lines
+// Covers the most-used comm phrases; unknown input falls back through key fragments,
+// then to a generic "[untranslated]: original" fallback.
+const JP_PHRASE_MAP={
+  'Debris field ahead! Clear the obstacles.':'前方にデブリ帯！ 障害物を排除してください！',
+  'Warning: SPACE MINES detected! Destroy or evade!':'警告：宇宙機雷を検知！ 破壊するか回避してください！',
+  'Unknown frequency inbound... patching through now.':'未知の周波数を受信中...接続します。',
+  'Navigator here. Plotting return vector. Hyperwarp ready on your mark.':'ナビゲーターです。帰還ベクトル算出。ハイパーワープ準備完了、合図で発進します。',
+  'Navigator here. Course plotted. All systems nominal. Weapons hot.':'ナビゲーターです。航路設定完了。全システム正常、武装ホット。',
+  'Understood. Encrypted jamming radio is active. Good hunting.':'了解です。暗号化ジャミング無線を稼働中。ご武運を。',
+  'Landing zone identified - LZ-1, 200 meters from the base perimeter. Clear of patrols.':'着陸地点確認：LZ-1、敵基地外周から200m。巡回敵なし。',
+  'Forest planet in sight. Scanning surface for hostiles.':'森の惑星を捉えました。地表の敵影をスキャンします。',
+};
+function jpTranslate(s){
+  if(!s)return s;
+  if(JP_PHRASE_MAP[s])return JP_PHRASE_MAP[s];
+  // Partial-match fallbacks (match on fragment)
+  for(const k in JP_PHRASE_MAP){
+    if(s.indexOf(k)!==-1){return s.replace(k,JP_PHRASE_MAP[k])}
+  }
+  // Generic fragments
+  const fragments={
+    'Roger':'了解','Copy that':'了解しました','Incoming':'着信','engaged':'交戦中',
+    'Welcome back':'お帰りなさい','Mission complete':'ミッション完了',
+    'enemy':'敵','enemies':'敵','target':'目標','warning':'警告',
+  };
+  let out=s;
+  for(const k in fragments)out=out.split(k).join(fragments[k]);
+  // If no fragment matched, just return the original (we still show it as subtitle)
+  return out;
+}
+
 function playComm(char,text,onComplete){
   if(!text)return;
   text=resolveN(text);
   const cfg=char==='nav'?getNavCfg():(CHAR_CFG[char]||CHAR_CFG.hq);
+  // v6.77: HARUKA IKUTA (ja-JP navigator) - speaks nav lines in Japanese + translates others
+  let speakText=text;// what actually goes to TTS
+  let displayText=text;// what shows in the comm box
+  const isJpNav=(selectedNav&&selectedNav.lang==='ja-JP');
+  if(isJpNav&&char==='nav'){
+    // Translate NAV lines to Japanese (simple phrase map; unknown strings fall back to English)
+    speakText=jpTranslate(text);
+    displayText=text+'  /  '+speakText;
+  } else if(isJpNav&&selectedNav.translator&&char!=='nav'){
+    // Show JP translation SUBTITLE for other characters (voice stays in original language)
+    const jp=jpTranslate(text);
+    if(jp&&jp!==text)displayText=text+'\n('+jp+')';
+  }
   sfx.radioStatic(.2);
   startRadioNoise();// continuous crackle during voice
   // Show comm box
   const box=document.getElementById('comm-box');
   box.className=cfg.cls;
   document.getElementById('comm-who').textContent=cfg.label;
-  document.getElementById('comm-msg').textContent=text;
+  document.getElementById('comm-msg').textContent=displayText;
   box.style.display='block';
   setTimeout(()=>{box.style.display='none';stopRadioNoise()},4500);
   // v6.74: Track completion so chained cutscenes can wait until the voice is actually finished
@@ -1509,27 +1597,38 @@ function playComm(char,text,onComplete){
     if(completed)return;completed=true;
     if(typeof onComplete==='function'){try{onComplete()}catch(e){}}
   };
-  const estimateMs=Math.max(1500,Math.min(8000,text.length*85));
+  const estimateMs=Math.max(1500,Math.min(8000,(speakText||text).length*85));
   setTimeout(fireComplete,estimateMs+600);// estimate safety net (covers queued-in delay)
   // Speech synthesis with radio-like processing + distinct voices per character
+  // v6.76: Apply phonetic overrides to TTS input only (display text stays original)
+  const ttsText=applyPhonetics(speakText||text);
   setTimeout(()=>{if('speechSynthesis' in window){
-    const u=new SpeechSynthesisUtterance(text);
+    const u=new SpeechSynthesisUtterance(ttsText);
     u.pitch=Math.max(0,Math.min(2,cfg.pitch));// iOS clamp 0-2
     u.rate=Math.max(.5,Math.min(2,cfg.rate));
     u.volume=cfg.vol;
+    // v6.77: if Haruka is speaking nav lines, explicitly set ja-JP and pick a JP voice
+    if(isJpNav&&char==='nav')u.lang='ja-JP';
     const vs=speechSynthesis.getVoices();
     if(vs&&vs.length>0){
       // Filter English voices
       const enVoices=vs.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en'));
+      const jpVoices=vs.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('ja'));
       const pool=enVoices.length>0?enVoices:vs;
       let picked=null;
       if(char==='nav'&&selectedNav){
-        // Find voices that match gender, cycle through
-        const female=pool.filter(v=>/female|samantha|victoria|karen|zira|tessa|fiona|moira|susan|allison|ava|serena|veena|zoe/i.test(v.name));
-        const male=pool.filter(v=>/male|daniel|fred|alex|tom|oliver|david|mark|reed|aaron/i.test(v.name));
-        const genderPool=selectedNav.gender==='female'?female:male;
-        const usePool=genderPool.length>0?genderPool:pool;
-        picked=usePool[(selectedNav.vIdx||0)%usePool.length];
+        if(isJpNav&&jpVoices.length>0){
+          // Prefer JP female voice for Haruka
+          const female=jpVoices.filter(v=>/female|kyoko|otoya|siri|google.*japan|o-ren|haruka|misaki/i.test(v.name))
+            ||jpVoices;
+          picked=(female.length?female:jpVoices)[0];
+        } else {
+          const female=pool.filter(v=>/female|samantha|victoria|karen|zira|tessa|fiona|moira|susan|allison|ava|serena|veena|zoe/i.test(v.name));
+          const male=pool.filter(v=>/male|daniel|fred|alex|tom|oliver|david|mark|reed|aaron/i.test(v.name));
+          const genderPool=selectedNav.gender==='female'?female:male;
+          const usePool=genderPool.length>0?genderPool:pool;
+          picked=usePool[(selectedNav.vIdx||0)%usePool.length];
+        }
       } else if(char==='hq'){
         const male=pool.filter(v=>/male|daniel|alex|tom|oliver|david/i.test(v.name));
         picked=male[0]||pool[0];
@@ -4508,6 +4607,15 @@ function updatePlayer(dt){
   if(S.phase==='DOCKING'&&!isMobile)return;
   // v6.69: if boss cinematic is active, let the cinematic drive the camera
   if(bossCinematic&&bossCinematic.active){updateBossCinematic(dt);return}
+  // v6.77: if piyo-piyo stunned, disable movement / firing + shake the camera
+  if(S.stunTimer&&S.stunTimer>0){
+    S.stunTimer-=dt;
+    camera.position.x+=(Math.random()-.5)*.15;
+    camera.position.y+=(Math.random()-.5)*.15;
+    camera.rotation.z=Math.sin(performance.now()*.01)*.08;
+    if(S.stunTimer<=0)camera.rotation.z=0;
+    return;
+  }
   const spd=C.PLAYER_SPEED*dt;
   const yDir=S.invertY?-1:1;
   if(keys['ArrowLeft']||keys['KeyA'])player.x-=spd;
@@ -4699,7 +4807,8 @@ function tintBossMech(group,hue){
 function spawnMegaZeong(){
   const mobileEase=isMobile?.8:1;
   const mult=(1+S.cycle*.7)*mobileEase;
-  const hp=Math.ceil(140*mult);
+  // v6.77: HP doubled (was 140, now 280)
+  const hp=Math.ceil(280*mult);
   const b=makeBossZeong();
   // v6.70: Zeong spawns a bit further back so the 3x hold distance (-66) works
   b.position.set(0,3,C.SPAWN_Z-80);
@@ -4812,19 +4921,20 @@ function makeFireDragonHead(scale){
   });
   return g}
 
-function spawnFireDragon(){
+function spawnFireDragon(originOverride){
   if(fireDragons.length>=2)return;// cap concurrent dragons
   const segCount=14;
   const dragon={segments:[],phase:'emerge',life:14,timer:0,sinePhase:Math.random()*Math.PI*2};
-  // Choose entry side - emerge from left, right, top, or bottom
+  // v6.77: if originOverride provided (e.g. fire-boss crotch), spawn from that position
   const sides=[
     {x:-55,y:0},{x:55,y:0},{x:0,y:20},{x:0,y:-20}
   ];
-  const spawn=sides[Math.floor(Math.random()*sides.length)];
+  const spawn=originOverride?{x:originOverride.x,y:originOverride.y,z:originOverride.z,fromCrotch:true}:sides[Math.floor(Math.random()*sides.length)];
   dragon.spawnSide=spawn;
   // Head
   const head=makeFireDragonHead(2.2);
-  head.position.set(spawn.x,spawn.y,C.SPAWN_Z-10);
+  const startZ=originOverride?originOverride.z:C.SPAWN_Z-10;
+  head.position.set(spawn.x,spawn.y,startZ);
   scene.add(head);
   dragon.head=head;
   dragon.segments.push(head);
@@ -4833,7 +4943,7 @@ function spawnFireDragon(){
     const scale=2.0-i*0.08;// tapers toward tail
     const hueShift=0xff3300+(i%3)*0x001100;
     const seg=makeFireDragonSegment(scale,hueShift);
-    seg.position.set(spawn.x,spawn.y,C.SPAWN_Z-10-i*2);
+    seg.position.set(spawn.x,spawn.y,startZ-i*2);
     scene.add(seg);
     dragon.segments.push(seg);
   }
@@ -4848,8 +4958,9 @@ function spawnFireDragon(){
     roar.connect(rg);rg.connect(sfx.g);roar.start(t);roar.stop(t+2.6);
     sfx._n(t,2,.25,2000,500);
   }
-  try{announce('PROMINENCE DRAGON INCOMING!')}catch(e){}
-  try{playComm('wingman','PROMINENCE DRAGON rising! Evade its parabolic coils!')}catch(e){}
+  // v6.77: renamed to "PROMINENCE KOTEKA DRAGON"
+  try{announce('PROMINENCE KOTEKA DRAGON INCOMING!')}catch(e){}
+  try{playComm('wingman','PROMINENCE KOTEKA DRAGON rising! Evade its parabolic coils!')}catch(e){}
   // v6.69: parabolic motion parameters
   dragon.arcApex=10+Math.random()*6;// peak height of arc
   dragon.arcSpan=120;// total z distance covered by arc
@@ -4864,6 +4975,20 @@ function updateFireDragons(dt){
     if(fireDragonSpawnTimer<=0){
       spawnFireDragon();
       fireDragonSpawnTimer=15+Math.random()*10;// every 15-25s
+    }
+    // v6.77: KOTEKA crotch-spawn - if a boss is on the fire stage, periodically spawn a dragon from its crotch
+    S._fireCrotchTimer=(S._fireCrotchTimer||8)-dt;
+    if(S._fireCrotchTimer<=0){
+      S._fireCrotchTimer=10+Math.random()*8;// every 10-18s
+      const boss=enemies.find(e=>e.isBoss);
+      if(boss&&boss.mesh){
+        // Pick the lower-front area of the boss as crotch position
+        const crotch=new THREE.Vector3(boss.mesh.position.x,boss.mesh.position.y-2,boss.mesh.position.z+1);
+        try{spawnFireDragon(crotch)}catch(e){}
+        // Visual burst + cheeky voice
+        try{spawnP(crotch.clone(),0xff4400,30,2);spawnP(crotch.clone(),0xffff44,20,1.5)}catch(e){}
+        try{playComm('enemy','BEHOLD! KOTEKA DRAGON UNLEASHED!!!')}catch(e){}
+      }
     }
   }
   if(fireDragons.length===0)return;
@@ -5124,13 +5249,156 @@ function updateCrotchMissileAttack(e,dt){
   }
 }
 
-// v6.70: Gipsy Danger's rocket-punch flying fist - detailed clenched fist with knuckles
-function makeGipsyDetailedFist(){
+// v6.77: JANKEN (rock-paper-scissors) duel UI
+// Gipsy radios the player mid-fight and challenges them. Win = Gipsy takes extra damage and skips attack.
+// Draw = nothing. Lose = a tub or stone drops on the player, dealing damage + piyo-piyo stun.
+function triggerJankenDuel(boss){
+  if(window._jankenActive)return;
+  window._jankenActive=true;
+  // Enemy voice line
+  try{playComm('enemy','Let us settle this the old way! JAN... KEN... PON!!!')}catch(e){}
+  // Create overlay with three buttons
+  let ov=document.getElementById('janken-duel');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='janken-duel';
+  ov.style.cssText='position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:245;'+
+    'background:rgba(0,20,30,0.92);border:3px solid #ff0;border-radius:12px;padding:20px 30px;'+
+    'color:#ff0;font-family:inherit;text-align:center;letter-spacing:3px;box-shadow:0 0 24px #ff0;pointer-events:auto';
+  ov.innerHTML=
+    '<div style="font-size:14px;color:#f44;letter-spacing:4px;margin-bottom:6px">&#9888; JANKEN DUEL &#9888;</div>'+
+    '<div style="font-size:22px;color:#ff0;letter-spacing:6px;text-shadow:0 0 10px #ff0;margin-bottom:16px">CHOOSE YOUR HAND!</div>'+
+    '<div style="display:flex;gap:14px;justify-content:center">'+
+    '<button type="button" onclick="playJanken(\'rock\')" style="font-size:36px;padding:16px 22px;background:rgba(40,0,0,0.8);border:3px solid #f44;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9994;</button>'+
+    '<button type="button" onclick="playJanken(\'paper\')" style="font-size:36px;padding:16px 22px;background:rgba(0,30,40,0.8);border:3px solid #0ff;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9995;</button>'+
+    '<button type="button" onclick="playJanken(\'scissors\')" style="font-size:36px;padding:16px 22px;background:rgba(30,30,0,0.8);border:3px solid #ff0;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9996;</button>'+
+    '</div>'+
+    '<div id="janken-hint" style="font-size:11px;color:#aaa;margin-top:12px;letter-spacing:2px">Rock &nbsp;/&nbsp; Paper &nbsp;/&nbsp; Scissors</div>';
+  document.body.appendChild(ov);
+  window._jankenBoss=boss;
+  // Auto-timeout in 6s (counts as draw if no input)
+  window._jankenTO=setTimeout(()=>{if(window._jankenActive)playJanken(null)},6000);
+}
+function playJanken(playerHand){
+  if(!window._jankenActive)return;
+  window._jankenActive=false;
+  try{clearTimeout(window._jankenTO)}catch(e){}
+  const boss=window._jankenBoss;
+  const shapes=['rock','paper','scissors'];
+  const bossHand=shapes[Math.floor(Math.random()*3)];
+  const ov=document.getElementById('janken-duel');
+  // Resolve outcome
+  let outcome='draw';
+  if(playerHand){
+    if(playerHand===bossHand)outcome='draw';
+    else if((playerHand==='rock'&&bossHand==='scissors')||
+            (playerHand==='paper'&&bossHand==='rock')||
+            (playerHand==='scissors'&&bossHand==='paper'))outcome='win';
+    else outcome='lose';
+  } else outcome='timeout';// treated as loss
+  // Show result briefly
+  if(ov){
+    const icon=(h)=>h==='rock'?'&#9994;':h==='paper'?'&#9995;':h==='scissors'?'&#9996;':'?';
+    ov.innerHTML=
+      '<div style="font-size:14px;color:#f44;margin-bottom:8px">RESULT</div>'+
+      '<div style="font-size:36px;color:#fff">You: '+icon(playerHand||'?')+' &nbsp;vs&nbsp; Gipsy: '+icon(bossHand)+'</div>'+
+      '<div style="font-size:22px;color:'+(outcome==='win'?'#0f0':outcome==='draw'?'#ff0':'#f44')+';margin-top:10px;letter-spacing:6px">'+
+      (outcome==='win'?'YOU WIN!':outcome==='draw'?'DRAW':outcome==='lose'?'YOU LOSE!':'TOO SLOW!')+'</div>';
+    setTimeout(()=>{try{ov.remove()}catch(e){}},1500);
+  }
+  // Apply outcome effect
+  if(outcome==='win'){
+    // Player wins - Gipsy takes a big hit, cancel rocket punch
+    try{playComm('enemy','Impossible! Rematch!')}catch(e){}
+    if(boss){
+      boss.hp-=Math.max(20,Math.ceil((boss.maxHp||200)*.15));
+      spawnP(boss.mesh.position.clone(),0xffff44,30,2);
+      if(typeof sfx!=='undefined'&&sfx.hit)sfx.hit();
+    }
+  } else if(outcome==='draw'){
+    try{playComm('enemy','Hmph! Again! Again!')}catch(e){}
+  } else {
+    // LOSE - tub or stone falls on the player, deal damage + stun
+    try{playComm('enemy','HAHA! GRAVITY IS MY ALLY!')}catch(e){}
+    dropTubOnPlayer();
+  }
+  window._jankenBoss=null;
+}
+// v6.77: Cartoony tub/stone drops from the top of the screen onto the player
+function dropTubOnPlayer(){
+  // Random: tub or stone
+  const isTub=Math.random()<.5;
   const g=new THREE.Group();
+  if(isTub){
+    // Tub: short cylinder + rim + bottom
+    const mTub=new THREE.LineBasicMaterial({color:0xcccccc});
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(2.5,2.2,1.8,10)),mTub));
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(2.5,.15,4,12)),
+      new THREE.LineBasicMaterial({color:0xffffff})));
+  } else {
+    // Stone: irregular icosahedron
+    const mStone=new THREE.LineBasicMaterial({color:0x888888});
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(2.2,0)),mStone));
+  }
+  g.position.set(camera.position.x,camera.position.y+25,camera.position.z-2);
+  scene.add(g);
+  // Animate dropping
+  const startTime=performance.now();
+  const drop=()=>{
+    const t=(performance.now()-startTime)/1000;
+    if(t>.8){
+      // Impact!
+      try{scene.remove(g)}catch(e){}
+      try{
+        spawnMegaExplosion(camera.position.clone());
+        spawnP(camera.position.clone(),0xffaa00,30,2);
+        spawnP(camera.position.clone(),0xff4400,18,1.5);
+        if(typeof sfx!=='undefined'&&sfx.bigExplosion)sfx.bigExplosion();
+        screenFlash(.8);S.shakeT=1;S.shakeI=2;
+        playerHit();
+      }catch(e){}
+      // Piyo-piyo stun
+      triggerPiyoPiyoStun();
+      return;
+    }
+    g.position.y-=40*.016;// fast fall
+    g.rotation.x+=.15;g.rotation.y+=.1;
+    requestAnimationFrame(drop);
+  };
+  requestAnimationFrame(drop);
+  // Warning whoosh
+  if(typeof sfx!=='undefined'&&sfx.ctx){const t=sfx.ctx.currentTime;
+    const sw=sfx.ctx.createOscillator();const sg=sfx.ctx.createGain();
+    sw.type='sawtooth';sw.frequency.setValueAtTime(800,t);
+    sw.frequency.exponentialRampToValueAtTime(100,t+.8);
+    sg.gain.setValueAtTime(.15,t);sg.gain.exponentialRampToValueAtTime(.001,t+.9);
+    sw.connect(sg);sg.connect(sfx.g);sw.start(t);sw.stop(t+1);
+  }
+}
+// v6.77: Piyo-piyo stun - 2-second daze with rotating stars/birds above HUD
+function triggerPiyoPiyoStun(){
+  let ov=document.getElementById('piyo-stun');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='piyo-stun';
+  ov.style.cssText='position:fixed;top:28%;left:50%;transform:translateX(-50%);z-index:205;'+
+    'color:#ff0;font-family:inherit;text-align:center;pointer-events:none';
+  ov.innerHTML=
+    '<div style="font-size:40px;letter-spacing:6px;animation:piyoSpin 2s linear infinite">&#11088;&#128038;&#11088;&#128038;&#11088;</div>'+
+    '<div style="font-size:18px;color:#ff8;letter-spacing:5px;margin-top:4px">ピヨピヨ...</div>'+
+    '<style>@keyframes piyoSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
+  document.body.appendChild(ov);
+  // Disable inputs for 2s
+  S.stunTimer=(S.stunTimer||0)+2;
+  setTimeout(()=>{try{ov.remove()}catch(e){}},2000);
+}
+
+// v6.70/v6.77: Gipsy Danger's rocket-punch flying fist - detailed knuckles.
+// v6.77: shape arg = 'rock' (default clenched), 'paper' (open hand), 'scissors' (V fingers)
+function makeGipsyDetailedFist(shape){
+  shape=shape||'rock';
+  const g=new THREE.Group();
+  g.userData.jankenShape=shape;
   const mFist=new THREE.LineBasicMaterial({color:0x6699bb});
   const mKnuckle=new THREE.LineBasicMaterial({color:0xff9922});
   const mGlow=new THREE.LineBasicMaterial({color:0xffcc44});
-  // palm / main fist box
+  // palm / main fist box (common to all shapes)
   g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.4,1,1.4)),mFist));
   // thumb (bent across)
   const thumb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.32,.65,.45)),mFist);
@@ -5142,15 +5410,40 @@ function makeGipsyDetailedFist(){
     const kn=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.22,6,5)),mKnuckle);
     kn.position.set(-.42+k*.28,.45,.55);g.add(kn);
   }
-  // 4 fingers (proximal + middle + distal folded)
-  for(let k=0;k<4;k++){
-    const x=-.42+k*.28;
-    const f1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.4,.3)),mFist);
-    f1.position.set(x,.15,.65);g.add(f1);
-    const f2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.35,.25)),mFist);
-    f2.position.set(x,-.2,.6);g.add(f2);
-    const f3=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.3,.2)),mFist);
-    f3.position.set(x,-.5,.5);g.add(f3);
+  // v6.77: fingers differ by shape
+  if(shape==='rock'){
+    // Clenched - 4 folded fingers (original look)
+    for(let k=0;k<4;k++){const x=-.42+k*.28;
+      const f1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.4,.3)),mFist);
+      f1.position.set(x,.15,.65);g.add(f1);
+      const f2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.35,.25)),mFist);
+      f2.position.set(x,-.2,.6);g.add(f2);
+      const f3=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.3,.2)),mFist);
+      f3.position.set(x,-.5,.5);g.add(f3);
+    }
+  } else if(shape==='paper'){
+    // Open hand - 4 straight extended fingers reaching forward (the "slap" shape)
+    for(let k=0;k<4;k++){const x=-.42+k*.28;
+      // One long finger extended forward
+      const finger=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.35,1.6)),mFist);
+      finger.position.set(x,.15,1.3);g.add(finger);
+      // Fingertip bump
+      const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.12)),mKnuckle);
+      tip.position.set(x,.15,2.1);g.add(tip);
+    }
+  } else if(shape==='scissors'){
+    // V-shape - index + middle finger extended, ring + pinky folded
+    [0,1].forEach(k=>{const x=-.3+k*.35;
+      const finger=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.35,1.4)),mFist);
+      finger.position.set(x,.2,1.2);finger.rotation.y=k===0?-.25:.25;g.add(finger);
+      const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.14)),mKnuckle);
+      tip.position.set(x+(k===0?-.3:.3),.2,1.95);g.add(tip);
+    });
+    // Folded ring + pinky
+    [2,3].forEach(k=>{const x=-.42+k*.28;
+      const f=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.35,.3)),mFist);
+      f.position.set(x,-.15,.55);g.add(f);
+    });
   }
   // wrist cuff
   const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.65,.6,.35,6)),mKnuckle);
@@ -5219,6 +5512,20 @@ function fireTrioGoldenBallBombs(crotchBoss){
   S.shakeT=.8;S.shakeI=1.8;
 }
 
+// v6.77: Char Aznable-style drunken monologues (english, delivered like a slurring villain)
+const ZEONG_CHAR_LINES=[
+  'Eeey! Power down?! Impossible!',
+  'She was... supposed to be my MOTHER...',
+  'Cannot let the gravity-bound fools win!',
+  'This is for Doctor Tinko... and the Golden Ball brothers... REVENGE!',
+  'A Zeong without legs is still a Zeong!',
+  'Lalaaaaaa! Sail me to the red comet...',
+  'The age of the pilot is OVER! Hic.',
+  'Speed is three times what your pathetic ship can muster!',
+  'Mobile suit... mobile SUIT... mo-bi-lee SUIT!',
+  'Zabi family... you will not... escape... *hic*',
+];
+
 function updateZeongBoss(e,dt){
   // Slight hover bob
   e.mesh.position.y=e.baseY+Math.sin(e.poseTime*1)*.3;
@@ -5257,6 +5564,39 @@ function updateZeongBoss(e,dt){
     }
     e.shootTimer=e.shootCD;
   }
+  // v6.77: MOUTH SCATTER BEAM - Zeong vomits a wide spread of megaparticle beams from its mouth
+  e.zeongMouthTimer=(e.zeongMouthTimer||7)-dt;
+  if(e.zeongMouthTimer<=0){
+    e.zeongMouthTimer=8+Math.random()*3;
+    const headMesh=e.mesh.children.find(c=>c.name==='zeongEye')||e.mesh;
+    const mouthPos=new THREE.Vector3();
+    (headMesh.parent||e.mesh).getWorldPosition(mouthPos);
+    mouthPos.y+=4.5;mouthPos.z+=2;
+    // Wide scatter cone (12 beams spread across ±45°)
+    const shots=isMobile?8:14;
+    for(let k=0;k<shots;k++){
+      const ang=(k/shots-.5)*Math.PI*.6;
+      const elev=(Math.random()-.5)*.4;
+      const b=makeEnemyBeam();
+      b.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.color.setHex(0xff44cc)}});
+      b.position.copy(mouthPos);scene.add(b);
+      const dx=(camera.position.x-mouthPos.x)*.25+Math.cos(ang)*8;
+      const dy=(camera.position.y-mouthPos.y)*.15+elev*6;
+      eBeams.push({mesh:b,vel:new THREE.Vector3(dx,dy,C.E_BEAM_SPEED*.85)});
+    }
+    spawnP(mouthPos,0xff44cc,25,1.5);spawnP(mouthPos,0xffffff,12,1);
+    if(sfx.ctx){const t=sfx.ctx.currentTime;
+      sfx._n(t,.35,.2,5000,800);sfx._o('sawtooth',180,t,.4,.22);
+      sfx._o('square',340,t+.05,.2,.15)}
+    S.shakeT=.4;S.shakeI=1;
+    playComm('enemy','OPEN WIDE! MOUTH MEGA-PARTICLE CANNON!!!');
+  }
+  // v6.77: Random Char-style drunk radio monologues every 7-14 seconds
+  e.zeongCharTimer=(e.zeongCharTimer||5)-dt;
+  if(e.zeongCharTimer<=0){
+    e.zeongCharTimer=7+Math.random()*7;
+    try{playComm('enemy',ZEONG_CHAR_LINES[Math.floor(Math.random()*ZEONG_CHAR_LINES.length)])}catch(ex){}
+  }
 }
 
 // v6.70: Build wireframe cables connecting each shoulder to each hand (for wire-tether look)
@@ -5294,9 +5634,10 @@ function updateZeongWireArms(boss,dt){
     // If this arm is the attacking one, stretch forward
     if(boss.zeongAttackArm===name){
       const ap=boss.zeongAttackT;
+      // v6.77: Wire 2x longer + arm reaches 2x further (was 14, now 28)
       // Phase timing: 0-0.6s extend, 0.6-1.5s held + fire beams, 1.5-2.4s retract
-      if(ap<.6){boss.zeongAttackPhase='extend';reachZ=(ap/.6)*14}
-      else if(ap<1.5){boss.zeongAttackPhase='fire';reachZ=14+Math.sin((ap-.6)*10)*.6;
+      if(ap<.6){boss.zeongAttackPhase='extend';reachZ=(ap/.6)*28}
+      else if(ap<1.5){boss.zeongAttackPhase='fire';reachZ=28+Math.sin((ap-.6)*10)*1;
         // Fire finger beams once, 5 beams from fingertips
         if(!boss.zeongFiredBeams){
           boss.zeongFiredBeams=true;
@@ -5318,7 +5659,7 @@ function updateZeongWireArms(boss,dt){
           try{spawnP(handWorld.clone(),0xffcc00,14,1)}catch(ex){}
         }
       }
-      else if(ap<2.4){boss.zeongAttackPhase='retract';reachZ=14*(1-(ap-1.5)/.9)}
+      else if(ap<2.4){boss.zeongAttackPhase='retract';reachZ=28*(1-(ap-1.5)/.9)}
       else {boss.zeongAttackArm=null;boss.zeongAttackT=0;boss.zeongFiredBeams=false;reachZ=0}
       // Slight side wobble while extending
       reachX=Math.sin(ap*4)*1.2*side;
@@ -5595,11 +5936,40 @@ function updateGipsyBoss(e,dt){
   if(hpRatio<.15&&e.gipsyParts.rLeg){
     if(detachBossLimb(e,'rightLeg','Cannot move! Finish it!'))e.gipsyParts.rLeg=false;
   }
+  // v6.77: Continuous leg jet-flight animation (jet exhaust flame + subtle bob)
+  const lLegM=e.mesh.getObjectByName('leftLeg');
+  const rLegM=e.mesh.getObjectByName('rightLeg');
+  if(lLegM&&!e.legLeftLost&&Math.random()<.55){
+    const p=new THREE.Vector3();lLegM.getWorldPosition(p);p.y-=3;
+    spawnP(p,0xff8800,2,.7);if(Math.random()<.4)spawnP(p,0xffcc44,2,.5);
+  }
+  if(rLegM&&!e.legRightLost&&Math.random()<.55){
+    const p=new THREE.Vector3();rLegM.getWorldPosition(p);p.y-=3;
+    spawnP(p,0xff8800,2,.7);if(Math.random()<.4)spawnP(p,0xffcc44,2,.5);
+  }
+  // Extra vertical hover so it reads as "jet flight" rather than standing
+  e.mesh.position.y=e.baseY+Math.sin(e.poseTime*.8)*.15+Math.sin(e.poseTime*1.6)*.05;
   // Rocket punch every ~7 seconds (requires right arm intact)
   if(!e.armRightLost){
   e.rocketPunchTimer=(e.rocketPunchTimer||6)-dt;
-  // v6.70: 3-phase rocket punch: extend arm → fist detaches and flies → arm retracts
-  if(e.rocketPunchPhase==='extend'){
+  // v6.77: 4-phase rocket punch: BUILDUP (arm raise + voice) → extend → fist flies → retract
+  if(e.rocketPunchPhase==='buildup'){
+    e.rocketPunchT=(e.rocketPunchT||0)+dt;
+    const arm=e.mesh.getObjectByName('rightArm');
+    if(arm){
+      // Back up the boss slightly (step away for dramatic pose)
+      e.mesh.position.z+=Math.max(0,-0.4-e.mesh.position.z)*dt*.2;
+      // Raise right arm slowly (arm.rotation.x from 0 → -PI/2 over 2s)
+      const p=Math.min(1,e.rocketPunchT/2.0);
+      arm.rotation.x=-p*Math.PI*.5;
+      arm.rotation.z=p*.2;
+      if(e.rocketPunchT>=2.0){
+        // Pick a random janken shape for this punch (1/3 each)
+        e.rocketPunchShape=['rock','paper','scissors'][Math.floor(Math.random()*3)];
+        e.rocketPunchPhase='extend';e.rocketPunchT=0;
+      }
+    }
+  } else if(e.rocketPunchPhase==='extend'){
     e.rocketPunchT=(e.rocketPunchT||0)+dt;
     const arm=e.mesh.getObjectByName('rightArm');
     if(arm){
@@ -5614,7 +5984,7 @@ function updateGipsyBoss(e,dt){
         const worldPos=new THREE.Vector3();
         if(fistHolder){fistHolder.getWorldPosition(worldPos);arm.remove(fistHolder);e._savedFistHolder=fistHolder}
         else{arm.getWorldPosition(worldPos);worldPos.z+=2}
-        const fist=makeGipsyDetailedFist();
+        const fist=makeGipsyDetailedFist(e.rocketPunchShape||'rock');
         fist.position.copy(worldPos);scene.add(fist);
         // v6.72: Launch upward/backward so the fist arcs BEHIND the camera first, then dives back at player
         // Initial velocity: fast forward + strongly up + slight random lateral wobble for pose show-off
@@ -5696,7 +6066,14 @@ function updateGipsyBoss(e,dt){
     const arm=e.mesh.getObjectByName('rightArm');
     if(arm){
       if(e.rocketArmBaseZ===undefined)e.rocketArmBaseZ=arm.position.z;
-      e.rocketPunchPhase='extend';e.rocketPunchT=0;
+      // v6.77: Enter BUILDUP phase first (arm raise + voice), then extend+launch
+      e.rocketPunchPhase='buildup';e.rocketPunchT=0;
+      // Dramatic buildup voice: "いくぜーー、ロケットパーーーンチ" (spoken in English for TTS clarity)
+      try{playComm('enemy','Here it comes...! ROCKET PAAAAAAAAAN-CH!!!')}catch(ex){}
+      // v6.77: 25% chance to also trigger a JANKEN duel
+      if(Math.random()<.25&&!window._jankenActive){
+        setTimeout(()=>{try{triggerJankenDuel(e)}catch(ex){console.warn('janken:',ex)}},400);
+      }
       if(sfx.ctx){const t=sfx.ctx.currentTime;
         sfx._o('sawtooth',140,t,.4,.15)}
       playComm('enemy','ROCKET PUNCH!!!');
@@ -7753,6 +8130,19 @@ function updateFortress(dt){S.fortTimer+=dt;
     if(closeness>.6){document.getElementById('target-radar').classList.add('locked')}
     else{document.getElementById('target-radar').classList.remove('locked')}
 
+    // v6.76: At 90% closeness (radar at ~10% remaining), fire the "in range" voice lines
+    // and launch the escort retreat animation.
+    if(closeness>=.9&&!S._coreInRangeVoiced){
+      S._coreInRangeVoiced=true;
+      const cs=S.callsign||'Alpha-1';
+      try{playCommChain([
+        ['wingman','We are in range! Target is hot!'],
+        ['wingman','Let us wrap this up and head home, '+cs+'!'],
+        ['hq','You are cleared to fire at will, '+cs+'. We trust you, Leader!'],
+        ['pilot','Roger! Firing line locked! All escorts, break off NOW!'],
+      ],()=>{triggerEscortRetreat()})}catch(e){console.warn('trench voice:',e)}
+    }
+
     // --- SW Targeting alarm: pip-pip-pon ---
     // Interval: 1.4s at far → 0.3s at point blank
     hbInterval=1.4-urgency*1.1;
@@ -7879,9 +8269,50 @@ function spawnFortTurret(){
     spinRate:0,spiralR:0,spiralA:0,isTurret:true,isBigTurret:true});
   S.waveLeft++}
 
+// v6.76: Spawn escort wingmen that fly alongside then break off during the trench run
+function triggerEscortRetreat(){
+  try{S._coreEscortRetreated=true}catch(e){}
+  // Launch 2 ally ships that fly past + then peel away upward/backward
+  for(let i=0;i<2;i++){
+    const ship=makeStarfighterN1();
+    ship.scale.setScalar(1.0);
+    const side=i===0?-1:1;
+    ship.position.set(side*5,2,camera.position.z+15);
+    ship.rotation.y=Math.PI/2;
+    scene.add(ship);
+    if(!window._escortRetreatShips)window._escortRetreatShips=[];
+    window._escortRetreatShips.push({mesh:ship,side,life:6,t:0});
+  }
+}
+function updateEscortRetreat(dt){
+  if(!window._escortRetreatShips||!window._escortRetreatShips.length)return;
+  for(let i=window._escortRetreatShips.length-1;i>=0;i--){
+    const e=window._escortRetreatShips[i];
+    e.t+=dt;e.life-=dt;
+    // Phase 1: fly past player forward (first 1.2s)
+    if(e.t<1.2){
+      e.mesh.position.z+=30*dt;// forward zoom past camera
+      e.mesh.position.x+=e.side*2*dt;// fan out
+    } else {
+      // Phase 2: peel off upward + back (they break off to safety)
+      e.mesh.position.z-=45*dt;
+      e.mesh.position.y+=10*dt;
+      e.mesh.position.x+=e.side*20*dt;
+      e.mesh.rotation.z=e.side*.6;
+      e.mesh.rotation.x=-.2;
+    }
+    if(Math.random()<.4)spawnP(e.mesh.position.clone(),0x88ccff,1,.3);
+    if(e.life<=0){try{scene.remove(e.mesh)}catch(err){}window._escortRetreatShips.splice(i,1)}
+  }
+}
+
 function spawnCore2(){if(coreMesh)scene.remove(coreMesh);coreMesh=makeCore();
-  coreInitialZ=-100;coreMesh.position.set(0,0,coreInitialZ);coreMesh.visible=true;scene.add(coreMesh);
-  announce('TARGET ACQUIRED - DESTROY THE EXHAUST PORT!');
+  // v6.76: Target far away (coreInitialZ=-300, was -100) so the radar countdown has real runway.
+  // y lowered from 0 → -6 so the exhaust port sits near the trench floor (Death Star-style).
+  coreInitialZ=-300;coreMesh.position.set(0,-6,coreInitialZ);coreMesh.visible=true;scene.add(coreMesh);
+  // Spawn markers to remember lock-on "10% remaining" transition
+  S._coreInRangeVoiced=false;S._coreEscortRetreated=false;
+  announce('TARGET ACQUIRED - APPROACHING EXHAUST PORT');
   sfx.targetingAlarm(0.2)}
 
 // Camera angles for replay cuts
@@ -7904,6 +8335,20 @@ function triggerCoreDeath(){
   if(coreMesh){spawnMegaExplosion(coreMesh.position.clone());scene.remove(coreMesh);coreMesh=null}
   sfx.bigExplosion();sfx.stopBGM();screenFlash(1.5);
   S.shakeT=2;S.shakeI=3;
+  // v6.76: Spawn a visible player-ship stand-in for the orbit replay camera
+  try{
+    if(window._replayShip){scene.remove(window._replayShip)}
+    const rs=(selectedShip&&selectedShip.make)?selectedShip.make():makeStarfighterN1();
+    rs.scale.setScalar(1.2);
+    rs.position.copy(savedCamPos);
+    rs.rotation.y=Math.PI/2;// nose along -Z
+    scene.add(rs);window._replayShip=rs;
+    // Also temporarily hide the first-person cockpit so the replay camera can see the ship clearly
+    if(cockpitObj&&cockpitObj.parent){
+      window._replaySavedCockpitParent=cockpitObj.parent;
+      cockpitObj.parent.remove(cockpitObj);
+    }
+  }catch(e){console.warn('replay ship setup:',e)}
   enemies.forEach(e=>scene.remove(e.mesh));enemies.length=0;
   eBeams.forEach(b=>scene.remove(b.mesh));eBeams.length=0;
   walls.forEach(w=>scene.remove(w));walls.length=0;
@@ -7923,19 +8368,49 @@ function triggerCoreDeath(){
 
 function updateReplay(dt){
   S.replayTimer+=dt;
-  const cutDur=2.2;// seconds per camera cut
-  const totalCuts=REPLAY_CAMS.length;
-  const totalDur=cutDur*totalCuts;// ~11 seconds
-  const currentCut=Math.min(Math.floor(S.replayTimer/cutDur),totalCuts-1);
-  // Switch camera on cut change
-  if(currentCut!==S.replayCut){
-    S.replayCut=currentCut;
-    screenFlash(.3);// white flash between cuts
-    S.shakeT=.3;S.shakeI=1;}
-  // Position camera for current cut
-  const c=REPLAY_CAMS[currentCut];
-  camera.position.lerp(new THREE.Vector3(c.x,c.y,c.z),.03);
-  camera.lookAt(c.lx,c.ly,c.lz);
+  // v6.76: SHIP-CENTRIC EXPLOSION CAMERA
+  // Instead of the old set of static camera cuts, we orbit slowly around the PLAYER ship
+  // with the fortress explosion in the background. Total duration ~11s.
+  // Phase A (0-3s):  close side-on of the ship, explosion visible behind
+  // Phase B (3-6s):  orbit camera 180° around the ship revealing the explosion blooming behind
+  // Phase C (6-9s):  continue orbit another 180° so we now see the ship's nose pointed toward escape
+  // Phase D (9-11s): pull back, ship banks toward the escape direction
+  const totalDur=11;
+  const t=S.replayTimer;
+  // Position a ghost "ship" at savedCamPos so it's visible for the camera
+  const shipPos=savedCamPos.clone();
+  // Compose orbit angle
+  let ang, radius, camY;
+  if(t<3){
+    // Phase A: close side view behind ship, explosion in foreground-right
+    ang=-Math.PI*.3;radius=10;camY=2;
+  } else if(t<6){
+    // Phase B: orbit to behind the ship (180° transition)
+    const k=(t-3)/3;ang=-Math.PI*.3+k*Math.PI;radius=10+k*4;camY=2+k*2;
+  } else if(t<9){
+    // Phase C: continue around so we see the ship's heading direction
+    const k=(t-6)/3;ang=Math.PI*.7+k*Math.PI*.7;radius=14-k*2;camY=4-k*.5;
+  } else {
+    // Phase D: pull back, ship banks into escape direction
+    const k=Math.min(1,(t-9)/2);ang=Math.PI*1.4+k*Math.PI*.2;radius=12+k*6;camY=3.5+k*2;
+  }
+  const desired=new THREE.Vector3(
+    shipPos.x+Math.cos(ang)*radius,
+    shipPos.y+camY,
+    shipPos.z+Math.sin(ang)*radius);
+  camera.position.lerp(desired,.06);
+  // Look at the ship (not the explosion) so the ship stays centered
+  camera.lookAt(shipPos.x,shipPos.y,shipPos.z-2);
+  // Switch sound flashes on phase boundaries
+  const phase=Math.floor(t/3);
+  if(phase!==S.replayCut){
+    S.replayCut=phase;screenFlash(.3);S.shakeT=.25;S.shakeI=.8;
+  }
+  // Secondary explosion particles at the distant fortress
+  if(Math.random()<.35){
+    const p=coreDeathPos.clone().add(new THREE.Vector3((Math.random()-.5)*20,(Math.random()-.5)*20,(Math.random()-.5)*15));
+    spawnMegaExplosion(p);
+  }
   // Slow particle update (slow-mo effect)
   updateParticles(dt*.35);
   // End replay → start ESCAPE
@@ -7947,6 +8422,14 @@ function updateReplay(dt){
 let escapeFortMesh=null;
 function startEscape(){
   S.phase='ESCAPE';S.escapeTimer=0;
+  // v6.76: Clean up the replay ship + restore cockpit before returning to first-person
+  try{
+    if(window._replayShip){scene.remove(window._replayShip);window._replayShip=null}
+    if(cockpitObj&&window._replaySavedCockpitParent&&!cockpitObj.parent){
+      window._replaySavedCockpitParent.add(cockpitObj);
+    }
+    window._replaySavedCockpitParent=null;
+  }catch(e){}
   // Restore camera to cockpit
   camera.position.copy(savedCamPos);
   camera.rotation.copy(savedCamRot);
@@ -8243,6 +8726,11 @@ function runRedockedCatapult(){
   setTimeout(()=>playComm('pilot','Roger! Back in the fight!'),6500);
   setTimeout(()=>{
     if(co)co.style.display='none';
+    // v6.76: FOREST PLANET - after catapult, instead of normal gameplay, start the landing cutscene.
+    if(S._forestLandingPending){
+      try{startForestLanding()}catch(e){console.warn('forest landing:',e)}
+      return;
+    }
     // Resume gameplay at the new wave
     S.phase='PLAYING';
     ['hud','cockpit-frame','reticle','shield-gauge','heat-gauge'].forEach(id=>{
@@ -8251,6 +8739,11 @@ function runRedockedCatapult(){
     sfx.startBGM(Math.min(((S.wave-1)%C.FORT_WAVES)+1,5));
     spawnWave(S.wave);
     updateHUD();updateNapalmDisplay();
+    // v6.76: CRITICAL FIX - after bridge → stage select → re-launch, touch controls must be re-enabled.
+    // Previously the touch UI stayed hidden and mobile players lost input.
+    try{showTouchControls(true)}catch(e){}
+    // Also reset touch state in case a prior cinematic left it mid-press
+    try{touch.stickActive=false;touch.firing=false;touch.stickX=0;touch.stickY=0}catch(e){}
   },7500);
 }
 
@@ -8258,7 +8751,8 @@ function runRedockedCatapult(){
 // Stage definitions - each is a themed mission with color/name/description
 const STAGES=[
   // v6.70: stage names unified to English (display field matches nameEn)
-  {id:'forest',name:'FOREST PLANET',nameEn:'FOREST PLANET',color:'#0f8',desc:'Dense jungle canopy. Camouflaged enemy bases.',theme:0x00ff66,available:false},
+  // v6.76: Forest Planet is now available (ground-combat prototype - Cosmic Series foundation)
+  {id:'forest',name:'FOREST PLANET',nameEn:'FOREST PLANET',color:'#0f8',desc:'Jungle rescue. Infiltrate on foot. Free Master HK CHINDERU MK.',theme:0x00ff66,available:true},
   {id:'ice',name:'ICE PLANET',nameEn:'ICE PLANET',color:'#8cf',desc:'Frozen wastelands. Cryo-mechs on patrol.',theme:0x66ccff,available:false},
   {id:'fire',name:'FIRE PLANET',nameEn:'FIRE PLANET',color:'#f80',desc:'Blazing sun approach. Fireballs rain from the corona.',theme:0xff6622,available:true},
   {id:'station',name:'MEGA STATION',nameEn:'MEGA STATION',color:'#ff0',desc:'Enemy flagship orbital. Heavy defenses.',theme:0xffcc00,available:false},
@@ -8491,18 +8985,24 @@ function wfCineShow(kind,duration,onDone){
     // "Pshuu" door open sound + machine voice
     if(sfx.ctx){const t=sfx.ctx.currentTime;
       sfx._n(t,.5,.2,9000,2000);sfx._o('sine',600,t+.1,.3,.08);}
-    // Machine voice "Welcome NAME, moving to command bridge"
+    // v6.76: Smoother elevator voice - warm AI-assistant tone, natural rate, non-robotic voice
     setTimeout(()=>{
       try{
         const name=(S.callsign||'Pilot');
-        const msg='Welcome '+name+'. Moving to command bridge.';
+        const msg='Welcome '+name+'. Moving to the command bridge. Please hold on.';
+        const ttsText=applyPhonetics(msg);
         if(window.speechSynthesis){
-          const u=new SpeechSynthesisUtterance(msg);
-          u.rate=.9;u.pitch=.5;u.volume=.75;
-          // Pick robotic voice
+          const u=new SpeechSynthesisUtterance(ttsText);
+          // v6.76: smoother tone - natural rate + pitch just slightly lower than neutral
+          u.rate=1.0;u.pitch=0.95;u.volume=0.85;
           const vs=speechSynthesis.getVoices();
-          const robot=vs.find(v=>/Fred|Microsoft David|Zarvox|Trinoids/i.test(v.name));
-          if(robot)u.voice=robot;
+          // Prefer a smooth, natural AI assistant voice (Samantha / Karen / Google US voices)
+          const enVoices=vs.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en'));
+          const pool=enVoices.length>0?enVoices:vs;
+          const smooth=pool.find(v=>/samantha|karen|allison|ava|moira|tessa|google.*us|microsoft zira|siri|neural/i.test(v.name))
+            ||pool.find(v=>/female|natural/i.test(v.name))
+            ||pool[0];
+          if(smooth)u.voice=smooth;
           speechSynthesis.speak(u);
         }else{playComm('hq',msg)}
       }catch(e){}
@@ -9552,6 +10052,11 @@ function selectStageAndLaunch(idx){
   if(sfx.ctx){const t=sfx.ctx.currentTime;
     [392,523,659,784,1047].forEach((f,k)=>sfx._o('sine',f,t+k*.08,.2,.12))}
   try{S.stageTheme=selectedStage.theme;S.stageName=selectedStage.nameEn}catch(e){}
+  // v6.76: FOREST PLANET → commander briefing THEN launch
+  if(selectedStage.id==='forest'){
+    runForestBriefingThenLaunch();
+    return;
+  }
   setTimeout(()=>{
     // End the 3D cinematic + proceed to catapult launch
     try{wfCineEnd()}catch(e){}
@@ -9559,6 +10064,142 @@ function selectStageAndLaunch(idx){
     try{announce('DESTINATION: '+selectedStage.nameEn)}catch(e){}
     runRedockedCatapult();
   },2000);
+}
+
+// v6.76: FOREST PLANET - commander briefing on the bridge before launch, then proceed to launch.
+// After landing, the game switches to an on-foot action mode (first iteration scaffold).
+function runForestBriefingThenLaunch(){
+  const cs=S.callsign||'Alpha-1';
+  // Commander stays on the bridge holographic monitor with mission briefing
+  try{playCommChain([
+    ['hq','Listen carefully, '+cs+'. This is a rescue op, not a dogfight.'],
+    ['hq','Galaxy Empire has captured Master HK-CHINDERU MK, the padawan of the mod-master HK-TAMAAN.'],
+    ['hq','He holds the legendary POWER-UP MISSILE. We need him back, alive.'],
+    ['hq','Land on the Forest Planet, infiltrate on foot, clear the guards, free him, escape.'],
+    ['hq','Stealth over glory. The jungle is thick. Good luck, '+cs+'.'],
+  ],()=>{
+    // After briefing ends + 0.8s buffer, proceed to launch
+    try{wfCineEnd()}catch(e){}
+    S.cycle++;S.wave++;S.waveLeft=0;
+    try{announce('DESTINATION: FOREST PLANET - RESCUE MISSION')}catch(e){}
+    // Mark that the forest landing cutscene is pending so it fires after catapult launch
+    S._forestLandingPending=true;
+    runRedockedCatapult();
+  })}catch(e){console.warn('forest briefing:',e);setTimeout(()=>runRedockedCatapult(),1500)}
+}
+
+// v6.76: Forest landing cutscene - plays after catapult launch when arriving at the forest planet
+function startForestLanding(){
+  if(!S._forestLandingPending)return;
+  S._forestLandingPending=false;
+  // Hide flight HUD, show landing overlay
+  ['hud','shield-gauge','heat-gauge','napalm-box','reticle','cockpit-frame','boss-hp-wrap','mini-radar','touch-controls'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.style.display='none'});
+  S.phase='BRIDGE';// reuse BRIDGE phase to pause game logic
+  // Build a DOM overlay showing the whole forest planet with radar lock + landing animation
+  let ov=document.getElementById('forest-landing');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='forest-landing';
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:240;background:radial-gradient(ellipse at center,rgba(0,60,20,0.8),rgba(0,10,0,0.95));'+
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0f8;'+
+    'font-family:Courier New,monospace;text-align:center;padding:20px';
+  ov.innerHTML=
+    '<div style="font-size:14px;color:#0aa;letter-spacing:4px;margin-bottom:6px">&#9679; FOREST PLANET APPROACH &#9679;</div>'+
+    '<div style="font-size:26px;color:#0f8;letter-spacing:5px;text-shadow:0 0 18px #0f8;margin-bottom:16px">RADAR SCAN - FINDING LANDING ZONE</div>'+
+    '<div style="position:relative;width:320px;height:320px;border:3px solid #0f8;border-radius:50%;box-shadow:0 0 24px #0f8 inset,0 0 20px #0f8;background:radial-gradient(circle,rgba(0,60,30,0.3),rgba(0,120,60,0.1))">'+
+    // Radar sweep
+    '  <div id="forest-sweep" style="position:absolute;top:50%;left:50%;width:50%;height:3px;background:linear-gradient(90deg,#0f8,transparent);transform-origin:left center;animation:fsweep 3s linear infinite"></div>'+
+    // Enemy blips (red)
+    '  <div style="position:absolute;top:30%;left:25%;width:8px;height:8px;background:#f44;border-radius:50%;box-shadow:0 0 10px #f44"></div>'+
+    '  <div style="position:absolute;top:70%;left:65%;width:8px;height:8px;background:#f44;border-radius:50%;box-shadow:0 0 10px #f44"></div>'+
+    '  <div style="position:absolute;top:22%;left:78%;width:8px;height:8px;background:#f44;border-radius:50%;box-shadow:0 0 10px #f44"></div>'+
+    // Landing zone marker (green)
+    '  <div id="forest-lz" style="position:absolute;top:48%;left:42%;width:18px;height:18px;border:2px solid #ff0;background:rgba(255,255,0,0.3);box-shadow:0 0 14px #ff0;animation:fblink 1s infinite"></div>'+
+    '  <div style="position:absolute;top:55%;left:45%;font-size:10px;color:#ff0;letter-spacing:2px">LZ-1</div>'+
+    '</div>'+
+    '<div style="margin-top:16px;font-size:11px;color:#0aa;letter-spacing:2px">&#9654; DESCENT VECTOR LOCKED &#9664;</div>'+
+    '<style>@keyframes fsweep{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}'+
+    '@keyframes fblink{0%,100%{opacity:1}50%{opacity:.3}}</style>';
+  document.body.appendChild(ov);
+  // Voice chain during the landing
+  const cs=S.callsign||'Alpha-1';
+  playCommChain([
+    ['nav','Navigator here, '+cs+'. Forest planet in sight. Scanning surface for hostiles.'],
+    ['nav','Landing zone identified - LZ-1, 200 meters from the base perimeter. Clear of patrols.'],
+    ['pilot','Copy that. Descending on LZ-1. This distance I can cover on foot.'],
+    ['pilot','Navigator, watch my GPS. Keep me updated on patrol movements.'],
+    ['nav','Understood. Encrypted jamming radio is active. Good hunting, '+cs+'.'],
+  ],()=>{
+    // Clean up overlay + enter on-foot mode
+    try{ov.remove()}catch(e){}
+    startForestOnFootMode();
+  });
+  // Descent SFX
+  if(sfx.ctx){const t=sfx.ctx.currentTime;
+    const sw=sfx.ctx.createOscillator();const sg=sfx.ctx.createGain();
+    sw.type='sawtooth';sw.frequency.setValueAtTime(400,t);
+    sw.frequency.exponentialRampToValueAtTime(80,t+8);
+    sg.gain.setValueAtTime(.06,t);sg.gain.exponentialRampToValueAtTime(.001,t+8.5);
+    sw.connect(sg);sg.connect(sfx.g);sw.start(t);sw.stop(t+9);
+  }
+}
+
+// v6.76: On-foot mode stub - shows a DOM overlay describing the mission flow
+// (First iteration - the full ground-combat engine will be built in subsequent versions)
+function startForestOnFootMode(){
+  S.phase='BRIDGE';// keep game paused for now
+  S.onFootMode=true;
+  let ov=document.getElementById('forest-onfoot');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='forest-onfoot';
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:240;background:radial-gradient(ellipse at 50% 60%,rgba(0,40,10,0.7),rgba(0,10,0,0.96));'+
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0f8;'+
+    'font-family:Courier New,monospace;text-align:center;padding:20px';
+  const cs=S.callsign||'Alpha-1';
+  ov.innerHTML=
+    '<div style="font-size:12px;color:#0aa;letter-spacing:4px;margin-bottom:4px">&#9679; ON-FOOT INFILTRATION MODE &#9679;</div>'+
+    '<div style="font-size:28px;color:#0f8;letter-spacing:5px;text-shadow:0 0 18px #0f8;margin-bottom:10px">LANDED ON FOREST PLANET</div>'+
+    '<div style="font-size:13px;color:#8f8;max-width:680px;line-height:1.8;margin-bottom:18px;letter-spacing:1px;text-align:left;padding:0 24px">'+
+    '&#9654; PILOT '+cs+' - EQUIPPED:<br>'+
+    '&nbsp;&nbsp;&nbsp;LASER GUN&nbsp;&nbsp;&nbsp;LIGHT SABER&nbsp;&nbsp;&nbsp;ELECTRIC WHIP<br>'+
+    '&nbsp;&nbsp;&nbsp;PLASTIC BOMBS&nbsp;&nbsp;&nbsp;RADAR GOGGLES<br><br>'+
+    '&#9654; OBJECTIVE: Rescue MASTER HK-CHINDERU MK<br>'+
+    '&nbsp;&nbsp;&nbsp;from the Galaxy Empire jungle base.<br><br>'+
+    '&#9654; MISSION STAGES:<br>'+
+    '&nbsp;&nbsp;1. Traverse the jungle (5 waves of patrols)<br>'+
+    '&nbsp;&nbsp;2. Defeat the GATE GUARDIAN mech<br>'+
+    '&nbsp;&nbsp;3. Descend into the underground base (DOOM-style)<br>'+
+    '&nbsp;&nbsp;4. Rescue the master - 60 second evac<br>'+
+    '&nbsp;&nbsp;5. Steal a SPEEDER BIKE and escape<br>'+
+    '&nbsp;&nbsp;6. Use the ARTIFICIAL-PLANET SELF-DESTRUCT button!<br><br>'+
+    '<span style="color:#ff0">&#9888; This ground-combat engine is under active development.<br>'+
+    'For this build the mission will auto-complete and return you to the bridge.</span>'+
+    '</div>'+
+    '<button type="button" onclick="forestAutoCompleteAndReturn()" style="font-size:16px;color:#0f8;padding:14px 36px;border:3px solid #0f8;background:rgba(0,60,30,0.5);cursor:pointer;letter-spacing:3px;border-radius:8px;font-family:inherit;-webkit-appearance:none;touch-action:manipulation;margin-top:10px;min-height:56px">&#9654; SIMULATE MISSION (AUTO-COMPLETE) &#9664;</button>';
+  document.body.appendChild(ov);
+  // Brief voice
+  setTimeout(()=>{try{playComm('pilot','I see the base. Moving in on foot. Wish me luck.')}catch(e){}},600);
+}
+
+// v6.76: Auto-complete the forest mission (placeholder) and return to station
+function forestAutoCompleteAndReturn(){
+  const ov=document.getElementById('forest-onfoot');if(ov)ov.remove();
+  const cs=S.callsign||'Alpha-1';
+  try{announce('MISSION COMPLETE - HK-CHINDERU MK RESCUED')}catch(e){}
+  playCommChain([
+    ['pilot','I got him! Master HK-CHINDERU MK is safe! Returning to the ship!'],
+    ['hktamaan','Thank you, pilot. My padawan is in your debt.'],
+    ['hktamaan','Take this. The POWER-UP MISSILE is yours.'],
+    ['hq','Outstanding work, '+cs+'. Come home. Bridge is waiting for your next briefing.'],
+  ],()=>{
+    S.hasPowerUpMissile=true;
+    // Hyperwarp return shares code with the ruins return
+    try{startRuinsHyperWarpReturn()}catch(e){
+      // fallback: just go to bridge
+      try{
+        S.phase='BRIDGE';wfCinePlay(['bridge'],false);
+        setTimeout(()=>{if(typeof showStageSelectOverlay==='function')showStageSelectOverlay()},2500);
+      }catch(er){}
+    }
+  });
 }
 
 // ============ GAME OVER / VICTORY ============
@@ -10728,7 +11369,7 @@ const GALLERY=[
       g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(2.8,0)),mMid));
       g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(1.5)),mCore));
       return g},scale:1.2},
-  {name:'PROMINENCE DRAGON',desc:'Serpentine fire beast rising from the fire planet corona. Parabolic arcing flight path. Head + 14 flame-segmented body. Appears on FIRE PLANET stage.',
+  {name:'PROMINENCE KOTEKA DRAGON',desc:'Serpentine fire beast rising from the fire planet corona. Parabolic arcing flight path. Head + 14 flame-segmented body. Also periodically shoots from fire-boss crotch. Appears on FIRE PLANET stage.',
     stats:'ENV: FIRE PLANET | THREAT: EXTREME | FLIGHT: PARABOLIC | TYPE: MINI-BOSS',make:()=>{
       const g=new THREE.Group();
       // Assemble a short preview: head + 5 segments
@@ -11565,7 +12206,7 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
     case 'TITLE':updateTitle(dt);break;
     case 'PLAYING':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateComms(dt);updateRadar();updateReinforcements(dt);updateMegaBossProjectiles(dt);updateFireDragons(dt);updateBossHP();updateTargetPractice(dt);break;
     case 'BONUS':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateBonus(dt);updateRadar();updateReinforcements(dt);updateMegaBossProjectiles(dt);updateFireDragons(dt);updateBossHP();break;
-    case 'FORTRESS':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateFortress(dt);updateRadar();updateBossHP();break;
+    case 'FORTRESS':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateFortress(dt);updateRadar();updateBossHP();try{updateEscortRetreat(dt)}catch(e){}break;
     case 'RETURN':S.gameTime+=dt;updatePlayer(dt);updateEnemies(dt);updateBeams(dt);updateParticles(dt);checkCollisions();updateReturn(dt);updateComms(dt);updateRadar();break;
     case 'REPLAY':updateReplay(dt);break;
     case 'ESCAPE':S.gameTime+=dt;updatePlayer(dt);updateEscape(dt);updateParticles(dt);updateBeams(dt);break;
