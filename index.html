@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.77</title>
+<title>COSMIC INVADERS v6.79</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -584,7 +584,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.77 - LOADED
+  COSMIC INVADERS v6.79 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -3048,25 +3048,26 @@ function makeBossZeong(){
   const mDark=new THREE.LineBasicMaterial({color:0x884444});
   const mEye=new THREE.LineBasicMaterial({color:0x00ffff});
   // --- HEAD (monoeye style) ---
-  const head=new THREE.Group();
+  // v6.79: head wrapped in a named Group so head-only transformation can find/keep just the head
+  const head=new THREE.Group();head.name='zeongHead';
   head.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.4,1.2,1.3)),mBody));
   // horn/crest
   const crest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.3,1,4)),mAccent);
   crest.position.y=.8;head.add(crest);
   // monoeye slit
   const eye=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,.2,.08)),mEye);
-  eye.position.set(0,.1,.7);head.name='zeongEye';head.add(eye);
+  eye.position.set(0,.1,.7);eye.name='zeongEye';head.add(eye);
   head.position.y=4.5;g.add(head);
-  // --- NECK ---
+  // --- NECK --- (tagged as body-part so it shatters with torso)
   const neck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.4,.5,.7,6)),mDark);
-  neck.position.y=3.8;g.add(neck);
-  // --- TORSO (massive) ---
+  neck.position.y=3.8;neck.userData.zeongBody=true;g.add(neck);
+  // --- TORSO (massive) --- (named so it can be detached at 30% HP)
   const torso=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(3.4,2.5,2.2)),mBody);
-  torso.position.y=2.3;g.add(torso);
-  // Chest vents (Zeong signature)
+  torso.position.y=2.3;torso.name='zeongTorso';torso.userData.zeongBody=true;g.add(torso);
+  // Chest vents (Zeong signature) - also body-parts
   [-1,1].forEach(sx=>{
     const vent=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.35,.35,.2,6)),mAccent);
-    vent.position.set(sx*.8,3,1.2);vent.rotation.x=Math.PI/2;g.add(vent);
+    vent.position.set(sx*.8,3,1.2);vent.rotation.x=Math.PI/2;vent.userData.zeongBody=true;g.add(vent);
   });
   // --- ARMS (each detachable) ---
   ['leftArm','rightArm'].forEach((name,i)=>{
@@ -3102,20 +3103,20 @@ function makeBossZeong(){
     arm.position.set(side*2,3.2,0);
     arm.name=name;g.add(arm);
   });
-  // --- SKIRT / THRUSTER ARRAY (no legs, Zeong style) ---
+  // --- SKIRT / THRUSTER ARRAY (no legs, Zeong style) --- tagged as body-parts
   const skirt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(1.8,2.4,1.5,8)),mBody);
-  skirt.position.y=.5;g.add(skirt);
+  skirt.position.y=.5;skirt.userData.zeongBody=true;g.add(skirt);
   // 4 main thrusters on bottom
   for(let i=0;i<4;i++){const ang=(i/4)*Math.PI*2;
     const th=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.35,.5,.6,6)),mAccent);
-    th.position.set(Math.cos(ang)*1.4,-.6,Math.sin(ang)*1.4);g.add(th);
+    th.position.set(Math.cos(ang)*1.4,-.6,Math.sin(ang)*1.4);th.userData.zeongBody=true;g.add(th);
     // glow ring
     const gr=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.RingGeometry(.2,.4,8)),mEye);
-    gr.position.set(Math.cos(ang)*1.4,-.95,Math.sin(ang)*1.4);gr.rotation.x=Math.PI/2;g.add(gr);
+    gr.position.set(Math.cos(ang)*1.4,-.95,Math.sin(ang)*1.4);gr.rotation.x=Math.PI/2;gr.userData.zeongBody=true;g.add(gr);
   }
   // Central thruster
   const cth=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.8,.9,8)),mAccent);
-  cth.position.y=-.8;g.add(cth);
+  cth.position.y=-.8;cth.userData.zeongBody=true;g.add(cth);
   // scale up for mega boss impression
   g.scale.setScalar(1.8);
   return g}
@@ -4807,8 +4808,8 @@ function tintBossMech(group,hue){
 function spawnMegaZeong(){
   const mobileEase=isMobile?.8:1;
   const mult=(1+S.cycle*.7)*mobileEase;
-  // v6.77: HP doubled (was 140, now 280)
-  const hp=Math.ceil(280*mult);
+  // v6.79: HP reduced 25% (was 280, now 210)
+  const hp=Math.ceil(210*mult);
   const b=makeBossZeong();
   // v6.70: Zeong spawns a bit further back so the 3x hold distance (-66) works
   b.position.set(0,3,C.SPAWN_Z-80);
@@ -5512,6 +5513,112 @@ function fireTrioGoldenBallBombs(crotchBoss){
   S.shakeT=.8;S.shakeI=1.8;
 }
 
+// v6.79: Shatter Zeong's torso + skirt + thrusters + neck + vents into debris, leaving head + detached-arm debris
+function shatterZeongTorso(e){
+  if(!e||!e.mesh||e.zeongTorsoShattered)return;
+  e.zeongTorsoShattered=true;
+  const bodyParts=[];
+  e.mesh.traverse(o=>{if(o.userData&&o.userData.zeongBody)bodyParts.push(o)});
+  // Get world positions, detach from boss mesh, add to scene as debris
+  if(!window._bossDebris)window._bossDebris=[];
+  bodyParts.forEach((part,idx)=>{
+    setTimeout(()=>{
+      try{
+        if(!part.parent)return;
+        const wp=new THREE.Vector3();part.getWorldPosition(wp);
+        part.parent.remove(part);
+        part.position.copy(wp);scene.add(part);
+        // Random 3D velocity (space physics, no gravity)
+        const rx=(Math.random()-.5),ry=(Math.random()-.5),rz=(Math.random()-.5);
+        const rl=Math.hypot(rx,ry,rz)||1;
+        const speed=5+Math.random()*6;
+        window._bossDebris.push({mesh:part,
+          vel:new THREE.Vector3(rx/rl*speed,ry/rl*speed,rz/rl*speed),
+          rot:new THREE.Vector3((Math.random()-.5)*3,(Math.random()-.5)*3,(Math.random()-.5)*3),
+          life:5,canHitPlayer:false});
+        spawnP(wp,0xff6600,8,1.2);spawnP(wp,0xffff44,6,1);
+      }catch(er){}
+    },idx*80);
+  });
+  // Cinematic FX
+  const bossPos=new THREE.Vector3();e.mesh.getWorldPosition(bossPos);
+  try{spawnMegaExplosion(bossPos);sfx.bigExplosion();screenFlash(1.2)}catch(ex){}
+  S.shakeT=1.5;S.shakeI=2;
+  // Voice
+  try{playComm('enemy','My body...! M-MY BODY IS TEARING APART!!!')}catch(ex){}
+  setTimeout(()=>{try{playComm('enemy','Impossible... a newtype... would not fall like this...')}catch(ex){}},2600);
+}
+
+// v6.79: Zeong head-only transformation - keep the zeongHead, remove everything else
+function transformZeongToHeadOnly(e){
+  if(!e||!e.mesh||e.headOnly)return;
+  e.headOnly=true;
+  // Detach any surviving arms + remaining body parts as debris
+  ['leftArm','rightArm'].forEach(ln=>{try{detachBossLimb(e,ln,null)}catch(er){}});
+  if(!e.zeongTorsoShattered)shatterZeongTorso(e);
+  // Final cinematic
+  const bossPos=new THREE.Vector3();e.mesh.getWorldPosition(bossPos);
+  try{spawnMegaExplosion(bossPos);spawnMegaExplosion(bossPos.clone().add(new THREE.Vector3(0,-2,0)));sfx.bigExplosion();screenFlash(1.5)}catch(ex){}
+  S.shakeT=2;S.shakeI=3;
+  try{playComm('enemy','I-I AM STILL... A ZEONG...!!! JUST THE HEAD... IS ENOUGH!!!')}catch(ex){}
+  setTimeout(()=>{try{playComm('wingman','It is down to just the head! Finish it, #N!')}catch(ex){}},2600);
+}
+
+// v6.79: Update the Zeong when it is head-only - floats + orbits player + mouth scatter beam
+function updateZeongHeadOnly(e,dt){
+  const head=e.mesh.getObjectByName('zeongHead');
+  if(head){
+    // Lazy drift above the combat plane
+    e.mesh.position.x=Math.sin(e.poseTime*.6)*6;
+    e.mesh.position.y=3+Math.cos(e.poseTime*.4)*2;
+    e.mesh.position.z=Math.max(e.mesh.position.z,-66);// hold distance
+    // Head rotates to track the player
+    const rel=new THREE.Vector3(camera.position.x-e.mesh.position.x,
+      camera.position.y-e.mesh.position.y-4.5,
+      camera.position.z-e.mesh.position.z);
+    head.rotation.y=Math.atan2(rel.x,rel.z)*.35;
+    head.rotation.x=Math.atan2(-rel.y*.3,Math.max(.1,Math.hypot(rel.x,rel.z)))*.5;
+    // Pulse the monoeye (cycle red/yellow as HP drops)
+    head.traverse(o=>{
+      if(o.name==='zeongEye'&&o.material){
+        const pulse=Math.sin(e.poseTime*6)>0;
+        o.material.color.setHex(pulse?0xff2200:0xff8800);
+      }
+    });
+  }
+  // Aggressive mouth scatter beam (faster cadence since head-only is the final phase)
+  e.zeongMouthTimer=(e.zeongMouthTimer||3)-dt;
+  if(e.zeongMouthTimer<=0){
+    e.zeongMouthTimer=3+Math.random()*2;
+    const mouthPos=new THREE.Vector3();e.mesh.getWorldPosition(mouthPos);
+    mouthPos.y+=4.5;mouthPos.z+=2;
+    const shots=isMobile?10:16;
+    for(let k=0;k<shots;k++){
+      const ang=(k/shots-.5)*Math.PI*.7;
+      const elev=(Math.random()-.5)*.5;
+      const b=makeEnemyBeam();
+      b.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.color.setHex(0xff44cc)}});
+      b.position.copy(mouthPos);scene.add(b);
+      const dx=(camera.position.x-mouthPos.x)*.25+Math.cos(ang)*9;
+      const dy=(camera.position.y-mouthPos.y)*.15+elev*7;
+      eBeams.push({mesh:b,vel:new THREE.Vector3(dx,dy,C.E_BEAM_SPEED*.9)});
+    }
+    spawnP(mouthPos,0xff44cc,30,1.8);spawnP(mouthPos,0xffffff,15,1.2);
+    if(sfx.ctx){const t=sfx.ctx.currentTime;
+      sfx._o('sawtooth',160,t,.4,.22);sfx._n(t,.35,.2,5500,800);
+      sfx._o('square',320,t+.05,.2,.15);
+    }
+    S.shakeT=.4;S.shakeI=1;
+    try{playComm('enemy','MOUTH MEGA BEAM... FIRE!!!')}catch(ex){}
+  }
+  // Continue Char-monologue cadence
+  e.zeongCharTimer=(e.zeongCharTimer||5)-dt;
+  if(e.zeongCharTimer<=0){
+    e.zeongCharTimer=5+Math.random()*5;
+    try{playComm('enemy',ZEONG_CHAR_LINES[Math.floor(Math.random()*ZEONG_CHAR_LINES.length)])}catch(ex){}
+  }
+}
+
 // v6.77: Char Aznable-style drunken monologues (english, delivered like a slurring villain)
 const ZEONG_CHAR_LINES=[
   'Eeey! Power down?! Impossible!',
@@ -5529,6 +5636,30 @@ const ZEONG_CHAR_LINES=[
 function updateZeongBoss(e,dt){
   // Slight hover bob
   e.mesh.position.y=e.baseY+Math.sin(e.poseTime*1)*.3;
+  // v6.79: SEQUENTIAL DESTRUCTION - right arm @ 75%, left arm @ 50%, torso @ 30%, head-only @ 10%
+  const hpRatio=e.hp/(e.maxHp||210);
+  if(!e.zeongParts)e.zeongParts={rArm:true,lArm:true,torso:true};
+  if(hpRatio<.75&&e.zeongParts.rArm&&!e.armRightLost){
+    if(detachBossLimb(e,'rightArm','Right arm systems DESTROYED!')){
+      e.zeongParts.rArm=false;
+      try{playComm('enemy','My beam arm! It cannot be! A Zeong... without its arm?!')}catch(ex){}
+    }
+  }
+  if(hpRatio<.50&&e.zeongParts.lArm&&!e.armLeftLost){
+    if(detachBossLimb(e,'leftArm','Left arm GONE! No finger beams!')){
+      e.zeongParts.lArm=false;
+      try{playComm('enemy','Both arms...?! Is this... the will of the universe?!')}catch(ex){}
+    }
+  }
+  if(hpRatio<.30&&e.zeongParts.torso&&!e.zeongTorsoShattered){
+    shatterZeongTorso(e);
+    e.zeongParts.torso=false;
+  }
+  if(hpRatio<.10&&!e.headOnly){
+    transformZeongToHeadOnly(e);
+  }
+  // Head-only mode - special floating-head update takes over
+  if(e.headOnly){updateZeongHeadOnly(e,dt);return}
   // v6.70: Build cable tethers on first update (arms stay attached, wobble snake-like)
   if(!e.zeongTethersBuilt){buildZeongTethers(e);e.zeongTethersBuilt=true}
   // v6.70: Animate arms snake-like (wobble, extend/retract) even when not attacking
@@ -5626,7 +5757,8 @@ function updateZeongWireArms(boss,dt){
   ['leftArm','rightArm'].forEach(name=>{
     const arm=boss.mesh.getObjectByName(name);
     const tether=boss.zeongTethers&&boss.zeongTethers[name];
-    if(!arm)return;
+    // v6.79: if the arm has been detached (sequential destruction), hide the tether
+    if(!arm){if(tether)tether.visible=false;return}
     const side=name==='leftArm'?-1:1;
     // Idle snake wobble
     const t=boss.poseTime+(name==='leftArm'?0:Math.PI*.5);
@@ -7303,6 +7435,8 @@ function startRuinsHyperWarpReturn(){
   // Hide HUD
   ['hud','shield-gauge','heat-gauge','napalm-box','reticle','cockpit-frame','boss-hp-wrap','mini-radar','touch-controls','tp-timer'].forEach(id=>{
     const e=document.getElementById(id);if(e)e.style.display='none'});
+  // v6.78: force-hide stage-specific visual filters immediately so no orange tint leaks into the warp
+  const ff=document.getElementById('fire-filter');if(ff)ff.style.display='none';
   // Overlay catapult-style warp tunnel for dramatic effect
   const co=document.getElementById('catapult-overlay');if(co)co.style.display='flex';
   const catText=document.getElementById('cat-text');
@@ -8556,6 +8690,8 @@ let dockLocked=false;
 function startDocking(){S.phase='DOCKING';S.dockTimer=0;S.dockPhase=0;
   dockAligned=0;dockLocked=false;
   sfx.stopBGM();
+  // v6.78: hide fire-filter + any stage tint on approach to the station
+  const ff=document.getElementById('fire-filter');if(ff)ff.style.display='none';
   // v6.69: Clear all player beams when the station appears (friendly zone)
   try{pBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});pBeams.length=0}catch(e){}
   try{eBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});eBeams.length=0}catch(e){}
@@ -10955,6 +11091,8 @@ function showCockpit(show){const d=show?'block':'none';
   else{showTouchControls(false)}}
 
 function showTitle(){S.phase='TITLE';hideAllUI();showCockpit(false);
+  // v6.78: clear any stage tint immediately when returning to the title screen
+  const __ff=document.getElementById('fire-filter');if(__ff)__ff.style.display='none';
   try{catapultActive=false}catch(e){}// safety reset
   // v6.69: hide the version/auto-launch banner once we reach the title
   try{document.body.classList.add('game-ready');
@@ -12217,10 +12355,23 @@ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDel
   updateStars(dt);updateSpeedLines(dt);updatePersistentFortress(dt);updateStageFilters();renderer.render(scene,camera)}
 
 // v6.69: stage-specific visual filters (fire planet orange tint, etc.)
+// v6.78: tightened - orange filter ONLY during active combat (PLAYING / BONUS / FORTRESS)
+// plus a hard hide whenever any transition overlay is visible (catapult / continue / rescue /
+// bridge / stage-select / etc.) to prevent residual tint on the station.
 function updateStageFilters(){
   const ff=document.getElementById('fire-filter');
   if(!ff)return;
-  const isFire=(selectedStage&&selectedStage.id==='fire'&&(S.phase==='PLAYING'||S.phase==='BONUS'||S.phase==='FORTRESS'||S.phase==='RETURN'));
+  // Any of these overlays being visible means we are in a transition/station UI, not in combat.
+  const TRANSITION_IDS=['catapult-overlay','continue-overlay','fate-overlay','doom-overlay',
+    'rescue-overlay','search-overlay','bridge-overlay','stage-select','cine-replay',
+    'mod-overlay','hk-dialog','wfcine-overlay','forest-landing','forest-onfoot','janken-duel'];
+  let anyOverlay=false;
+  for(const id of TRANSITION_IDS){
+    const e=document.getElementById(id);
+    if(e&&e.style.display!=='none'&&e.offsetParent!==null){anyOverlay=true;break}
+  }
+  const inCombat=(S.phase==='PLAYING'||S.phase==='BONUS'||S.phase==='FORTRESS');
+  const isFire=(selectedStage&&selectedStage.id==='fire'&&inCombat&&!anyOverlay);
   ff.style.display=isFire?'block':'none';
 }
 
