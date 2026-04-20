@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.97</title>
+<title>COSMIC INVADERS v7.00</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -617,7 +617,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.97 - LOADED
+  COSMIC INVADERS v7.00 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -638,7 +638,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.97 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v7.00 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -991,7 +991,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.97 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v7.00 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -1026,7 +1026,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.97 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.00 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -3991,37 +3991,33 @@ function makeBossGipsyDanger(){
     // forearm
     const fa=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,2,1)),mBody);
     fa.position.y=-2.3;arm.add(fa);
-    // v6.70: detailed clenched-fist holder for right arm (flies away on rocket punch)
-    if(side>0){
+    // v6.70/v6.98: DETAILED fist holder - now on the LEFT arm (the hand WITHOUT the chainsword)
+    // so janken + rocket punch use the left. The right arm still carries the chainsword + a simple
+    // fist that NEVER fires (per v6.98 feedback: "チェーンソードのこぶしは発射しないで下さい").
+    if(side<0){
       const fistHolder=new THREE.Group();
-      // detailed knuckle fist - see makeGipsyDetailedFist for flying version; inline here for the idle mesh
       const mFist=new THREE.LineBasicMaterial({color:0x6699bb});
       const mKnuckle=new THREE.LineBasicMaterial({color:0xff9922});
-      // palm (chunky box)
       fistHolder.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,.85,1.2)),mFist));
-      // thumb
       const thumb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.28,.55,.4)),mFist);
       thumb.position.set(-.55,.2,.4);thumb.rotation.z=.4;fistHolder.add(thumb);
-      // 4 knuckle bumps on top
       for(let k=0;k<4;k++){
         const kn=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.18,5,4)),mKnuckle);
         kn.position.set(-.36+k*.24,.35,.45);fistHolder.add(kn);
       }
-      // 4 finger rows (2 segments each) folded down
       for(let k=0;k<4;k++){
         const f1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.35,.25)),mFist);
         f1.position.set(-.36+k*.24,.08,.55);fistHolder.add(f1);
         const f2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.32,.2)),mFist);
         f2.position.set(-.36+k*.24,-.2,.48);fistHolder.add(f2);
       }
-      // wrist cuff
       const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.55,.3,6)),mKnuckle);
       cuff.position.y=.5;fistHolder.add(cuff);
-      fistHolder.position.y=-3.5;fistHolder.name='rightFistHolder';arm.add(fistHolder);
+      fistHolder.position.y=-3.5;fistHolder.name='leftFistHolder';arm.add(fistHolder);
     } else {
-      // left arm keeps the simple fist (no rocket punch)
+      // v6.98: right arm = chainsword-hand. Keep a simple non-firing fist.
       const fist=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1,.9,1.1)),mBody);
-      fist.position.y=-3.5;arm.add(fist);
+      fist.position.y=-3.5;fist.name='rightSimpleFist';arm.add(fist);
     }
     // right arm holds chainsword
     if(side>0){
@@ -5515,31 +5511,41 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
   const body=pilot.getObjectByName('body');
   const hips=pilot.getObjectByName('hips');
   if(moving){
-    // Hip swing - exaggerated stride
-    const legSwing=Math.sin(t)*.65;
+    // v6.98/v6.99: RUNNING FORM - now reference-correct knee timing.
+    // Hip swing: sin(t)*.75 sends foot BACK at t=π/2, FORWARD at t=3π/2 (after the wrap-π rotation).
+    // Natural walk phases for the lLeg (right visible leg):
+    //   t=π/2  sin=+1  foot max-BACK (push-off moment)      → knee STRAIGHT
+    //   t=π    sin=0   foot mid-air, vertical (mid-swing)   → knee MAX BEND
+    //   t=3π/2 sin=-1  foot max-FORWARD (heel strike)       → knee STRAIGHT
+    //   t=0    sin=0   foot mid-stance, vertical            → knee STRAIGHT
+    // So the knee must peak when sin(t)=0 going from +1 to -1, i.e. at cos(t)=-1.
+    const legSwing=Math.sin(t)*.75;
     if(lLeg)lLeg.rotation.x=legSwing;
     if(rLeg)rLeg.rotation.x=-legSwing;
-    // v6.97: KNEE BEND timing FIXED - knee bends during the SWING-UP phase (leg lifting from
-    // its backward extreme), not at the moment the foot reaches forward. This matches natural
-    // human gait: foot lifts → knee folds (heel approaches butt) → foot reaches forward straight.
-    // Sign convention: lLegLower.rotation.x NEGATIVE = shin folds backward (anatomically correct).
-    const lKneeFlex=Math.max(0,-Math.sin(t))*1.15;// peaks when lLeg is back (lift-off moment)
-    const rKneeFlex=Math.max(0,Math.sin(t))*1.15; // peaks when rLeg is back (opposite phase)
-    if(lLegLower)lLegLower.rotation.x=-lKneeFlex;
-    if(rLegLower)rLegLower.rotation.x=-rKneeFlex;
-    // v6.95: shoulders pump opposite to legs (forward/back arm swing)
-    const armSwing=Math.sin(t+Math.PI)*.9;
+    const lKneeFlex=Math.max(0,-Math.cos(t))*1.35;// peaks at t=π   (lLeg mid-swing in air)
+    const rKneeFlex=Math.max(0, Math.cos(t))*1.35;// peaks at t=0/2π (rLeg mid-swing)
+    // v7.0 (2026-04-21): SIGN FLIPPED. Because the pilot mesh sits inside a wrap with rotation.y=π,
+    // POSITIVE rotation.x on the lower-leg group sends the shin BACKWARD in world space (heel toward
+    // butt = anatomically correct knee bend). The previous NEGATIVE sign sent shins forward, which
+    // looked like a broken/reversed knee.
+    if(lLegLower)lLegLower.rotation.x=lKneeFlex;
+    if(rLegLower)rLegLower.rotation.x=rKneeFlex;
+    // v6.98: ARM SWING - sprinter pose. Elbows stay bent ~90° constantly, arms swing forward/back
+    // from the shoulder, hands pump near chest (forward) to hip (back).
+    const armSwing=Math.sin(t+Math.PI)*.85;// opposite-side phase to legs
     if(lArm)lArm.rotation.x=armSwing;
     if(rArm)rArm.rotation.x=-armSwing;
-    // v6.97: arms held MORE OPEN at the shoulders - bigger base outward angle (.15 → .35)
-    // + larger swing oscillation so the arms read as a confident wide-stance jog/run.
-    if(lArm)lArm.rotation.z=.35+Math.sin(t*2)*.20;
-    if(rArm)rArm.rotation.z=-.35-Math.sin(t*2)*.20;
-    // v6.95/v6.97: ELBOW BEND - forearm flexes during swing (timing matches knee fix above)
-    const lElbowFlex=Math.max(0,-Math.sin(t+Math.PI))*1.15+0.30;
-    const rElbowFlex=Math.max(0,-Math.sin(t))*1.15+0.30;
-    if(lArmFore)lArmFore.rotation.x=-lElbowFlex;
-    if(rArmFore)rArmFore.rotation.x=-rElbowFlex;
+    // v6.98: arms held CLOSER to the body (inner), not wide-stance.
+    if(lArm)lArm.rotation.z=.08+Math.sin(t*2)*.05;
+    if(rArm)rArm.rotation.z=-.08-Math.sin(t*2)*.05;
+    // v6.98: STRONG constant elbow bend (~90° = π/2), with extra flex during forward swing.
+    // This is the classic "hands pumping at chest height" sprinter look.
+    const lElbowBase=Math.PI*.5;// 90° baseline
+    const rElbowBase=Math.PI*.5;
+    const lElbowExtra=Math.max(0,-Math.sin(t+Math.PI))*.4;// tighter when arm pumps forward
+    const rElbowExtra=Math.max(0,-Math.sin(t))*.4;
+    if(lArmFore)lArmFore.rotation.x=-(lElbowBase+lElbowExtra);
+    if(rArmFore)rArmFore.rotation.x=-(rElbowBase+rElbowExtra);
     // v6.95: head bounce + sway + tilt
     if(head){
       head.position.y=2.9+Math.abs(Math.sin(t))*.16;
@@ -5550,7 +5556,8 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
     if(body){
       body.position.y=1.85+Math.abs(Math.sin(t))*.14;
       body.rotation.z=Math.sin(t*.5)*.06;
-      body.rotation.x=Math.sin(t*2)*.02;
+      // v6.98: FORWARD LEAN - torso tilts forward ~15° while running (sprinter posture)
+      body.rotation.x=.25+Math.sin(t*2)*.03;
     }
     if(hips){
       hips.rotation.y=Math.sin(t)*.08;
@@ -5560,6 +5567,7 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
     const idle=Math.sin(pilot.userData.idleT=(pilot.userData.idleT||0)+dt)*1;
     if(lLeg)lLeg.rotation.x+=(0-lLeg.rotation.x)*.2;
     if(rLeg)rLeg.rotation.x+=(0-rLeg.rotation.x)*.2;
+    // v7.0: idle relaxes the knee back to straight (rotation.x → 0)
     if(lLegLower)lLegLower.rotation.x+=(0-lLegLower.rotation.x)*.2;
     if(rLegLower)rLegLower.rotation.x+=(0-rLegLower.rotation.x)*.2;
     if(lArm)lArm.rotation.x+=(0-lArm.rotation.x)*.2;
@@ -5578,6 +5586,7 @@ function animateForestPilotWalk(pilot,moving,dt,speed){
     if(body){
       body.position.y+=((1.85+idle*.04)-body.position.y)*.1;
       body.rotation.z+=(0-body.rotation.z)*.1;
+      // v6.98: idle = torso upright, no forward lean
       body.rotation.x+=(0-body.rotation.x)*.1;
     }
     if(hips)hips.rotation.y+=(0-hips.rotation.y)*.1;
@@ -6341,18 +6350,23 @@ function triggerJankenDuel(boss){
   }
   let ov=document.getElementById('janken-duel');if(ov)ov.remove();
   ov=document.createElement('div');ov.id='janken-duel';
-  ov.style.cssText='position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:245;'+
-    'background:rgba(0,20,30,0.92);border:3px solid #ff0;border-radius:12px;padding:20px 30px;'+
-    'color:#ff0;font-family:inherit;text-align:center;letter-spacing:3px;box-shadow:0 0 24px #ff0;pointer-events:auto';
+  // v6.99: WIREFRAME OVERLAY - transparent background so the boss/scene stays visible during janken.
+  // Thin outline + inner dashed ring + corner brackets evoke the game's wireframe aesthetic.
+  ov.style.cssText='position:fixed;top:13%;left:50%;transform:translateX(-50%);z-index:245;'+
+    'background:transparent;padding:16px 26px;'+
+    'color:#ff0;font-family:inherit;text-align:center;letter-spacing:3px;pointer-events:auto;'+
+    'outline:2px solid rgba(255,255,0,0.85);outline-offset:4px;'+
+    'box-shadow:0 0 24px rgba(255,255,0,0.35),inset 0 0 18px rgba(255,255,0,0.15);'+
+    'border:1px dashed rgba(255,255,0,0.8)';
   ov.innerHTML=
-    '<div style="font-size:13px;color:#f44;letter-spacing:4px;margin-bottom:4px">&#9888; JANKEN DUEL - ROUND '+round+' &#9888;</div>'+
-    '<div style="font-size:20px;color:#ff0;letter-spacing:6px;text-shadow:0 0 10px #ff0;margin-bottom:14px">CHOOSE YOUR HAND!</div>'+
+    '<div style="font-size:13px;color:#f44;letter-spacing:4px;margin-bottom:4px;text-shadow:0 0 8px #f44,0 0 2px #000">&#9888; JANKEN DUEL - ROUND '+round+' &#9888;</div>'+
+    '<div style="font-size:20px;color:#ff0;letter-spacing:6px;text-shadow:0 0 10px #ff0,0 0 2px #000;margin-bottom:14px">CHOOSE YOUR HAND!</div>'+
     '<div style="display:flex;gap:14px;justify-content:center">'+
-    '<button type="button" onclick="playJanken(\'rock\')" style="font-size:36px;padding:16px 22px;background:rgba(40,0,0,0.8);border:3px solid #f44;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9994;</button>'+
-    '<button type="button" onclick="playJanken(\'paper\')" style="font-size:36px;padding:16px 22px;background:rgba(0,30,40,0.8);border:3px solid #0ff;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9995;</button>'+
-    '<button type="button" onclick="playJanken(\'scissors\')" style="font-size:36px;padding:16px 22px;background:rgba(30,30,0,0.8);border:3px solid #ff0;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9996;</button>'+
+    '<button type="button" onclick="playJanken(\'rock\')" class="jk-btn" style="--jk:#f44;font-size:36px;padding:16px 22px;background:transparent;border:2px solid #f44;color:#fff;cursor:pointer;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation;outline:1px dashed rgba(255,68,68,0.6);outline-offset:3px;text-shadow:0 0 8px #f44,0 0 2px #000;box-shadow:inset 0 0 10px rgba(255,68,68,0.2)">&#9994;</button>'+
+    '<button type="button" onclick="playJanken(\'paper\')" class="jk-btn" style="--jk:#0ff;font-size:36px;padding:16px 22px;background:transparent;border:2px solid #0ff;color:#fff;cursor:pointer;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation;outline:1px dashed rgba(0,255,255,0.6);outline-offset:3px;text-shadow:0 0 8px #0ff,0 0 2px #000;box-shadow:inset 0 0 10px rgba(0,255,255,0.2)">&#9995;</button>'+
+    '<button type="button" onclick="playJanken(\'scissors\')" class="jk-btn" style="--jk:#ff0;font-size:36px;padding:16px 22px;background:transparent;border:2px solid #ff0;color:#fff;cursor:pointer;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation;outline:1px dashed rgba(255,255,0,0.6);outline-offset:3px;text-shadow:0 0 8px #ff0,0 0 2px #000;box-shadow:inset 0 0 10px rgba(255,255,0,0.2)">&#9996;</button>'+
     '</div>'+
-    '<div id="janken-hint" style="font-size:11px;color:#aaa;margin-top:10px;letter-spacing:2px">Rock &nbsp;/&nbsp; Paper &nbsp;/&nbsp; Scissors&nbsp;&nbsp;|&nbsp;&nbsp;Round '+round+(round<3?'/3+':'')+'</div>';
+    '<div id="janken-hint" style="font-size:11px;color:#ccc;margin-top:10px;letter-spacing:2px;text-shadow:0 0 4px #000">Rock &nbsp;/&nbsp; Paper &nbsp;/&nbsp; Scissors&nbsp;&nbsp;|&nbsp;&nbsp;Round '+round+(round<3?'/3+':'')+'</div>';
   document.body.appendChild(ov);
   window._jankenBoss=boss;
   // Auto-timeout in 6s (counts as a "draw" so the loop continues)
@@ -6381,10 +6395,11 @@ function playJanken(playerHand){
   if(ov){
     const icon=(h)=>h==='rock'?'&#9994;':h==='paper'?'&#9995;':h==='scissors'?'&#9996;':'?';
     const round=(boss&&boss.jankenRound)||1;
+    // v7.01: result display also wireframe - text-shadow outlines keep it readable over the scene
     ov.innerHTML=
-      '<div style="font-size:13px;color:#f44;margin-bottom:6px">ROUND '+round+' RESULT</div>'+
-      '<div style="font-size:32px;color:#fff">You: '+icon(playerHand||'?')+' &nbsp;vs&nbsp; Gipsy: '+icon(bossHand)+'</div>'+
-      '<div style="font-size:20px;color:'+(outcome==='win'?'#0f0':outcome==='draw'?'#ff0':'#f44')+';margin-top:8px;letter-spacing:6px">'+
+      '<div style="font-size:13px;color:#f44;margin-bottom:6px;text-shadow:0 0 8px #f44,0 0 2px #000">ROUND '+round+' RESULT</div>'+
+      '<div style="font-size:32px;color:#fff;text-shadow:0 0 10px #fff,0 0 2px #000">You: '+icon(playerHand||'?')+' &nbsp;vs&nbsp; Gipsy: '+icon(bossHand)+'</div>'+
+      '<div style="font-size:20px;color:'+(outcome==='win'?'#0f0':outcome==='draw'?'#ff0':'#f44')+';margin-top:8px;letter-spacing:6px;text-shadow:0 0 10px currentColor,0 0 2px #000">'+
       (outcome==='win'?'GIPSY LOSES!':outcome==='draw'?'DRAW':'GIPSY WINS!')+'</div>';
   }
   // Decide next step
@@ -6405,6 +6420,11 @@ function playJanken(playerHand){
     window._jankenBoss=null;
     return;
   }
+  // v6.100: BOSS WINS THIS ROUND → trigger gut-pose + SHAAAA scream
+  if(outcome==='lose'){
+    try{triggerGipsyWinPose(boss)}catch(e){}
+    try{playGipsyShaScream()}catch(e){}
+  }
   // Otherwise continue: dismiss this overlay and queue the next round.
   setTimeout(()=>{
     try{if(ov)ov.remove()}catch(e){}
@@ -6412,7 +6432,7 @@ function playJanken(playerHand){
     if(boss.jankenPhase!=='janken')return;// safety: boss exited janken phase
     // Quick voice cue between rounds
     if(outcome==='lose'){
-      try{playComm('enemy','HAHA! Round '+(round+1)+'!')}catch(e){}
+      try{playComm('enemy','SHAAAA! Round '+(round+1)+'!')}catch(e){}
     } else if(outcome==='draw'){
       try{playComm('enemy','Draw! Again!')}catch(e){}
     } else {
@@ -6421,6 +6441,61 @@ function playJanken(playerHand){
     }
     setTimeout(()=>{try{triggerJankenDuel(boss)}catch(e){console.warn('janken next round:',e)}},1100);
   },1700);
+}
+
+// v6.100: Gipsy SHAAAA win scream - rising whoosh + harsh roar
+function playGipsyShaScream(){
+  if(typeof sfx==='undefined'||!sfx.ctx)return;
+  const ac=sfx.ctx,t=ac.currentTime;
+  // Bandpass-filtered noise that sweeps up = "SHAAAA" hiss
+  try{
+    const noise=ac.createBufferSource();
+    const len=ac.sampleRate*1.0;
+    const buf=ac.createBuffer(1,len,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*0.85;
+    noise.buffer=buf;
+    const filt=ac.createBiquadFilter();
+    filt.type='bandpass';
+    filt.frequency.setValueAtTime(1800,t);
+    filt.frequency.exponentialRampToValueAtTime(5500,t+0.35);
+    filt.frequency.exponentialRampToValueAtTime(3800,t+0.95);
+    filt.Q.value=2.5;
+    const ng=ac.createGain();
+    ng.gain.setValueAtTime(0,t);
+    ng.gain.linearRampToValueAtTime(0.45,t+0.06);
+    ng.gain.setValueAtTime(0.5,t+0.45);
+    ng.gain.exponentialRampToValueAtTime(0.001,t+1.0);
+    noise.connect(filt);filt.connect(ng);ng.connect(sfx.g);
+    noise.start(t);noise.stop(t+1.05);
+  }catch(e){}
+  // Harsh roar undertone (sawtooth + sub-bass)
+  try{sfx._o('sawtooth',180,t,.7,.32)}catch(e){}
+  try{sfx._o('sawtooth',135,t+.05,.6,.28)}catch(e){}
+  try{sfx._o('sine',75,t+.1,.5,.25)}catch(e){}
+  // Pitch sweep on top
+  try{
+    const o=ac.createOscillator();
+    const g=ac.createGain();
+    o.type='square';
+    o.frequency.setValueAtTime(420,t);
+    o.frequency.exponentialRampToValueAtTime(820,t+0.4);
+    o.frequency.exponentialRampToValueAtTime(380,t+0.9);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.18,t+0.05);
+    g.gain.exponentialRampToValueAtTime(.001,t+0.95);
+    o.connect(g);g.connect(sfx.g);
+    o.start(t);o.stop(t+1.0);
+  }catch(e){}
+  // Camera shake
+  try{S.shakeT=Math.max(S.shakeT||0,.6);S.shakeI=Math.max(S.shakeI||0,.7)}catch(e){}
+}
+
+// v6.100: Trigger gut-pose celebration on the boss when it wins a janken round
+function triggerGipsyWinPose(e){
+  if(!e)return;
+  e._winPoseT=0;
+  e._winPoseDur=1.6;
 }
 // v6.77: Cartoony tub/stone drops from the top of the screen onto the player
 function dropTubOnPlayer(){
@@ -7016,7 +7091,7 @@ function applyBossIdleAnimation(e,dt){
     if(!arm)return;
     // Don't clobber active attack poses (bossPattern-specific animators set their own rotations)
     if(e.zeongAttackArm===an)return;// Zeong extends this arm separately
-    if(e.bossPattern==='gipsy'&&an==='rightArm'&&(e.rocketPunchPhase==='extend'||e.rocketPunchPhase==='retract'))return;
+    if(e.bossPattern==='gipsy'&&an==='leftArm'&&(e.rocketPunchPhase==='extend'||e.rocketPunchPhase==='retract'||e.rocketPunchPhase==='buildup'))return;
     // Subtle elbow swing
     const phase=t*.6+(idx===0?0:Math.PI*.5);
     // Preserve baseline rotation; add small offsets
@@ -7164,30 +7239,112 @@ function emitGipsyFootJets(e){
 
 // v6.95: swap the boss's right-arm fist mesh to a janken shape (rock/paper/scissors).
 // Used during the janken phase so the player can SEE what shape the boss just played.
+// v6.100: ANIMATABLE JANKEN HAND - replaces the static makeGipsyDetailedFist for janken rounds.
+// 4 fingers + thumb are individual Groups so finger curl can be lerped smoothly from "rock" (all
+// curled) to the target shape. Each finger has a proximal + distal segment that bend together.
+function makeGipsyJankenHand(){
+  const g=new THREE.Group();g.name='gipsyJankenHand';
+  const mFist=new THREE.LineBasicMaterial({color:0x88aaee});// slightly brighter so it's readable
+  const mKnuckle=new THREE.LineBasicMaterial({color:0xff9922});
+  const mPalm=new THREE.LineBasicMaterial({color:0x6699bb});
+  // === PALM (chunky block, pivot at wrist top) ===
+  const palm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6,1.2,1.5)),mPalm);
+  palm.position.y=-0.6;g.add(palm);
+  // Palm plate (visible highlighted front of hand)
+  const palmPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.3,0.95,0.15)),mKnuckle);
+  palmPlate.position.set(0,-0.55,0.78);g.add(palmPlate);
+  // Wrist cuff
+  const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(0.75,0.68,0.4,6)),mKnuckle);
+  cuff.position.y=0.05;g.add(cuff);
+  // === THUMB (static, side of palm, partially curled) ===
+  const thumb=new THREE.Group();thumb.name='gipsyThumb';
+  const thumbSeg1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.38,0.8,0.42)),mFist);
+  thumbSeg1.position.y=-0.35;thumb.add(thumbSeg1);
+  const thumbKnuck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.15,5,4)),mKnuckle);
+  thumbKnuck.position.y=-0.65;thumb.add(thumbKnuck);
+  const thumbSeg2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.32,0.45,0.36)),mFist);
+  thumbSeg2.position.set(0,-0.92,0.12);thumb.add(thumbSeg2);
+  thumb.position.set(-0.82,-0.15,0.4);
+  thumb.rotation.z=0.45;
+  thumb.rotation.x=-0.3;// partially bent
+  g.add(thumb);
+  // === 4 FINGERS (index, middle, ring, pinky) with proximal + distal joint ===
+  for(let k=0;k<4;k++){
+    const finger=new THREE.Group();finger.name='gipsyFinger'+k;
+    const prox=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.28,0.55,0.32)),mFist);
+    prox.position.y=-0.28;finger.add(prox);
+    const midKnuckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.14,5,4)),mKnuckle);
+    midKnuckle.position.y=-0.55;finger.add(midKnuckle);
+    // DISTAL (tip end) - child Group so we can bend it independently (2nd joint)
+    const distal=new THREE.Group();distal.name='gipsyFinger'+k+'_distal';
+    const distSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.25,0.55,0.29)),mFist);
+    distSeg.position.y=-0.28;distal.add(distSeg);
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(0.12)),mFist);
+    tip.position.y=-0.6;distal.add(tip);
+    distal.position.y=-0.55;
+    finger.add(distal);
+    // Spread the 4 fingers across the top of the palm
+    finger.position.set(-0.45+k*0.3,0.0,0.4);
+    g.add(finger);
+  }
+  // Initial pose = ROCK (all fingers curled)
+  g.userData.currentShape='rock';
+  g.userData.currentMorph=1.0;// 1 = rock, 0 = target shape
+  return g;
+}
+// v6.100: morph the 4 fingers between rock (baseline) and target shape.
+// shape: 'rock' | 'paper' | 'scissors'
+// morph: 0 (fully target) to 1 (fully rock)
+function setGipsyHandMorph(hand,shape,morph){
+  if(!hand)return;
+  // Target curl per finger (1 = curled, 0 = extended)
+  let tgt;
+  if(shape==='paper')tgt=[0,0,0,0];
+  else if(shape==='scissors')tgt=[0,0,1,1];// index+middle extended, ring+pinky curled
+  else tgt=[1,1,1,1];// rock
+  for(let k=0;k<4;k++){
+    const finger=hand.getObjectByName('gipsyFinger'+k);
+    if(!finger)continue;
+    const distal=hand.getObjectByName('gipsyFinger'+k+'_distal');
+    // curl = 1 means fully bent at rock; curl = 0 means straight
+    const curl=1+(tgt[k]-1)*(1-morph);// morph=1→rock; morph=0→target
+    // Proximal knuckle bends forward (toward palm-plate = -Z in finger local)
+    finger.rotation.x=Math.PI*0.5*curl;
+    // Distal curls further (tighter fist)
+    if(distal)distal.rotation.x=Math.PI*0.55*curl;
+  }
+}
 function swapGipsyFistShape(e,shape){
   if(!e||!e.mesh)return;
-  const arm=e.mesh.getObjectByName('rightArm');
+  const arm=e.mesh.getObjectByName('leftArm');
   if(!arm)return;
-  // Remove the existing fist holder if any, but remember its position so we can restore it
-  const old=arm.getObjectByName('rightFistHolder');
+  // Remove ALL existing hand meshes (old fist holder or previous janken hand)
   let pos=null;
-  if(old){pos=old.position.clone();arm.remove(old)}
-  // Build the new fist with the requested shape (rock|paper|scissors)
-  const fist=makeGipsyDetailedFist(shape);
-  fist.name='rightFistHolder';
-  // Hide the rocket-flame children so it looks like a still hand, not a flying projectile
-  fist.traverse(o=>{
-    if(o.material&&o.material.color){
-      const hex=o.material.color.getHex();
-      // 0xff6600 = outer flame cone, 0xffcc44 = inner bright flame core
-      if(hex===0xff6600||hex===0xffcc44)o.visible=false;
-    }
+  ['leftFistHolder','gipsyJankenHand'].forEach(nm=>{
+    const o=arm.getObjectByName(nm);
+    if(o){if(!pos)pos=o.position.clone();arm.remove(o)}
   });
-  // Scale down slightly - the rocket-punch fist is bigger than the idle fist
-  fist.scale.setScalar(.85);
-  if(pos)fist.position.copy(pos);
-  else fist.position.y=-3.5;
-  arm.add(fist);
+  // v6.100: use the animatable janken hand; enlarge to 1.7x (hand size feedback)
+  const hand=makeGipsyJankenHand();
+  hand.name='leftFistHolder';// keep same name so rocket-punch detach code still finds it
+  hand.userData.isJankenHand=true;
+  hand.userData.jankenShape=shape;
+  hand.scale.setScalar(0.85*1.7);// v6.100: 1.7x the previous size
+  if(pos)hand.position.copy(pos);
+  else hand.position.y=-3.5;
+  arm.add(hand);
+  // Start at rock (morph=1); will lerp to target shape during the final pump
+  setGipsyHandMorph(hand,shape,1.0);
+  // v6.100: trigger the 3-pump arm animation (JAN-KEN-PON)
+  try{
+    e._jankenArmAnimT=0;
+    e._jankenArmAnimDur=1.6;// slightly longer so the morph is visible
+    e._jankenTargetShape=shape;
+    e._jankenVoicedJan=false;
+    e._jankenVoicedKen=false;
+    e._jankenVoicedPon=false;
+    e._jankenVoicedShape=false;
+  }catch(ex){}
 }
 
 function updateGipsyBoss(e,dt){
@@ -7204,6 +7361,76 @@ function updateGipsyBoss(e,dt){
   if(e.jankenPhase==='janken'){
     // Emit foot jet flames so the boss still looks "hovering" during the standoff
     try{emitGipsyFootJets(e)}catch(ex){}
+    // v6.100: WIN-POSE celebration after the boss wins a round - both arms thrust up + body arch
+    if(e._winPoseT!=null){
+      e._winPoseT+=dt;
+      const dur=e._winPoseDur||1.6;
+      const wp=Math.min(1,e._winPoseT/dur);
+      // half-sine arc: arms shoot up, hold, then return
+      const lift=Math.sin(wp*Math.PI);
+      const lA=e.mesh.getObjectByName('leftArm');
+      const rA=e.mesh.getObjectByName('rightArm');
+      if(lA){lA.rotation.x=-Math.PI*0.85*lift;lA.rotation.z=-0.5*lift;lA.rotation.y=0}
+      if(rA){rA.rotation.x=-Math.PI*0.85*lift;rA.rotation.z=+0.5*lift;rA.rotation.y=0}
+      // Slight body arch upward
+      e.mesh.rotation.x=-Math.sin(wp*Math.PI)*0.12;
+      // Spawn celebratory sparks
+      if(Math.random()<.4)try{spawnP(e.mesh.position.clone().add(new THREE.Vector3(0,9,0)),0xffff44,3,.8)}catch(ex){}
+      if(wp>=1){
+        e._winPoseT=null;
+        e.mesh.rotation.x=0;
+      }
+    }
+    // v6.98/v6.100: Animate the LEFT ARM during janken - JAN / KEN / PON pumps, palm held up at
+    // ~45° diagonal so the hand shape is clearly visible, voice lines on each beat, and the 4
+    // fingers smoothly lerp from rock → target shape during the final settle.
+    try{
+      const lArm=e.mesh.getObjectByName('leftArm');
+      if(lArm){
+        if(e._jankenArmAnimT==null){
+          // v7.01: Idle pre-janken pose - arm raised HIGH ABOVE THE HEAD, tilted diagonally forward
+          // so the fist sits in front-of-and-above the cockpit and is always clearly visible.
+          const targX=-Math.PI*0.80;// ~144° (arm nearly straight up, slightly forward)
+          const targZ=-0.32;// tilt out to the boss's left so the arm doesn't clip the chest
+          const targY=0.30;// rotate the palm-side toward the camera
+          lArm.rotation.x+=(targX-lArm.rotation.x)*Math.min(1,dt*4);
+          lArm.rotation.z+=(targZ-lArm.rotation.z)*Math.min(1,dt*4);
+          lArm.rotation.y+=(targY-(lArm.rotation.y||0))*Math.min(1,dt*4);
+        } else {
+          e._jankenArmAnimT+=dt;
+          const dur=e._jankenArmAnimDur||1.6;
+          const p=Math.min(1,e._jankenArmAnimT/dur);
+          // v7.01: base pose = arm HIGH above head, slightly forward (fist clearly visible)
+          const base=-Math.PI*0.80;
+          // 3 pumps (JAN - KEN - PON): smaller pump since the arm is already up high
+          const pumpWave=Math.sin(p*Math.PI*3);
+          lArm.rotation.x=base-pumpWave*0.14;
+          lArm.rotation.z=-0.32;
+          lArm.rotation.y=0.30;
+          // v6.100: voice beats at p≈0.08 (JAN), p≈0.37 (KEN), p≈0.65 (PON), p≈0.85 (shape)
+          if(!e._jankenVoicedJan&&p>=0.08){e._jankenVoicedJan=true;try{playComm('enemy','JAN!')}catch(ex){}try{if(sfx.ctx){const tt=sfx.ctx.currentTime;sfx._o('square',520,tt,.08,.2);sfx._n(tt,.06,.15,2500,400)}}catch(ex){}}
+          if(!e._jankenVoicedKen&&p>=0.37){e._jankenVoicedKen=true;try{playComm('enemy','KEN!')}catch(ex){}try{if(sfx.ctx){const tt=sfx.ctx.currentTime;sfx._o('square',520,tt,.08,.2);sfx._n(tt,.06,.15,2500,400)}}catch(ex){}}
+          if(!e._jankenVoicedPon&&p>=0.65){e._jankenVoicedPon=true;try{playComm('enemy','PON!!!')}catch(ex){}try{if(sfx.ctx){const tt=sfx.ctx.currentTime;sfx._o('square',320,tt,.14,.3);sfx._n(tt,.1,.2,3500,500)}}catch(ex){}}
+          // v6.100: finger morph - lerp from rock (1) to target (0) during 0.65..0.95
+          const hand=lArm.getObjectByName('leftFistHolder');
+          if(hand){
+            let morph;
+            if(p<0.65)morph=1.0;// pure rock during the 3 pumps
+            else if(p<0.95)morph=1-(p-0.65)/0.30;// smooth lerp 0.30s
+            else morph=0;// fully the target shape
+            try{setGipsyHandMorph(hand,e._jankenTargetShape||'rock',morph)}catch(ex){}
+          }
+          // Shape-reveal voice at p≈0.85 (hand is almost fully morphed)
+          if(!e._jankenVoicedShape&&p>=0.85){
+            e._jankenVoicedShape=true;
+            const sh=e._jankenTargetShape||'rock';
+            const line=sh==='rock'?'GUU!!':sh==='scissors'?'CHOKI!!':'PAA!!';
+            try{playComm('enemy',line)}catch(ex){}
+          }
+          if(p>=1)e._jankenArmAnimT=null;
+        }
+      }
+    }catch(ex){}
     // Freeze approach: lock z to spawn distance
     if(e.speedZ!==0){e._savedSpeedZ=e.speedZ;e.speedZ=0}
     e.jankenStartT=(e.jankenStartT==null?1.8:e.jankenStartT)-dt;
@@ -7251,49 +7478,50 @@ function updateGipsyBoss(e,dt){
   emitGipsyFootJets(e);
   // Extra vertical hover so it reads as "jet flight" rather than standing
   e.mesh.position.y=e.baseY+Math.sin(e.poseTime*.8)*.15+Math.sin(e.poseTime*1.6)*.05;
-  // Rocket punch every ~7 seconds (requires right arm intact)
-  if(!e.armRightLost){
+  // Rocket punch every ~7 seconds - v6.98: LAUNCHES FROM THE LEFT ARM (chainsword-free hand).
+  // The RIGHT arm still carries the chainsword and its simple fist NEVER flies.
+  if(!e.armLeftLost){
   e.rocketPunchTimer=(e.rocketPunchTimer||6)-dt;
-  // v6.77: 4-phase rocket punch: BUILDUP (arm raise + voice) → extend → fist flies → retract
+  // v6.77/v6.98: 4-phase rocket punch. Extend + flight phases SLOWED so the fist is clearly visible
+  // ("こぶしが見える演出") - was 0.6s extend + vel=(3,10,18), now 1.8s extend + vel=(2,6,10).
   if(e.rocketPunchPhase==='buildup'){
     e.rocketPunchT=(e.rocketPunchT||0)+dt;
-    const arm=e.mesh.getObjectByName('rightArm');
+    const arm=e.mesh.getObjectByName('leftArm');
     if(arm){
-      // Back up the boss slightly (step away for dramatic pose)
       e.mesh.position.z+=Math.max(0,-0.4-e.mesh.position.z)*dt*.2;
-      // Raise right arm slowly (arm.rotation.x from 0 → -PI/2 over 2s)
-      const p=Math.min(1,e.rocketPunchT/2.0);
+      // Raise left arm slowly (arm.rotation.x from 0 → -PI/2 over 2.5s - slightly longer wind-up)
+      const p=Math.min(1,e.rocketPunchT/2.5);
       arm.rotation.x=-p*Math.PI*.5;
-      arm.rotation.z=p*.2;
-      if(e.rocketPunchT>=2.0){
-        // Pick a random janken shape for this punch (1/3 each)
+      arm.rotation.z=-p*.2;// opposite sign vs v6.97 since this is the LEFT arm now
+      if(e.rocketPunchT>=2.5){
         e.rocketPunchShape=['rock','paper','scissors'][Math.floor(Math.random()*3)];
         e.rocketPunchPhase='extend';e.rocketPunchT=0;
       }
     }
   } else if(e.rocketPunchPhase==='extend'){
     e.rocketPunchT=(e.rocketPunchT||0)+dt;
-    const arm=e.mesh.getObjectByName('rightArm');
+    const arm=e.mesh.getObjectByName('leftArm');
     if(arm){
-      // Stretch arm forward over 0.6s
-      const p=Math.min(1,e.rocketPunchT/.6);
+      // v6.98: EXTEND phase slowed 0.6s → 1.8s so the cocking motion is clearly visible
+      const p=Math.min(1,e.rocketPunchT/1.8);
       arm.position.z=(e.rocketArmBaseZ||0)+p*5;
       arm.rotation.x=-.25*p;
-      if(e.rocketPunchT>=.6){
-        // v6.72: Detach DETAILED fist - only from the RIGHT arm - and launch on a showy parabolic arc
-        const fistHolder=arm.getObjectByName('rightFistHolder');
+      if(e.rocketPunchT>=1.8){
+        // Detach the LEFT fist holder and launch it
+        const fistHolder=arm.getObjectByName('leftFistHolder');
         const fistOriginalZ=fistHolder?fistHolder.position.z:0;
         const worldPos=new THREE.Vector3();
         if(fistHolder){fistHolder.getWorldPosition(worldPos);arm.remove(fistHolder);e._savedFistHolder=fistHolder}
         else{arm.getWorldPosition(worldPos);worldPos.z+=2}
         const fist=makeGipsyDetailedFist(e.rocketPunchShape||'rock');
-        fist.position.copy(worldPos);scene.add(fist);
-        // v6.72: Launch upward/backward so the fist arcs BEHIND the camera first, then dives back at player
-        // Initial velocity: fast forward + strongly up + slight random lateral wobble for pose show-off
-        const lateralSide=(worldPos.x>0)?1:-1;// fly to the outer side first
+        fist.position.copy(worldPos);
+        // v6.98: upscale the flying fist so it reads as a big iconic attacking object
+        fist.scale.setScalar(1.3);
+        scene.add(fist);
+        const lateralSide=(worldPos.x>0)?1:-1;
         megaBossProjectiles.push({mesh:fist,owner:e,kind:'rocketFist',
-          life:9,// long life for the arc
-          vel:new THREE.Vector3(lateralSide*3,10,18),// up + past camera
+          life:14,// v6.98: longer life to match the slower flight
+          vel:new THREE.Vector3(lateralSide*2,6,10),// v6.98: SLOWER velocity - fist clearly visible
           phase:'arc',phaseT:0,
           armRef:arm,fistBaseZ:fistOriginalZ,
           thrusterTimer:0});
@@ -7348,13 +7576,12 @@ function updateGipsyBoss(e,dt){
     }
   } else if(e.rocketPunchPhase==='retract'){
     e.rocketPunchT=(e.rocketPunchT||0)+dt;
-    const arm=e.mesh.getObjectByName('rightArm');
+    const arm=e.mesh.getObjectByName('leftArm');
     if(arm){
       const p=Math.min(1,e.rocketPunchT/1.2);
       arm.position.z=(e.rocketArmBaseZ||0)+(1-p)*5;
       arm.rotation.x=-.25*(1-p);
       if(e.rocketPunchT>=1.2){
-        // Restore the fist holder on the arm after flight complete (if still alive)
         if(e._savedFistHolder){
           try{arm.add(e._savedFistHolder)}catch(ex){}
           e._savedFistHolder=null;
@@ -7365,21 +7592,18 @@ function updateGipsyBoss(e,dt){
       }
     }
   } else if(e.rocketPunchTimer<=0&&!e.rocketFistActive){
-    const arm=e.mesh.getObjectByName('rightArm');
+    const arm=e.mesh.getObjectByName('leftArm');
     if(arm){
       if(e.rocketArmBaseZ===undefined)e.rocketArmBaseZ=arm.position.z;
-      // v6.77: Enter BUILDUP phase first (arm raise + voice), then extend+launch
       e.rocketPunchPhase='buildup';e.rocketPunchT=0;
-      // Dramatic buildup voice: "いくぜーー、ロケットパーーーンチ" (spoken in English for TTS clarity)
       try{playComm('enemy','Here it comes...! ROCKET PAAAAAAAAAN-CH!!!')}catch(ex){}
-      // v6.95: random janken trigger removed - janken is now mandatory at spawn (see jankenPhase)
       if(sfx.ctx){const t=sfx.ctx.currentTime;
         sfx._o('sawtooth',140,t,.4,.15)}
       playComm('enemy','ROCKET PUNCH!!!');
     }
     e.rocketPunchTimer=10+Math.random()*2;
   }
-  }// end if(!armRightLost)
+  }// end if(!armLeftLost)
   // Scatter cannon (belly - works as long as torso is intact, i.e. not armsLost)
   e.scatterTimer=(e.scatterTimer||9)-dt;
   if(e.scatterTimer<=0){
@@ -11842,9 +12066,12 @@ function startForestOnFootMode(){
   let skip=document.getElementById('forest-skip');if(skip)skip.remove();
   skip=document.createElement('button');skip.id='forest-skip';skip.type='button';
   skip.textContent='▶ AUTO-COMPLETE (SKIP) ◀';
+  // v7.01: wireframe style - transparent background + dashed border + text-shadow for readability
   skip.style.cssText='position:fixed;top:14px;right:14px;z-index:262;padding:10px 18px;'+
-    'background:rgba(20,0,20,0.85);border:2px solid #f80;color:#fa8;font-family:inherit;'+
-    'font-size:11px;letter-spacing:2px;border-radius:6px;cursor:pointer;-webkit-appearance:none;touch-action:manipulation';
+    'background:transparent;border:2px solid #f80;color:#ff8;font-family:inherit;'+
+    'font-size:11px;letter-spacing:2px;border-radius:6px;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;'+
+    'outline:1px dashed rgba(255,136,0,0.6);outline-offset:3px;text-shadow:0 0 6px #f80,0 0 2px #000;'+
+    'box-shadow:inset 0 0 10px rgba(255,136,0,0.18)';
   skip.onclick=()=>{endForestOnFoot();forestAutoCompleteAndReturn()};
   document.body.appendChild(skip);
 }
@@ -11856,6 +12083,104 @@ function forestTerrainHeight(x,z){
 }
 // v6.96: per-frame grass sway - blades closer than 4m to the pilot lean AWAY from him,
 // stronger the closer he is. All blades also have a constant gentle wind sway from windPhase.
+// v6.98: tree collision - pushes the player back if they walk into a trunk.
+function pushOutOfTrees(obj,radiusExtra){
+  if(!forestScene||!obj)return;
+  radiusExtra=radiusExtra||.5;
+  forestScene.children.forEach(c=>{
+    if(c.name!=='forestTree'||!c.userData.treeAlive)return;
+    // Falling/fallen trees don't block the player (they've been cut)
+    if(c.userData.treeFallT>0.01)return;
+    const dx=obj.position.x-c.position.x;
+    const dz=obj.position.z-c.position.z;
+    const rr=(c.userData.treeRadius||0.55)+radiusExtra;
+    const d2=dx*dx+dz*dz;
+    if(d2<rr*rr&&d2>0.0001){
+      const d=Math.sqrt(d2);
+      const nx=dx/d,nz=dz/d;
+      // Push out along the collision normal
+      obj.position.x=c.position.x+nx*rr;
+      obj.position.z=c.position.z+nz*rr;
+    }
+  });
+}
+// v6.98: saber cuts trees - if the swing arc overlaps any alive tree within 3.2m of the pilot,
+// start the tree falling AWAY from the player. Fallen trees then crush any nearby guards.
+function cutNearbyTrees(){
+  if(!forestScene||!forestPilot)return;
+  const px=forestPilot.position.x,pz=forestPilot.position.z;
+  const fwdX=-Math.sin(forestPilot.rotation.y);
+  const fwdZ=-Math.cos(forestPilot.rotation.y);
+  forestScene.children.forEach(c=>{
+    if(c.name!=='forestTree'||!c.userData.treeAlive)return;
+    if(c.userData.treeFallT>0.01)return;
+    const dx=c.position.x-px;
+    const dz=c.position.z-pz;
+    const d=Math.hypot(dx,dz);
+    if(d>3.5)return;// too far for saber
+    // Must be roughly in front of the pilot (±70°)
+    const dot=(dx*fwdX+dz*fwdZ)/Math.max(d,.001);
+    if(dot<0.35)return;// not in forward cone
+    // HIT - start fall AWAY from pilot (along dx,dz unit vector)
+    c.userData.treeFallT=0.001;
+    c.userData.treeFallAxis=new THREE.Vector3(dx/d,0,dz/d);
+    // Bright cut flash
+    try{spawnP(new THREE.Vector3(c.position.x,c.position.y+1.0,c.position.z),0x44eeff,12,1.0)}catch(e){}
+    try{spawnP(new THREE.Vector3(c.position.x,c.position.y+1.2,c.position.z),0xffffff,8,.7)}catch(e){}
+    // Wood chips
+    try{spawnP(new THREE.Vector3(c.position.x,c.position.y+1.0,c.position.z),0x884422,10,.6)}catch(e){}
+    try{if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('square',220,t,.08,.2);sfx._n(t,.14,.18,2000,300)}}catch(e){}
+  });
+}
+// v6.98: per-frame tree fall animation + crush detection. Called from updateForestOnFoot.
+function updateFallingTrees(dt){
+  if(!forestScene)return;
+  forestScene.children.forEach(c=>{
+    if(c.name!=='forestTree'||!c.userData.treeAlive)return;
+    if(c.userData.treeFallT<=0)return;
+    const prev=c.userData.treeFallT;
+    c.userData.treeFallT=Math.min(1.6,prev+dt*1.5);// ~0.66s to horizontal, then a bit of settle
+    const t=c.userData.treeFallT;
+    // Fall arc: angle 0 → π/2 over t=0..1, then hold
+    const fallAng=Math.min(1,t)*Math.PI*.5;
+    // Axis is in the XZ plane; to tilt the trunk around it, rotate around the perpendicular horizontal axis
+    const axis=c.userData.treeFallAxis;
+    if(axis){
+      // Rotate around the axis perpendicular to the fall direction (horizontal, 90° to fall dir)
+      c.setRotationFromAxisAngle(new THREE.Vector3(axis.z,0,-axis.x).normalize(),fallAng);
+    }
+    // Once tree is fully horizontal, check for guard kills IN the fallen trunk's line
+    if(prev<1.0&&t>=1.0){
+      const h=c.userData.treeHeight||8;
+      try{if(sfx.bigExplosion)sfx.bigExplosion()}catch(e){}
+      try{spawnP(new THREE.Vector3(c.position.x,c.position.y,c.position.z),0x884422,20,1.4)}catch(e){}
+      // Crush any guard within the trunk's horizontal footprint (line from tree base along axis for length h)
+      if(typeof forestGuards!=='undefined'&&forestGuards&&axis){
+        for(let gi=forestGuards.length-1;gi>=0;gi--){
+          const g=forestGuards[gi];
+          if(!g||!g.mesh)continue;
+          const gx=g.mesh.position.x-c.position.x;
+          const gz=g.mesh.position.z-c.position.z;
+          // Project guard onto fall axis
+          const along=gx*axis.x+gz*axis.z;
+          const across=gx*(-axis.z)+gz*axis.x;
+          if(along>0&&along<h&&Math.abs(across)<1.2){
+            // Crushed
+            try{spawnP(g.mesh.position.clone(),0xff4422,18,1.3)}catch(e){}
+            try{if(typeof killForestGuard==='function')killForestGuard(g)}catch(e){}
+            forestGuards.splice(gi,1);
+            if(typeof forestState!=='undefined'&&forestState)forestState.guardsDefeated++;
+            try{playComm('wingman','A tree fell on one of them! HAHA!')}catch(e){}
+          }
+        }
+      }
+      // Screen shake for impact
+      S.shakeT=Math.max(S.shakeT||0,.5);S.shakeI=Math.max(S.shakeI||0,.6);
+    }
+    // After settling, mark dead so it stops being a collider
+    if(t>=1.5)c.userData.treeAlive=false;
+  });
+}
 function updateGrassSway(dt){
   if(!forestScene||!forestPilot)return;
   const px=forestPilot.position.x,pz=forestPilot.position.z;
@@ -11976,6 +12301,13 @@ function buildForestScene(){
     while(x*x+z*z<120||(Math.abs(x)<12&&z<-28&&z>-48));// keep base approach path clear
     // v6.96: tree y follows the rolling-hills terrain
     tree.position.set(x,forestTerrainHeight(x,z),z);
+    // v6.98: register tree as a collidable/cuttable entity
+    tree.name='forestTree';
+    tree.userData.treeRadius=0.55*bulk;// trunk collision radius
+    tree.userData.treeHeight=h;
+    tree.userData.treeAlive=true;
+    tree.userData.treeFallT=0;// falling progress 0..1.5 (1 = horizontal, 1.5 = settle+crush done)
+    tree.userData.treeFallAxis=null;// Vector3 in xz plane, set when saber hits
     forestScene.add(tree);
   }
   // v6.89: Bush / shrub layer for ground density
@@ -12460,10 +12792,12 @@ function showForestHUD(){
   toggleBtn=document.createElement('button');toggleBtn.id='forest-controls-toggle';toggleBtn.type='button';
   toggleBtn.textContent=_ctrlHidden?'?':'×';
   toggleBtn.title=hk?'操作パネル 表示/非表示':'Show / hide controls panel';
+  // v7.01: wireframe style - transparent + dashed outline ring
   toggleBtn.style.cssText='position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));left:10px;z-index:111;'+
-    'width:30px;height:30px;padding:0;border:1px solid #0f8;background:rgba(0,40,20,0.9);color:#0f8;'+
+    'width:30px;height:30px;padding:0;border:1px solid #0f8;background:transparent;color:#afa;'+
     'font-family:inherit;font-size:14px;font-weight:bold;cursor:pointer;border-radius:50%;'+
-    '-webkit-appearance:none;touch-action:manipulation;box-shadow:0 0 8px rgba(0,255,136,0.4)';
+    '-webkit-appearance:none;touch-action:manipulation;outline:1px dashed rgba(0,255,136,0.55);outline-offset:2px;'+
+    'text-shadow:0 0 6px #0f8,0 0 2px #000;box-shadow:inset 0 0 8px rgba(0,255,136,0.2)';
   toggleBtn.onclick=()=>{
     const panel=document.getElementById('forest-controls');
     if(!panel)return;
@@ -12507,9 +12841,12 @@ function showForestHUD(){
   let wb=document.getElementById('forest-weapon-btn');if(wb)wb.remove();
   wb=document.createElement('button');wb.id='forest-weapon-btn';wb.type='button';
   wb.textContent='🔫 LASER';
+  // v7.01: wireframe style - transparent + dashed outline + glow text
   wb.style.cssText='position:fixed;top:215px;right:14px;z-index:120;padding:10px 14px;'+
-    'background:rgba(20,20,0,0.85);border:2px solid #f84;color:#fa8;font-family:inherit;'+
-    'font-size:12px;letter-spacing:2px;border-radius:6px;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;min-width:120px;min-height:44px';
+    'background:transparent;border:2px solid #f84;color:#ffa;font-family:inherit;'+
+    'font-size:12px;letter-spacing:2px;border-radius:6px;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;min-width:120px;min-height:44px;'+
+    'outline:1px dashed rgba(255,136,68,0.55);outline-offset:3px;text-shadow:0 0 6px #f84,0 0 2px #000;'+
+    'box-shadow:inset 0 0 10px rgba(255,136,68,0.18)';
   wb.onclick=()=>{
     const order=['laser','saber','whip','bomb'];
     const cur=(forestState&&forestState.weapon)||'laser';
@@ -12664,6 +13001,8 @@ function updateForestOnFoot(dt){
   // Clamp to play area
   forestPilot.position.x=Math.max(-50,Math.min(50,forestPilot.position.x));
   forestPilot.position.z=Math.max(-50,Math.min(50,forestPilot.position.z));
+  // v6.98: tree collision - push pilot back out of any trunk he walked into
+  try{pushOutOfTrees(forestPilot,.55)}catch(e){}
   // v6.96: TERRAIN FOLLOW - pilot's y stays on the rolling-hills ground
   if(typeof forestTerrainHeight==='function'){
     const ty=forestTerrainHeight(forestPilot.position.x,forestPilot.position.z);
@@ -12675,6 +13014,8 @@ function updateForestOnFoot(dt){
   try{updateSaberSwing()}catch(e){}
   // v6.96: grass sway around the player (lean away when stepped near + gentle wind)
   try{updateGrassSway(dt)}catch(e){}
+  // v6.98: animate any falling trees + crush guards they land on
+  try{updateFallingTrees(dt)}catch(e){}
   // v6.89: Update forest corpses (bodies that topple after death)
   try{updateForestCorpses(dt)}catch(e){}
   // CAMERA: third-person behind pilot (smooth follow)
@@ -12824,15 +13165,16 @@ function updateForestOnFoot(dt){
         const swing=Math.sin(wt)*.5*moving;
         if(lLeg)lLeg.rotation.x=swing;
         if(rLeg)rLeg.rotation.x=-swing;
-        if(lLegLower)lLegLower.rotation.x=-Math.max(0,Math.sin(wt))*.85*moving;
-        if(rLegLower)rLegLower.rotation.x=-Math.max(0,-Math.sin(wt))*.85*moving;
+        // v7.0: SIGN FLIPPED + timing fixed (mid-swing peak via cos) - matches the player walk fix.
+        if(lLegLower)lLegLower.rotation.x=Math.max(0,-Math.cos(wt))*1.0*moving;
+        if(rLegLower)rLegLower.rotation.x=Math.max(0, Math.cos(wt))*1.0*moving;
         if(body)body.position.y=1.25+Math.abs(Math.sin(wt))*.07*moving;
       } else {
-        // Alert/firing stance: relax legs, slight crouch
+        // Alert/firing stance: relax legs, slight crouch (v7.0: positive = anatomical bend)
         if(lLeg)lLeg.rotation.x+=(0-lLeg.rotation.x)*.2;
         if(rLeg)rLeg.rotation.x+=(0-rLeg.rotation.x)*.2;
-        if(lLegLower)lLegLower.rotation.x+=(-.15-lLegLower.rotation.x)*.2;
-        if(rLegLower)rLegLower.rotation.x+=(-.15-rLegLower.rotation.x)*.2;
+        if(lLegLower)lLegLower.rotation.x+=(0.18-lLegLower.rotation.x)*.2;
+        if(rLegLower)rLegLower.rotation.x+=(0.18-rLegLower.rotation.x)*.2;
         if(body)body.position.y+=(1.18-body.position.y)*.2;// tiny crouch
       }
     }catch(e){}
@@ -13028,13 +13370,12 @@ function fireForestSaber(){
       sabGroup.userData.swingActive=true;
       sabGroup.userData.swingStartT=performance.now()/1000;
       sabGroup.userData.swingDur=0.45;
-      // 5 patterns: 0=horizontal level (legacy), 1=overhead chop down, 2=rising upward,
-      // 3=diagonal top-left → bottom-right, 4=diagonal top-right → bottom-left
       sabGroup.userData.swingPattern=Math.floor(Math.random()*5);
-      // Slight per-swing variation so even the same pattern feels alive
       sabGroup.userData.swingPitchOffset=(Math.random()-0.5)*0.4;
     }
   }catch(e){}
+  // v6.98: saber can also cut nearby trees - tree falls away and crushes guards in its path
+  try{cutNearbyTrees()}catch(e){}
   // v6.95: VROOM saber sound (low sweep + harmonic + noise) — replaces the older saber hum
   try{if(sfx.ctx){const t=sfx.ctx.currentTime;
     const o1=sfx.ctx.createOscillator();const g1=sfx.ctx.createGain();
@@ -13490,6 +13831,82 @@ function spawnGateGuardian(){
     const sight=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.18,.4)),mAcc);
     sight.position.set(sx,6.95,1.6);g.add(sight);
   });
+  // === v7.0: GIPSY-DANGER STYLE ARMS attached to the Guardian's shoulders for an intimidating
+  // mech-on-mech coordination. Right arm wields a chainsword, left arm has the iconic detailed
+  // rocket-fist. Arms hang from the shoulder pauldrons (y=6.4) and reach down past the chassis. ===
+  ['leftMechArm','rightMechArm'].forEach((name,i)=>{
+    const side=i===0?-1:1;
+    const arm=new THREE.Group();arm.name=name;
+    // Massive upper arm (Jaeger-thick)
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.0,2.0,1.0)),mBody);
+    upper.position.y=-1.0;arm.add(upper);
+    // Bicep armor plate
+    const bicep=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.45,1.6,.18)),mBodyDk);
+    bicep.position.set(side*.5,-1.0,.1);arm.add(bicep);
+    // Glow accent stripe
+    const accStripe=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,1.4,.1)),mGlow);
+    accStripe.position.set(0,-1.0,.55);arm.add(accStripe);
+    // Elbow ball joint
+    const elb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.55,7,5)),mAcc);
+    elb.position.y=-2.1;arm.add(elb);
+    // Forearm - heavier, slightly tapered
+    const fa=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1,2.2,1.1)),mBody);
+    fa.position.y=-3.3;arm.add(fa);
+    // Forearm armor band
+    const faBand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,.4,1.2)),mBodyDk);
+    faBand.position.y=-2.9;arm.add(faBand);
+    // Wrist cuff with glow
+    const wristCuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.62,.58,.3,8)),mAcc);
+    wristCuff.position.y=-4.45;arm.add(wristCuff);
+    // === HAND - chunky Jaeger fist (Gipsy-style detailed knuckles) ===
+    const fist=new THREE.Group();
+    const palm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,.85,1.2)),mBody);
+    palm.position.y=-.1;fist.add(palm);
+    // 4 knuckle bumps
+    for(let k=0;k<4;k++){
+      const kn=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.2,5,4)),mAcc);
+      kn.position.set(-.36+k*.24,.35,.55);fist.add(kn);
+    }
+    // 2-segment fingers folded down
+    for(let k=0;k<4;k++){
+      const f1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.36,.26)),mBody);
+      f1.position.set(-.36+k*.24,.05,.65);fist.add(f1);
+      const f2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.34,.22)),mBody);
+      f2.position.set(-.36+k*.24,-.28,.58);fist.add(f2);
+    }
+    // Thumb
+    const thumb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.3,.55,.4)),mBody);
+    thumb.position.set(-.55*side,.18,.4);thumb.rotation.z=side*-.4;fist.add(thumb);
+    fist.position.y=-5.0;arm.add(fist);
+    // === RIGHT ARM gets a CHAINSWORD (Gipsy signature) ===
+    if(side>0){
+      const sword=new THREE.Group();sword.name='guardianChainsword';
+      const blade=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.35,4.4,.18)),
+        new THREE.LineBasicMaterial({color:0xeeeeee}));
+      blade.position.y=2.2;sword.add(blade);
+      // Saw teeth along the leading edge
+      for(let tt=0;tt<9;tt++){
+        const tooth=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.13,.32,.22)),
+          new THREE.LineBasicMaterial({color:0xeeeeee}));
+        tooth.position.set(.22,tt*.5,0);sword.add(tooth);
+      }
+      // Hilt (yellow accent)
+      const hilt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.45,.7,.55)),mAcc);
+      sword.add(hilt);
+      // Glow stripe along the blade spine
+      const spine=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.06,4.0,.12)),mGlow);
+      spine.position.set(-.18,2.2,0);sword.add(spine);
+      sword.position.set(0,-5.5,0);arm.add(sword);
+    }
+    // === LEFT ARM gets the iconic ROCKET-FIST glow ring on the wrist ===
+    if(side<0){
+      const ring=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.7,.07,5,12)),mGlow);
+      ring.position.y=-4.9;ring.rotation.x=Math.PI/2;arm.add(ring);
+    }
+    // Mount under the shoulder pauldron
+    arm.position.set(side*3.0,5.6,0);
+    g.add(arm);
+  });
   // === HEAD ANTENNA CLUSTER on top of the chest ===
   const antMast=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.06,.08,1.4,6)),mDark);
   antMast.position.set(0,7.6,-1.4);g.add(antMast);
@@ -13922,7 +14339,7 @@ function makeForestDoctor(opts){
   const mHair=new THREE.LineBasicMaterial({color:0x553311,transparent:true,opacity:.9});
   const mDark=new THREE.LineBasicMaterial({color:0x222233,transparent:true,opacity:.8});
   // === HEAD (with hood, beard hint, eyes) ===
-  const head=new THREE.Group();head.name='doctorHead';
+  const head=new THREE.Group();head.name='head';// v6.98: standard naming for straddle helper
   const skull=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.32,8,6)),mHead);
   head.add(skull);
   // Hood draped on the back of the head
@@ -13944,7 +14361,7 @@ function makeForestDoctor(opts){
   const neck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.12,.15,6)),mDark);
   neck.position.y=2.1;g.add(neck);
   // === UPPER BODY (chest robe) ===
-  const body=new THREE.Group();body.name='doctorBody';
+  const body=new THREE.Group();body.name='body';// v6.98: standard naming for straddle helper
   const chest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.45,.55,1.0,8)),mRobe);
   chest.position.y=0;body.add(chest);
   // V-collar opening
@@ -13960,7 +14377,7 @@ function makeForestDoctor(opts){
   // === ARMS - draped sleeves + hands ===
   ['lArm','rArm'].forEach((nm,idx)=>{
     const side=idx===0?-1:1;
-    const arm=new THREE.Group();arm.name='doctor'+nm;
+    const arm=new THREE.Group();arm.name=nm;// v6.98: standard arm naming so straddleBikeRider can pose
     // Wide sleeve (upper arm covered by robe)
     const sleeveUp=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.18,.16,.55,8)),mRobe);
     sleeveUp.position.y=-.3;arm.add(sleeveUp);
@@ -14383,55 +14800,133 @@ function makeSpeederBike(withRider,options){
   const backrest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,.5,.1)),mBody);
   backrest.position.set(0,.85,-.55);g.add(backrest);
   if(withRider){
-    const pilot=makePilotFigure();
-    pilot.scale.setScalar(.7);
-    pilot.position.set(0,.8,.5);pilot.rotation.y=Math.PI;
+    // v6.98: bike pilot now uses the FOREST tactical pilot model (with joint groups) so the
+    // straddle pose works. Was the simpler makePilotFigure() which lacked named limbs.
+    const pilot=makeForestTacticalPilot();
+    pilot.scale.setScalar(.32);// scale down to fit on a bike
+    pilot.position.set(0,-.05,.45);pilot.rotation.y=Math.PI;
     pilot.traverse(o=>{o.userData.preserveColor=true});
+    // v6.98: STRADDLE the bike like a motorcycle - legs spread outward to grip the chassis,
+    // forearms reach forward to the handlebars, torso tilts forward (racing posture).
+    try{straddleBikeRider(pilot)}catch(e){}
     g.add(pilot);
-    // v6.96: realistic doctor figure (shared with the dungeon scene). Bike version omits the halo
-    // + pillar but adds the back-pointing blaster pistol.
     const doc=makeForestDoctor({includeBlaster:true});
     doc.name='bikeDoctor';
     doc.scale.setScalar(.45);// slim him down so he fits seated behind the pilot
     doc.position.set(0,.45,-1);
     doc.traverse(o=>{o.userData.preserveColor=true});
+    // v6.98: doctor also straddles - smaller spread since he sits behind on the pillion
+    try{straddleBikeRider(doc,{spread:0.25,leanForward:0.2,armReach:0.5})}catch(e){}
     g.add(doc);
   }
   if(options.enemyRider){
-    // v6.95: imperial trooper figure on the enemy bike (kept white so the dark-red bike tint skips it)
     const trooper=makeImperialTrooper();
     trooper.scale.setScalar(.6);
     trooper.position.set(0,.85,.3);
     trooper.rotation.y=Math.PI;
     trooper.traverse(o=>{o.userData.preserveColor=true});
+    // v6.98: enemy trooper also straddles
+    try{straddleBikeRider(trooper)}catch(e){}
     g.add(trooper);
   }
   return g;
 }
 
-// v6.95: minimal wireframe imperial trooper figure for enemy bike riders
+// v6.98/v6.99: Posed any rider figure into a "straddle the bike" stance. The v6.98 version rotated
+// the legs the WRONG way (feet pointed backward toward the rear of the bike). v6.99 flips the sign
+// convention: legs point toward the handlebars, shins drop straight down to the footpegs, arms
+// reach forward. All signs derived from the fact that the rider figure is built inside a wrap with
+// rotation.y=π, so positive leg.rotation.x sends the foot BACKWARD, negative sends it FORWARD.
+function straddleBikeRider(rider,opts){
+  if(!rider)return;
+  opts=opts||{};
+  const spread=opts.spread!=null?opts.spread:0.45;// hip abduction (legs spread wide on each side)
+  const legSeat=opts.legBend!=null?opts.legBend:0.95;// 0..1 - how close to full-sit pose
+  const leanForward=opts.leanForward!=null?opts.leanForward:0.35;
+  const armReach=opts.armReach!=null?opts.armReach:0.85;
+  ['lLeg','rLeg'].forEach(nm=>{
+    const leg=rider.getObjectByName(nm);
+    if(!leg)return;
+    const side=nm==='lLeg'?-1:1;
+    leg.rotation.z=side*spread;// hip abduction
+    // v6.99: NEGATIVE rotation.x so the thigh points toward the FRONT of the bike (not the rear)
+    leg.rotation.x=-Math.PI*0.5*legSeat;
+    const lower=rider.getObjectByName(nm+'Lower');
+    // v6.99: POSITIVE rotation.x on shin so it hangs back down from the knee toward the footpeg
+    if(lower)lower.rotation.x=Math.PI*0.5*legSeat;
+  });
+  const body=rider.getObjectByName('body');
+  if(body){body.rotation.x=leanForward*0.6}
+  const head=rider.getObjectByName('head');
+  if(head){head.rotation.x=leanForward*0.3}
+  ['lArm','rArm'].forEach(nm=>{
+    const arm=rider.getObjectByName(nm);
+    if(!arm)return;
+    arm.rotation.x=-armReach*1.0;// raise arm forward (NEGATIVE sends hand toward front of bike)
+    arm.rotation.z=(nm==='lArm'?-1:1)*0.15;
+    const fore=rider.getObjectByName(nm+'Fore');
+    if(fore)fore.rotation.x=armReach*0.55;// forearm drops down to the grip
+  });
+}
+
+// v6.95/v6.98: imperial trooper figure - now with named limb groups (lLeg/rLeg/lLegLower/rLegLower
+// /lArm/rArm/lArmFore/rArmFore/body/head) so straddleBikeRider can pose him on the bike.
 function makeImperialTrooper(){
   const t=new THREE.Group();t.name='imperialTrooper';
   const mWhite=new THREE.LineBasicMaterial({color:0xeeeeee});
   const mDark=new THREE.LineBasicMaterial({color:0x333344});
   const mVisor=new THREE.LineBasicMaterial({color:0x111111});
+  // === HEAD ===
+  const head=new THREE.Group();head.name='head';
   const helm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.32,6,5)),mWhite);
-  helm.position.y=2.4;t.add(helm);
+  head.add(helm);
   const visor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,.12,.06)),mVisor);
-  visor.position.set(0,2.4,.3);t.add(visor);
+  visor.position.set(0,0,.3);head.add(visor);
+  head.position.y=2.4;t.add(head);
+  // === BODY ===
+  const body=new THREE.Group();body.name='body';
   const torso=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.7,.9,.4)),mWhite);
-  torso.position.y=1.55;t.add(torso);
+  body.add(torso);
   const chest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.4,.1)),mDark);
-  chest.position.set(0,1.7,.2);t.add(chest);
-  [-1,1].forEach(s=>{
-    const arm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,1.0,5)),mWhite);
-    arm.position.set(s*.45,1.0,0);t.add(arm);
+  chest.position.set(0,.15,.2);body.add(chest);
+  body.position.y=1.55;t.add(body);
+  // === ARMS with elbow joint group ===
+  ['lArm','rArm'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const arm=new THREE.Group();arm.name=nm;
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,.5,8)),mWhite);
+    upper.position.y=-.25;arm.add(upper);
+    const elbow=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.1,6,5)),mDark);
+    elbow.position.y=-.5;arm.add(elbow);
+    const fore=new THREE.Group();fore.name=nm+'Fore';
+    const foreSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.09,.1,.5,8)),mWhite);
+    foreSeg.position.y=-.25;fore.add(foreSeg);
+    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.1,6,5)),mDark);
+    hand.position.y=-.55;fore.add(hand);
+    fore.position.y=-.5;
+    arm.add(fore);
+    arm.position.set(side*.45,2.0,0);
+    t.add(arm);
   });
-  [-1,1].forEach(s=>{
-    const leg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.13,1.1,5)),mWhite);
-    leg.position.set(s*.18,.45,0);t.add(leg);
+  // === LEGS with knee joint group ===
+  ['lLeg','rLeg'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const leg=new THREE.Group();leg.name=nm;
+    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.14,.55,8)),mWhite);
+    thigh.position.y=-.28;leg.add(thigh);
+    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.12,6,5)),mDark);
+    knee.position.y=-.55;leg.add(knee);
+    const lower=new THREE.Group();lower.name=nm+'Lower';
+    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.11,.13,.55,8)),mWhite);
+    shin.position.y=-.28;lower.add(shin);
+    const boot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.16,.12,.28)),mDark);
+    boot.position.set(0,-.6,.05);lower.add(boot);
+    lower.position.y=-.55;
+    leg.add(lower);
+    leg.position.set(side*.18,1.05,0);
+    t.add(leg);
   });
-  // Blaster carbine
+  // Blaster carbine - held diagonally across the chest
   const carbine=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.16,.16,.6)),mDark);
   carbine.position.set(.4,1.1,.4);t.add(carbine);
   return t;
@@ -14691,24 +15186,46 @@ function bikeRamCollision(dt){
       }
     }
   });
-  // Player damage from clipping a tree at the corridor edge
-  if(Math.abs(forestPilot.position.x)>17){
-    let nearestTree=null,nd=Infinity;
+  // v6.99: Player damage from clipping ANY tree/obstacle (side tree at the lane edge OR in-lane
+  // rock/tree). Lane obstacles have a tighter collision radius than the big side trees since the
+  // player must actually weave through them.
+  if((forestState.pilotInvTimer||0)<=0){
+    let hitObj=null,hitD2=Infinity,hitRad=0;
     forestScene.children.forEach(c=>{
-      if(c.name==='bikeTree'){
-        const tdx=c.position.x-forestPilot.position.x;
-        const tdz=c.position.z-forestPilot.position.z;
-        const td2=tdx*tdx+tdz*tdz;
-        if(td2<nd){nd=td2;nearestTree=c}
-      }
+      if(c.name!=='bikeTree')return;
+      const tdx=c.position.x-forestPilot.position.x;
+      const tdz=c.position.z-forestPilot.position.z;
+      const td2=tdx*tdx+tdz*tdz;
+      // Different hit radii for in-lane obstacles vs big side trees
+      const r=(c.userData&&c.userData.isObstacle)?1.7:2.2;
+      const r2=r*r;
+      if(td2<r2&&td2<hitD2){hitD2=td2;hitObj=c;hitRad=r}
     });
-    if(nearestTree&&nd<5&&(forestState.pilotInvTimer||0)<=0){
+    if(hitObj){
+      const isObstacle=!!(hitObj.userData&&hitObj.userData.isObstacle);
       forestState.pilotHP=Math.max(0,forestState.pilotHP-1);
-      forestState.pilotInvTimer=1.5;
-      forestBike.bikeShakeT=.3;
-      try{spawnP(forestPilot.position.clone(),0xff4444,20,1.2);sfx.damage&&sfx.damage();screenFlash(.6)}catch(e){}
-      // Push the player back into the corridor
-      forestBike.targetLaneX=Math.sign(forestPilot.position.x)*15;
+      forestState.pilotInvTimer=1.3;
+      forestBike.bikeShakeT=.35;
+      try{
+        // Spark + wood splinters + scream
+        spawnP(forestPilot.position.clone(),0xff4444,20,1.2);
+        spawnP(hitObj.position.clone(),0x884422,14,.9);
+        if(sfx.damage)sfx.damage();
+        if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('square',220,t,.08,.25);sfx._n(t,.12,.22,2500,400)}
+        screenFlash(.6);
+      }catch(e){}
+      // Push the player back toward the centre (away from the obstacle) - bigger push if at lane edge
+      const pushDir=-Math.sign(forestPilot.position.x-hitObj.position.x)||-1;
+      forestBike.targetLaneX=Math.max(-16,Math.min(16,forestPilot.position.x+pushDir*2.5));
+      if(!isObstacle){
+        // Hitting a lane-edge tree slams the player back into the corridor harder
+        forestBike.targetLaneX=Math.sign(forestPilot.position.x)*15;
+      }
+      // Visually knock the obstacle sideways so a second hit doesn't instantly re-trigger
+      try{
+        hitObj.position.x+=pushDir*1.2;
+        if(hitObj.userData)hitObj.userData.isObstacle=false;// treat as "already hit" so it won't re-damage
+      }catch(e){}
     }
   }
 }
@@ -17718,7 +18235,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.97 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.00 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
