@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v6.94</title>
+<title>COSMIC INVADERS v6.97</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -229,6 +229,38 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   #config-panel input[type=range]{width:70px}
   #hud{padding:8px 12px;font-size:14px}
   #hud .score-val{font-size:20px}
+}
+/* v6.95: hide fullscreen button on mobile (mobile fullscreen is unreliable on iOS Safari) */
+@media (max-width: 900px), (pointer: coarse){
+  #fs-btn{display:none !important}
+}
+/* v6.95: shrink large overlay text/buttons that overflow the small mobile viewport */
+@media (max-width: 500px){
+  /* Janken duel - icons + buttons + dialog */
+  #janken-duel{padding:12px 14px !important;letter-spacing:2px !important}
+  #janken-duel button{font-size:24px !important;padding:10px 12px !important;min-width:60px !important;min-height:60px !important}
+  /* Wave / mission announcements */
+  #wave-announce{font-size:18px !important;letter-spacing:3px !important}
+  /* Cinema subtitle (top scene-title) */
+  #wfcine-sub{font-size:12px !important;letter-spacing:2px !important;padding:6px 10px !important}
+  /* Comm box (dialogue at bottom) */
+  #comm-box{font-size:11px !important;padding:6px 8px !important}
+  #comm-who{font-size:10px !important;letter-spacing:1px !important}
+  #comm-msg{font-size:11px !important;letter-spacing:1px !important}
+  /* Stage select buttons */
+  #stage-select button{padding:6px 8px !important;min-width:100px !important;font-size:10px !important}
+  /* Cosmic Invaders title */
+  #title-screen h1{font-size:24px !important;letter-spacing:4px !important}
+  /* Forest infinity panels - shrink the controls + radar so they fit */
+  #forest-controls{font-size:10px !important;max-width:200px !important;padding:6px 8px !important;line-height:1.5 !important}
+  #forest-radar{width:100px !important;height:100px !important}
+  #forest-weapon-btn{top:170px !important;font-size:10px !important;padding:8px 10px !important;min-width:100px !important}
+  #forest-skip{font-size:9px !important;padding:6px 10px !important}
+  /* Final score / game over */
+  #gameover-screen{font-size:14px !important}
+  #final-score{font-size:18px !important}
+  /* Boss HP bar text */
+  .bhp-name{font-size:10px !important}
 }
 
 /* Heat Gauge */
@@ -585,7 +617,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v6.94 - LOADED
+  COSMIC INVADERS v6.97 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -606,7 +638,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v6.94 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v6.97 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -959,7 +991,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v6.94 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v6.97 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -994,7 +1026,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.94 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.97 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1420,10 +1452,11 @@ const NAV_ROSTER=[
   {id:'helga',name:'HELGA STORM',desc:'Tough as nails. Never sugarcoats.',pitch:.6,rate:.95,gender:'female',vIdx:2},
   {id:'airi',name:'AIRI SAKAMOTO',desc:'Gentle voice, nerves of steel.',pitch:1.7,rate:.9,gender:'female',vIdx:3},
   {id:'rila',name:'RILA NOVA',desc:'Energetic singer-turned-navigator.',pitch:1.4,rate:1.2,gender:'female',vIdx:4},
-  // v6.92: HARUKA - sultry/sexy Japanese interpreter. Lower pitch + slower rate for a mature, breathy tone.
-  {id:'haruka',name:'HARUKA',desc:'大人っぽい声の日本人通訳ナビゲーター。すべての通信を日本語でリアルタイム通訳。',pitch:1.15,rate:.82,gender:'female',vIdx:5,lang:'ja-JP',translator:true},
   {id:'bob',name:'BOB WAKEFIELD',desc:'Easygoing veteran. Always has your back.',pitch:.55,rate:.9,gender:'male',vIdx:0},
   {id:'gonzales',name:'GONZALES REYES',desc:'Gruff but brilliant. Combat-tested nav.',pitch:.3,rate:.8,gender:'male',vIdx:1},
+  // v6.92/v6.95: HARUKA - the Japanese-speaking interpreter. Always rendered LAST in the roster
+  // so she sits on the right side of the navigator picker. Pitch/rate tuned for a clear, calm tone.
+  {id:'haruka',name:'HARUKA',desc:'日本人通訳ナビゲーター。すべての通信を日本語でリアルタイム通訳。',pitch:1.05,rate:.92,gender:'female',vIdx:5,lang:'ja-JP',translator:true},
 ];
 let selectedNav=NAV_ROSTER[0];
 
@@ -2148,7 +2181,7 @@ function englishToKatakana(w){
   return k;
 }
 
-// v6.94: Milestones where Haruka should still call the pilot by name (callsign).
+// v6.95: Milestones where Haruka should still call the pilot by name (callsign).
 // For all other lines, the "#N" callsign token is stripped before translation so the focus is on
 // the message content rather than the pilot's name.
 const HARUKA_MILESTONE_PATTERNS=[
@@ -2186,7 +2219,7 @@ function stripCallsignTokens(text){
 
 function playComm(char,text,onComplete){
   if(!text)return;
-  // v6.94: in Haruka mode, omit the callsign on non-milestone lines so the translation reads naturally.
+  // v6.95: in Haruka mode, omit the callsign on non-milestone lines so the translation reads naturally.
   try{
     if(selectedNav&&selectedNav.lang==='ja-JP'&&!isHarukaMilestone(text)){
       text=stripCallsignTokens(text);
@@ -2258,10 +2291,21 @@ function playComm(char,text,onComplete){
       const jpVoices=vs.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('ja'));
       const pool=enVoices.length>0?enVoices:vs;
       let picked=null;
-      // v6.91: In Haruka mode, ALWAYS pick Haruka's JP female voice regardless of character
+      // v6.91/v6.95: In Haruka mode, pick the highest-quality JP female voice available.
+      // Priority order (best→worst): Kyoko (macOS/iOS gold standard) → Microsoft Nanami/Ayumi/Haruka
+      // → Google JP female → Siri JP female → any "female" labeled JP voice → first JP voice.
       if(useHarukaVoice&&jpVoices.length>0){
-        const femaleJp=jpVoices.filter(v=>/kyoko|haruka|misaki|female|siri.*female|google.*japan.*female/i.test(v.name));
-        picked=(femaleJp.length?femaleJp[0]:jpVoices[0]);
+        const HARUKA_VOICE_PRIORITY=[
+          /^kyoko/i,/microsoft\s+nanami/i,/microsoft\s+ayumi/i,/microsoft\s+haruka/i,
+          /google.*\u65e5\u672c\u8a9e/,/google.*japanese/i,
+          /siri.*female|siri.*\u5973/i,/o-ren/i,
+          /female|\u5973/i
+        ];
+        for(const re of HARUKA_VOICE_PRIORITY){
+          const hit=jpVoices.find(v=>re.test(v.name));
+          if(hit){picked=hit;break}
+        }
+        if(!picked)picked=jpVoices[0];
       } else if(char==='nav'&&selectedNav){
         const female=pool.filter(v=>/female|samantha|victoria|karen|zira|tessa|fiona|moira|susan|allison|ava|serena|veena|zoe/i.test(v.name));
         const male=pool.filter(v=>/male|daniel|fred|alex|tom|oliver|david|mark|reed|aaron/i.test(v.name));
@@ -4009,9 +4053,9 @@ function makeBossGipsyDanger(){
     // shin
     const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,2.2,1.1)),mBody);
     shin.position.y=-2.5;leg.add(shin);
-    // foot
+    // foot - v6.95: named so the jet animation can spawn flames from its sole
     const foot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.3,.5,1.8)),mBody);
-    foot.position.y=-3.7;leg.add(foot);
+    foot.position.y=-3.7;foot.name='gipsyFoot';leg.add(foot);
     leg.position.set(side*1,2.2,0);leg.name=name;g.add(leg);
   });
   // Scale up slightly (Jaegers are massive)
@@ -4428,36 +4472,130 @@ function makeEjectCapsule(){
   return g}
 
 // ============ v6.69: 3D WIREFRAME CINEMATIC SCENES ============
-// v6.69: Staff figure (maintenance worker). Small wireframe humanoid with helmet color variants.
+// v6.69/v6.95: Staff figure (maintenance worker / bridge crew / commander).
+// v6.95 redesign: 8-segment cylinders (was 4-segment "block"), separate elbow/knee groups,
+// helmet+visor+earpiece, chest plate, belt, shoulder pads, boots, hex hands. opts.commander adds rank flair.
 function makeStaffFigure(color,opts){
   opts=opts||{};
   const g=new THREE.Group();
-  const mBody=new THREE.LineBasicMaterial({color:color||0xffaa44,transparent:true,opacity:.8});
+  const mBody=new THREE.LineBasicMaterial({color:color||0xffaa44,transparent:true,opacity:.85});
   const mHead=new THREE.LineBasicMaterial({color:0xffccaa,transparent:true,opacity:.9});
-  // Head
-  const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.22,6,5)),mHead);
-  head.position.y=.65;g.add(head);
-  // Helmet band (color-coded for role)
-  const helmet=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.24,.05,4,8)),mBody);
-  helmet.position.y=.75;g.add(helmet);
-  // Torso
-  const torso=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.4,.5,.25)),mBody);
-  torso.position.y=.2;g.add(torso);
-  // Arms
+  const mDark=new THREE.LineBasicMaterial({color:0x222233,transparent:true,opacity:.75});
+  const mAcc=new THREE.LineBasicMaterial({color:color||0xffaa44,transparent:true,opacity:.95});
+  const mVisor=new THREE.LineBasicMaterial({color:0x44ddff,transparent:true,opacity:.9});
+  // === HEAD: skull + helmet top + visor + earpiece ===
+  const head=new THREE.Group();head.name='staffHead';
+  const skull=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.22,8,6)),mHead);
+  head.add(skull);
+  const helmetTop=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.245,8,5,0,Math.PI*2,0,Math.PI*.55)),mAcc);
+  helmetTop.position.y=.04;head.add(helmetTop);
+  const visor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.36,.07,.05)),mVisor);
+  visor.position.set(0,.04,.18);head.add(visor);
+  // Comm earpieces
   [-1,1].forEach(sx=>{
-    const arm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.06,.07,.5,4)),mBody);
-    arm.position.set(sx*.28,.2,0);arm.rotation.z=sx*(opts.armsUp?1.2:.1);g.add(arm);
+    const ear=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.06,5,4)),mDark);
+    ear.position.set(sx*.22,0,0);head.add(ear);
   });
-  // Legs
+  // Optional commander rank antenna on top of helmet
+  if(opts.commander){
+    const ant=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.02,.025,.18,4)),mDark);
+    ant.position.y=.32;head.add(ant);
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.04)),mAcc);
+    tip.position.y=.43;head.add(tip);
+  }
+  head.position.y=.7;head.name='head';g.add(head);
+  // === NECK ===
+  const neck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.075,.08,.12,6)),mDark);
+  neck.position.y=.5;g.add(neck);
+  // === TORSO + chest plate + shoulder pads + belt ===
+  const body=new THREE.Group();body.name='body';
+  const torso=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.42,.55,.3)),mBody);
+  body.add(torso);
+  // Chest plate insignia
+  const chestPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.3,.22,.05)),mAcc);
+  chestPlate.position.set(0,.07,.18);body.add(chestPlate);
+  // Pip on chest (rank dots for commander, simple stripe for staff)
+  if(opts.commander){
+    [-1,0,1].forEach(sx=>{
+      const pip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.025)),mDark);
+      pip.position.set(sx*.07,.07,.21);body.add(pip);
+    });
+  } else {
+    const stripe=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.04,.02)),mDark);
+    stripe.position.set(0,.05,.21);body.add(stripe);
+  }
+  // Shoulder pads (half-spheres)
   [-1,1].forEach(sx=>{
-    const leg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.08,.09,.7,4)),mBody);
-    leg.position.set(sx*.12,-.35,0);g.add(leg);
+    const pad=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.13,6,4,0,Math.PI*2,0,Math.PI/2)),mAcc);
+    pad.position.set(sx*.25,.25,0);body.add(pad);
   });
-  // Optional tool in hand (wrench)
+  // Belt (torus)
+  const belt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.22,.04,4,12)),mDark);
+  belt.position.y=-.25;belt.rotation.x=Math.PI/2;body.add(belt);
+  // Optional commander shoulder cape (back drape)
+  if(opts.commander){
+    const cape=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.7,.05)),mAcc);
+    cape.position.set(0,-.05,-.18);cape.rotation.x=-.05;body.add(cape);
+  }
+  body.position.y=.2;g.add(body);
+  // === ARMS - 8-side cylinders + elbow joint group + hex hand ===
+  ['lArm','rArm'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const arm=new THREE.Group();arm.name=nm;
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.075,.085,.32,8)),mBody);
+    upper.position.y=-.16;arm.add(upper);
+    const elbow=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.085,6,5)),mDark);
+    elbow.position.y=-.34;arm.add(elbow);
+    // Forearm group (allows elbow flex if needed in future)
+    const fore=new THREE.Group();fore.name=nm+'Fore';
+    const foreSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.065,.075,.3,8)),mBody);
+    foreSeg.position.y=-.18;fore.add(foreSeg);
+    // Hex hand
+    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.06,.05,.1,6)),mDark);
+    hand.position.y=-.4;fore.add(hand);
+    fore.position.y=-.34;
+    arm.add(fore);
+    // Optional armsUp pose (raised in joy/celebration)
+    if(opts.armsUp){
+      arm.rotation.x=-1.0;
+      arm.rotation.z=side*.25;
+    } else {
+      arm.rotation.z=side*.08;
+    }
+    arm.position.set(side*.27,.4,0);
+    g.add(arm);
+  });
+  // === LEGS - 8-side cylinders + knee joint group + boot ===
+  ['lLeg','rLeg'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const leg=new THREE.Group();leg.name=nm;
+    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.11,.4,8)),mBody);
+    thigh.position.y=-.2;leg.add(thigh);
+    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.095,6,5)),mDark);
+    knee.position.y=-.42;leg.add(knee);
+    const lower=new THREE.Group();lower.name=nm+'Lower';
+    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.085,.095,.4,8)),mBody);
+    shin.position.y=-.2;lower.add(shin);
+    // Combat boot
+    const boot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.13,.1,.24)),mDark);
+    boot.position.set(0,-.45,.04);lower.add(boot);
+    // Boot tip cap
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.13,.06,.07)),mAcc);
+    tip.position.set(0,-.45,.18);lower.add(tip);
+    lower.position.y=-.42;
+    leg.add(lower);
+    leg.position.set(side*.13,-.05,0);
+    g.add(leg);
+  });
+  // Optional tool (engineer's wrench) in right hand
   if(opts.tool){
-    const tool=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.08,.35,.08)),
+    const tool=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.06,.32,.06)),
       new THREE.LineBasicMaterial({color:0xcccccc,transparent:true,opacity:.85}));
-    tool.position.set(.35,.1,.1);tool.rotation.z=.3;g.add(tool);
+    tool.position.set(.34,.15,.12);tool.rotation.z=.3;g.add(tool);
+    // Wrench head
+    const head2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.13,.1,.08)),
+      new THREE.LineBasicMaterial({color:0xaaaaaa,transparent:true,opacity:.85}));
+    head2.position.set(.41,.31,.12);g.add(head2);
   }
   g.name='cinStaff';
   return g}
@@ -4890,10 +5028,10 @@ function makeCinBridge(){
     c.rotation.y=Math.random()*Math.PI*2;
     g.add(c);
   }
-  // Commander (captain chair area, distinct gold)
-  const commander=makeStaffFigure(0xffdd44,{});
+  // Commander (captain chair area, distinct gold + rank antenna + cape via opts.commander)
+  const commander=makeStaffFigure(0xffdd44,{commander:true});
   commander.position.set(0,.8,2);commander.name='commander';
-  commander.scale.setScalar(1.15);// slightly bigger
+  commander.scale.setScalar(1.18);// slightly bigger
   g.add(commander);
   // Main monitor
   const monFrame=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(14,5,.2)),mAcc);
@@ -5269,29 +5407,37 @@ function makeForestTacticalPilot(){
   const harness2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.08,1,.08)),mDark);
   harness2.position.set(.15,0,.32);harness2.rotation.z=-.25;body.add(harness2);
   body.position.y=1.85;g.add(body);
-  // === ARMS (left + right, with upper + lower + hand + bicep armor) ===
+  // === ARMS (v6.95: hex segments + separate forearm group for elbow-bend during walk) ===
   ['lArm','rArm'].forEach((nm,idx)=>{
     const side=idx===0?-1:1;
     const arm=new THREE.Group();arm.name=nm;
-    // Upper arm (camo)
-    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.14,.75,5)),mCamo);
+    // Upper arm (camo) - v6.95: 8 sides instead of 5 for smoother silhouette
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.14,.15,.75,8)),mCamo);
     upper.position.y=-.37;arm.add(upper);
     // Bicep armor plate (shoulder area)
-    const bicep=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.18,5,4)),mArmor);
+    const bicep=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.19,8,5)),mArmor);
     bicep.position.y=-.1;arm.add(bicep);
     // Elbow joint
-    const elb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.11,5,4)),mDark);
+    const elb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.13,8,5)),mDark);
     elb.position.y=-.8;arm.add(elb);
-    // Forearm (armored - steel plate)
-    const fore=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.11,.13,.75,5)),mArmor);
-    fore.position.y=-1.22;arm.add(fore);
+    // v6.95: FOREARM GROUP - pivots at the elbow so walk cycle can flex it.
+    const fore=new THREE.Group();fore.name=nm+'Fore';
+    // Forearm tube - 8-side hex
+    const foreSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.12,.13,.75,8)),mArmor);
+    foreSeg.position.y=-.42;fore.add(foreSeg);
     // Wrist band
-    const wrist=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.12,.03,3,8)),mAccent);
-    wrist.position.y=-1.55;wrist.rotation.x=Math.PI/2;arm.add(wrist);
-    // Combat glove
-    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.15,.2,.18)),mDark);
-    hand.position.y=-1.7;arm.add(hand);
-    // Attached to shoulder - pivot at the top (y=0) for easy swing rotation
+    const wrist=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.13,.03,4,12)),mAccent);
+    wrist.position.y=-.75;wrist.rotation.x=Math.PI/2;fore.add(wrist);
+    // Combat glove (hex cylinder instead of box - reduces blockiness)
+    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.11,.13,.28,6)),mDark);
+    hand.position.y=-.92;fore.add(hand);
+    // Knuckle cap on the hand
+    const knuckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.1,6,5)),mDark);
+    knuckle.position.y=-1.08;fore.add(knuckle);
+    // Pivot at elbow
+    fore.position.y=-.8;
+    arm.add(fore);
+    // Attached to shoulder
     arm.position.set(side*.55,2.25,0);
     g.add(arm);
   });
@@ -5306,36 +5452,41 @@ function makeForestTacticalPilot(){
     const pouch=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.15,.15,.1)),mArmor);
     pouch.position.set(i*.28,1.1,.3);g.add(pouch);
   }
-  // === LEGS (with knee armor + boots) ===
+  // === LEGS (v6.95: thicker thighs + 8-side hex + separate lower group for knee-bend during walk) ===
   ['lLeg','rLeg'].forEach((nm,idx)=>{
     const side=idx===0?-1:1;
     const leg=new THREE.Group();leg.name=nm;
-    // Thigh (camo)
-    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.15,.16,.9,5)),mCamo);
+    // Thigh (camo) - v6.95: thicker (was .15→.21) and 8-side hex for athletic build
+    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.21,.23,.9,8)),mCamo);
     thigh.position.y=-.45;leg.add(thigh);
-    // Thigh armor plate (tactical plate)
-    const thighArmor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.25,.5,.12)),mArmor);
-    thighArmor.position.set(0,-.45,.15);leg.add(thighArmor);
-    // Knee armor (round pad)
-    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.15,5,4)),mArmor);
+    // Thigh armor plate (wider to match thicker thigh)
+    const thighArmor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.32,.5,.14)),mArmor);
+    thighArmor.position.set(0,-.45,.2);leg.add(thighArmor);
+    // Knee armor (round pad) - more segments
+    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.19,8,5)),mArmor);
     knee.position.y=-.95;leg.add(knee);
-    // Shin (camo)
-    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.15,.9,5)),mCamo);
-    shin.position.y=-1.45;leg.add(shin);
+    // v6.95: LOWER LEG GROUP - everything below knee pivots around the knee for walk-cycle bend.
+    const lower=new THREE.Group();lower.name=nm+'Lower';
+    // Shin (camo) - 8 sides
+    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.16,.17,.9,8)),mCamo);
+    shin.position.y=-.5;lower.add(shin);
     // Shin guard (plate)
-    const shinGuard=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.6,.1)),mArmor);
-    shinGuard.position.set(0,-1.45,.18);leg.add(shinGuard);
+    const shinGuard=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.6,.12)),mArmor);
+    shinGuard.position.set(0,-.5,.18);lower.add(shinGuard);
     // Combat boot
-    const boot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.2,.45)),mDark);
-    boot.position.set(0,-2,.1);leg.add(boot);
-    // Boot tip cap (reinforced)
-    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.22,.12,.1)),mArmor);
-    tip.position.set(0,-2,.32);leg.add(tip);
+    const boot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.24,.22,.5)),mDark);
+    boot.position.set(0,-1.05,.1);lower.add(boot);
+    // Boot tip cap
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.24,.14,.12)),mArmor);
+    tip.position.set(0,-1.05,.36);lower.add(tip);
+    // Pivot the lower-leg group at the knee
+    lower.position.y=-.95;
+    leg.add(lower);
     // Pivot at hip top
     leg.position.set(side*.22,1.1,0);
     g.add(leg);
   });
-  // v6.94: model was built with visor at +Z (front toward +Z) but every weapon/movement/camera
+  // v6.95: model was built with visor at +Z (front toward +Z) but every weapon/movement/camera
   // formula in this file uses -Math.sin/-Math.cos for forestPilot.rotation.y, which assumes the
   // model is built facing -Z. Wrap the entire skeleton inside an inner group rotated 180° so the
   // visible face matches the formulas (face direction = -Z when rotation.y=0). This fixes the
@@ -5347,56 +5498,77 @@ function makeForestTacticalPilot(){
   return g;
 }
 
-// v6.89/v6.94: Animate walk cycle - now Fortnite-style with bigger bounce, head sway, and arm pump.
+// v6.89/v6.94/v6.95: Animate walk cycle - exaggerated Fortnite-style + knee/elbow bend.
 function animateForestPilotWalk(pilot,moving,dt,speed){
   if(!pilot)return;
   pilot.userData.walkT=(pilot.userData.walkT||0)+dt*(moving?8*speed:0);
   const t=pilot.userData.walkT;
   const lLeg=pilot.getObjectByName('lLeg');
   const rLeg=pilot.getObjectByName('rLeg');
+  const lLegLower=pilot.getObjectByName('lLegLower');
+  const rLegLower=pilot.getObjectByName('rLegLower');
   const lArm=pilot.getObjectByName('lArm');
   const rArm=pilot.getObjectByName('rArm');
+  const lArmFore=pilot.getObjectByName('lArmFore');
+  const rArmFore=pilot.getObjectByName('rArmFore');
   const head=pilot.getObjectByName('head');
   const body=pilot.getObjectByName('body');
   const hips=pilot.getObjectByName('hips');
   if(moving){
-    // Leg swing - exaggerated stride
+    // Hip swing - exaggerated stride
     const legSwing=Math.sin(t)*.65;
     if(lLeg)lLeg.rotation.x=legSwing;
     if(rLeg)rLeg.rotation.x=-legSwing;
-    // v6.94: bigger arm pump (was .6, now .9 ≈ 51°) - shoulders pump opposite to legs
+    // v6.97: KNEE BEND timing FIXED - knee bends during the SWING-UP phase (leg lifting from
+    // its backward extreme), not at the moment the foot reaches forward. This matches natural
+    // human gait: foot lifts → knee folds (heel approaches butt) → foot reaches forward straight.
+    // Sign convention: lLegLower.rotation.x NEGATIVE = shin folds backward (anatomically correct).
+    const lKneeFlex=Math.max(0,-Math.sin(t))*1.15;// peaks when lLeg is back (lift-off moment)
+    const rKneeFlex=Math.max(0,Math.sin(t))*1.15; // peaks when rLeg is back (opposite phase)
+    if(lLegLower)lLegLower.rotation.x=-lKneeFlex;
+    if(rLegLower)rLegLower.rotation.x=-rKneeFlex;
+    // v6.95: shoulders pump opposite to legs (forward/back arm swing)
     const armSwing=Math.sin(t+Math.PI)*.9;
     if(lArm)lArm.rotation.x=armSwing;
     if(rArm)rArm.rotation.x=-armSwing;
-    // v6.94: arm side fan (out-in motion ±0.15 rad on top of base outward angle)
-    if(lArm)lArm.rotation.z=.15+Math.sin(t*2)*.15;
-    if(rArm)rArm.rotation.z=-.15-Math.sin(t*2)*.15;
-    // v6.94: head bounce (4x bigger) + head sway (look L/R with step) + slight tilt
+    // v6.97: arms held MORE OPEN at the shoulders - bigger base outward angle (.15 → .35)
+    // + larger swing oscillation so the arms read as a confident wide-stance jog/run.
+    if(lArm)lArm.rotation.z=.35+Math.sin(t*2)*.20;
+    if(rArm)rArm.rotation.z=-.35-Math.sin(t*2)*.20;
+    // v6.95/v6.97: ELBOW BEND - forearm flexes during swing (timing matches knee fix above)
+    const lElbowFlex=Math.max(0,-Math.sin(t+Math.PI))*1.15+0.30;
+    const rElbowFlex=Math.max(0,-Math.sin(t))*1.15+0.30;
+    if(lArmFore)lArmFore.rotation.x=-lElbowFlex;
+    if(rArmFore)rArmFore.rotation.x=-rElbowFlex;
+    // v6.95: head bounce + sway + tilt
     if(head){
       head.position.y=2.9+Math.abs(Math.sin(t))*.16;
-      head.rotation.y=Math.sin(t*.5)*.10;// ±0.1 rad sway with step
+      head.rotation.y=Math.sin(t*.5)*.10;
       head.rotation.z=Math.sin(t*.5)*.05;
-      head.rotation.x=Math.sin(t)*.03;// subtle nod
+      head.rotation.x=Math.sin(t)*.03;
     }
-    // v6.94: body bounce (3x bigger) + slight side-lean with step
     if(body){
       body.position.y=1.85+Math.abs(Math.sin(t))*.14;
-      body.rotation.z=Math.sin(t*.5)*.06;// hip-shift lean
-      body.rotation.x=Math.sin(t*2)*.02;// micro forward-lean each step
+      body.rotation.z=Math.sin(t*.5)*.06;
+      body.rotation.x=Math.sin(t*2)*.02;
     }
-    // v6.94: hip swivel (counter-rotates body slightly)
     if(hips){
       hips.rotation.y=Math.sin(t)*.08;
     }
   } else {
-    // Idle - slow breathing + slight sway
+    // Idle - slow breathing + slight sway, joints relaxed
     const idle=Math.sin(pilot.userData.idleT=(pilot.userData.idleT||0)+dt)*1;
     if(lLeg)lLeg.rotation.x+=(0-lLeg.rotation.x)*.2;
     if(rLeg)rLeg.rotation.x+=(0-rLeg.rotation.x)*.2;
+    if(lLegLower)lLegLower.rotation.x+=(0-lLegLower.rotation.x)*.2;
+    if(rLegLower)rLegLower.rotation.x+=(0-rLegLower.rotation.x)*.2;
     if(lArm)lArm.rotation.x+=(0-lArm.rotation.x)*.2;
     if(rArm)rArm.rotation.x+=(0-rArm.rotation.x)*.2;
     if(lArm)lArm.rotation.z+=(.12-lArm.rotation.z)*.1;
     if(rArm)rArm.rotation.z+=(-.12-rArm.rotation.z)*.1;
+    // v6.95: idle elbow stays slightly bent (relaxed jogger pose), not fully extended
+    if(lArmFore)lArmFore.rotation.x+=((-.25)-lArmFore.rotation.x)*.15;
+    if(rArmFore)rArmFore.rotation.x+=((-.25)-rArmFore.rotation.x)*.15;
     if(head){
       head.rotation.z+=(0-head.rotation.z)*.1;
       head.rotation.y+=(0-head.rotation.y)*.1;
@@ -5747,11 +5919,15 @@ function spawnMegaGipsy(){
     isBoss:true,bossPattern:'gipsy',
     poseTime:0,sparkTimer:0,
     chainsawSwing:0,rocketPunchTimer:6,rocketFistActive:null,
-    scatterTimer:9});
+    scatterTimer:9,
+    // v6.95: janken-first protocol - Gipsy challenges to janken FIRST. Minimum 3 rounds, then continues
+    // until the boss loses; on loss, retreats 100m before the actual fight begins.
+    jankenPhase:'janken',jankenRound:0,jankenStartT:1.8,jankenLost:false,
+    retreatT:0,retreatStartZ:0,retreatTargetZ:0});
   announce('BOSS: GIPSY DANGER');
   playComm('enemy','Another Kaiju hunter... you are a long way from the Pacific!');
-  setTimeout(()=>playComm('hq','Jaeger-class threat detected! Chainsword is LETHAL up close!'),3500);
-  setTimeout(()=>playComm('wingman','Keep your distance! Do not let it get close!'),7000);
+  setTimeout(()=>playComm('enemy','But first - we settle this the OLD WAY. Janken!'),3200);
+  setTimeout(()=>playComm('hq','Jaeger-class threat detected! It wants to play janken before fighting!'),5800);
   S.waveLeft=1;}
 
 // ============ MEGA BOSS AI UPDATES ============
@@ -6145,29 +6321,41 @@ function updateCrotchMissileAttack(e,dt){
 // v6.77: JANKEN (rock-paper-scissors) duel UI
 // Gipsy radios the player mid-fight and challenges them. Win = Gipsy takes extra damage and skips attack.
 // Draw = nothing. Lose = a tub or stone drops on the player, dealing damage + piyo-piyo stun.
+// v6.95: Janken-first protocol. Gipsy now starts the duel BEFORE attacking, plays minimum 3 rounds,
+// and continues until the boss loses; on loss the boss retreats 100m and the real fight begins.
+// During each round the boss's right-arm fist mesh changes to the chosen rock/paper/scissors shape -
+// no rocket punch flies during the duel.
 function triggerJankenDuel(boss){
   if(window._jankenActive)return;
   window._jankenActive=true;
-  // Enemy voice line
-  try{playComm('enemy','Let us settle this the old way! JAN... KEN... PON!!!')}catch(e){}
-  // Create overlay with three buttons
+  if(!boss)return;
+  const round=(boss.jankenRound||0)+1;
+  boss.jankenRound=round;
+  // Round 1 voice line - subsequent rounds use shorter lines
+  if(round===1){
+    try{playComm('enemy','Let us settle this the old way! JAN... KEN... PON!!!')}catch(e){}
+  } else if(round<=3){
+    try{playComm('enemy','Round '+round+'! JAN... KEN... PON!!!')}catch(e){}
+  } else {
+    try{playComm('enemy','Again! JAN... KEN... PON!!!')}catch(e){}
+  }
   let ov=document.getElementById('janken-duel');if(ov)ov.remove();
   ov=document.createElement('div');ov.id='janken-duel';
   ov.style.cssText='position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:245;'+
     'background:rgba(0,20,30,0.92);border:3px solid #ff0;border-radius:12px;padding:20px 30px;'+
     'color:#ff0;font-family:inherit;text-align:center;letter-spacing:3px;box-shadow:0 0 24px #ff0;pointer-events:auto';
   ov.innerHTML=
-    '<div style="font-size:14px;color:#f44;letter-spacing:4px;margin-bottom:6px">&#9888; JANKEN DUEL &#9888;</div>'+
-    '<div style="font-size:22px;color:#ff0;letter-spacing:6px;text-shadow:0 0 10px #ff0;margin-bottom:16px">CHOOSE YOUR HAND!</div>'+
+    '<div style="font-size:13px;color:#f44;letter-spacing:4px;margin-bottom:4px">&#9888; JANKEN DUEL - ROUND '+round+' &#9888;</div>'+
+    '<div style="font-size:20px;color:#ff0;letter-spacing:6px;text-shadow:0 0 10px #ff0;margin-bottom:14px">CHOOSE YOUR HAND!</div>'+
     '<div style="display:flex;gap:14px;justify-content:center">'+
     '<button type="button" onclick="playJanken(\'rock\')" style="font-size:36px;padding:16px 22px;background:rgba(40,0,0,0.8);border:3px solid #f44;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9994;</button>'+
     '<button type="button" onclick="playJanken(\'paper\')" style="font-size:36px;padding:16px 22px;background:rgba(0,30,40,0.8);border:3px solid #0ff;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9995;</button>'+
     '<button type="button" onclick="playJanken(\'scissors\')" style="font-size:36px;padding:16px 22px;background:rgba(30,30,0,0.8);border:3px solid #ff0;color:#fff;cursor:pointer;border-radius:10px;min-width:90px;min-height:90px;-webkit-appearance:none;touch-action:manipulation">&#9996;</button>'+
     '</div>'+
-    '<div id="janken-hint" style="font-size:11px;color:#aaa;margin-top:12px;letter-spacing:2px">Rock &nbsp;/&nbsp; Paper &nbsp;/&nbsp; Scissors</div>';
+    '<div id="janken-hint" style="font-size:11px;color:#aaa;margin-top:10px;letter-spacing:2px">Rock &nbsp;/&nbsp; Paper &nbsp;/&nbsp; Scissors&nbsp;&nbsp;|&nbsp;&nbsp;Round '+round+(round<3?'/3+':'')+'</div>';
   document.body.appendChild(ov);
   window._jankenBoss=boss;
-  // Auto-timeout in 6s (counts as draw if no input)
+  // Auto-timeout in 6s (counts as a "draw" so the loop continues)
   window._jankenTO=setTimeout(()=>{if(window._jankenActive)playJanken(null)},6000);
 }
 function playJanken(playerHand){
@@ -6178,42 +6366,61 @@ function playJanken(playerHand){
   const shapes=['rock','paper','scissors'];
   const bossHand=shapes[Math.floor(Math.random()*3)];
   const ov=document.getElementById('janken-duel');
-  // Resolve outcome
+  // Resolve outcome (boss-perspective: did the BOSS lose?)
   let outcome='draw';
   if(playerHand){
     if(playerHand===bossHand)outcome='draw';
     else if((playerHand==='rock'&&bossHand==='scissors')||
             (playerHand==='paper'&&bossHand==='rock')||
-            (playerHand==='scissors'&&bossHand==='paper'))outcome='win';
-    else outcome='lose';
-  } else outcome='timeout';// treated as loss
-  // Show result briefly
+            (playerHand==='scissors'&&bossHand==='paper'))outcome='win';// player wins → boss loses
+    else outcome='lose';// player loses → boss wins
+  } else outcome='draw';// timeout treated as a draw so the loop continues
+  // v6.95: visually swap the boss's right hand to the shape it just played (no rocket flies)
+  try{if(boss)swapGipsyFistShape(boss,bossHand)}catch(e){}
+  // Show round result for ~1.6s
   if(ov){
     const icon=(h)=>h==='rock'?'&#9994;':h==='paper'?'&#9995;':h==='scissors'?'&#9996;':'?';
+    const round=(boss&&boss.jankenRound)||1;
     ov.innerHTML=
-      '<div style="font-size:14px;color:#f44;margin-bottom:8px">RESULT</div>'+
-      '<div style="font-size:36px;color:#fff">You: '+icon(playerHand||'?')+' &nbsp;vs&nbsp; Gipsy: '+icon(bossHand)+'</div>'+
-      '<div style="font-size:22px;color:'+(outcome==='win'?'#0f0':outcome==='draw'?'#ff0':'#f44')+';margin-top:10px;letter-spacing:6px">'+
-      (outcome==='win'?'YOU WIN!':outcome==='draw'?'DRAW':outcome==='lose'?'YOU LOSE!':'TOO SLOW!')+'</div>';
-    setTimeout(()=>{try{ov.remove()}catch(e){}},1500);
+      '<div style="font-size:13px;color:#f44;margin-bottom:6px">ROUND '+round+' RESULT</div>'+
+      '<div style="font-size:32px;color:#fff">You: '+icon(playerHand||'?')+' &nbsp;vs&nbsp; Gipsy: '+icon(bossHand)+'</div>'+
+      '<div style="font-size:20px;color:'+(outcome==='win'?'#0f0':outcome==='draw'?'#ff0':'#f44')+';margin-top:8px;letter-spacing:6px">'+
+      (outcome==='win'?'GIPSY LOSES!':outcome==='draw'?'DRAW':'GIPSY WINS!')+'</div>';
   }
-  // Apply outcome effect
-  if(outcome==='win'){
-    // Player wins - Gipsy takes a big hit, cancel rocket punch
-    try{playComm('enemy','Impossible! Rematch!')}catch(e){}
-    if(boss){
-      boss.hp-=Math.max(20,Math.ceil((boss.maxHp||200)*.15));
-      spawnP(boss.mesh.position.clone(),0xffff44,30,2);
-      if(typeof sfx!=='undefined'&&sfx.hit)sfx.hit();
+  // Decide next step
+  const round=(boss&&boss.jankenRound)||1;
+  const minRounds=3;
+  // v6.95: Boss must play AT LEAST 3 rounds. After round 3, the FIRST loss ends the duel and the boss retreats.
+  if(boss&&outcome==='win'&&round>=minRounds){
+    // Boss loses → retreat 100m then fight starts
+    try{playComm('enemy','Argh! A worthy hunter! I retreat... and ATTACK!')}catch(e){}
+    setTimeout(()=>{try{if(ov)ov.remove()}catch(e){}},1700);
+    boss.jankenLost=true;
+    boss.jankenPhase='retreat';
+    boss.retreatT=0;
+    boss.retreatStartZ=boss.mesh.position.z;
+    boss.retreatTargetZ=boss.mesh.position.z-100;// 100m further from the player
+    spawnP(boss.mesh.position.clone(),0xffff44,30,2);
+    if(typeof sfx!=='undefined'&&sfx.hit)sfx.hit();
+    window._jankenBoss=null;
+    return;
+  }
+  // Otherwise continue: dismiss this overlay and queue the next round.
+  setTimeout(()=>{
+    try{if(ov)ov.remove()}catch(e){}
+    if(!boss||boss.hp<=0)return;
+    if(boss.jankenPhase!=='janken')return;// safety: boss exited janken phase
+    // Quick voice cue between rounds
+    if(outcome==='lose'){
+      try{playComm('enemy','HAHA! Round '+(round+1)+'!')}catch(e){}
+    } else if(outcome==='draw'){
+      try{playComm('enemy','Draw! Again!')}catch(e){}
+    } else {
+      // Player won but we need at least 3 rounds → boss insists on continuing
+      try{playComm('enemy','Lucky! Best of '+(minRounds+1)+'! Again!')}catch(e){}
     }
-  } else if(outcome==='draw'){
-    try{playComm('enemy','Hmph! Again! Again!')}catch(e){}
-  } else {
-    // LOSE - tub or stone falls on the player, deal damage + stun
-    try{playComm('enemy','HAHA! GRAVITY IS MY ALLY!')}catch(e){}
-    dropTubOnPlayer();
-  }
-  window._jankenBoss=null;
+    setTimeout(()=>{try{triggerJankenDuel(boss)}catch(e){console.warn('janken next round:',e)}},1100);
+  },1700);
 }
 // v6.77: Cartoony tub/stone drops from the top of the screen onto the player
 function dropTubOnPlayer(){
@@ -6934,6 +7141,55 @@ function updatePsychoBoss(e,dt){
   }
 }
 
+// v6.95: shared helper - spawn jet-flame particles under each of Gipsy's feet (called every frame).
+function emitGipsyFootJets(e){
+  if(!e||!e.mesh)return;
+  const lLegM=e.mesh.getObjectByName('leftLeg');
+  const rLegM=e.mesh.getObjectByName('rightLeg');
+  const emit=(legGroup,lost)=>{
+    if(!legGroup||lost)return;
+    if(Math.random()>=.65)return;
+    let footM=null;
+    legGroup.traverse(o=>{if(o.name==='gipsyFoot')footM=o});
+    const p=new THREE.Vector3();
+    if(footM){footM.getWorldPosition(p);p.y-=0.6}
+    else{legGroup.getWorldPosition(p);p.y-=6.0}
+    spawnP(p,0xff8800,3,.8);
+    if(Math.random()<.5)spawnP(p,0xffcc44,2,.6);
+    if(Math.random()<.25)spawnP(p,0xffffff,1,.4);
+  };
+  emit(lLegM,e.legLeftLost);
+  emit(rLegM,e.legRightLost);
+}
+
+// v6.95: swap the boss's right-arm fist mesh to a janken shape (rock/paper/scissors).
+// Used during the janken phase so the player can SEE what shape the boss just played.
+function swapGipsyFistShape(e,shape){
+  if(!e||!e.mesh)return;
+  const arm=e.mesh.getObjectByName('rightArm');
+  if(!arm)return;
+  // Remove the existing fist holder if any, but remember its position so we can restore it
+  const old=arm.getObjectByName('rightFistHolder');
+  let pos=null;
+  if(old){pos=old.position.clone();arm.remove(old)}
+  // Build the new fist with the requested shape (rock|paper|scissors)
+  const fist=makeGipsyDetailedFist(shape);
+  fist.name='rightFistHolder';
+  // Hide the rocket-flame children so it looks like a still hand, not a flying projectile
+  fist.traverse(o=>{
+    if(o.material&&o.material.color){
+      const hex=o.material.color.getHex();
+      // 0xff6600 = outer flame cone, 0xffcc44 = inner bright flame core
+      if(hex===0xff6600||hex===0xffcc44)o.visible=false;
+    }
+  });
+  // Scale down slightly - the rocket-punch fist is bigger than the idle fist
+  fist.scale.setScalar(.85);
+  if(pos)fist.position.copy(pos);
+  else fist.position.y=-3.5;
+  arm.add(fist);
+}
+
 function updateGipsyBoss(e,dt){
   // Combat stance bob
   e.mesh.position.y=e.baseY+Math.sin(e.poseTime*.8)*.15;
@@ -6942,6 +7198,37 @@ function updateGipsyBoss(e,dt){
   if(sword&&!e.armRightLost){
     e.chainsawSwing=(e.chainsawSwing||0)+dt*3;
     sword.rotation.x=Math.sin(e.chainsawSwing)*.3;
+  }
+  // v6.95: JANKEN PHASE - boss insists on at least 3 janken rounds before fighting.
+  // While in this phase: no rocket-punch, no scatter-cannon, no approach movement. Just a stance.
+  if(e.jankenPhase==='janken'){
+    // Emit foot jet flames so the boss still looks "hovering" during the standoff
+    try{emitGipsyFootJets(e)}catch(ex){}
+    // Freeze approach: lock z to spawn distance
+    if(e.speedZ!==0){e._savedSpeedZ=e.speedZ;e.speedZ=0}
+    e.jankenStartT=(e.jankenStartT==null?1.8:e.jankenStartT)-dt;
+    if(e.jankenStartT<=0&&!window._jankenActive){
+      e.jankenStartT=999;// prevent immediate retriggering
+      try{triggerJankenDuel(e)}catch(ex){console.warn('janken trigger:',ex)}
+    }
+    return;// skip all attacks
+  }
+  if(e.jankenPhase==='retreat'){
+    // Smoothly back up 100m, then enter fighting phase
+    try{emitGipsyFootJets(e)}catch(ex){}
+    e.retreatT+=dt;
+    const dur=3.5;
+    const p=Math.min(1,e.retreatT/dur);
+    const ease=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;// easeInOut
+    e.mesh.position.z=e.retreatStartZ+(e.retreatTargetZ-e.retreatStartZ)*ease;
+    e.mesh.position.y=e.baseY+Math.sin(e.poseTime*.8)*.15+Math.sin(p*Math.PI)*2.5;// arc up then down
+    if(e.retreatT>=dur){
+      e.jankenPhase='fighting';
+      e.speedZ=e._savedSpeedZ||.4;
+      e.mesh.position.y=e.baseY;
+      try{playComm('enemy','NOW we FIGHT for REAL! Engage, puny hunter!')}catch(ex){}
+    }
+    return;// skip attacks during retreat
   }
   // BOTH arms lost → no attacks
   if(e.armsLost)return;
@@ -6960,17 +7247,8 @@ function updateGipsyBoss(e,dt){
   if(hpRatio<.15&&e.gipsyParts.rLeg){
     if(detachBossLimb(e,'rightLeg','Cannot move! Finish it!'))e.gipsyParts.rLeg=false;
   }
-  // v6.77: Continuous leg jet-flight animation (jet exhaust flame + subtle bob)
-  const lLegM=e.mesh.getObjectByName('leftLeg');
-  const rLegM=e.mesh.getObjectByName('rightLeg');
-  if(lLegM&&!e.legLeftLost&&Math.random()<.55){
-    const p=new THREE.Vector3();lLegM.getWorldPosition(p);p.y-=3;
-    spawnP(p,0xff8800,2,.7);if(Math.random()<.4)spawnP(p,0xffcc44,2,.5);
-  }
-  if(rLegM&&!e.legRightLost&&Math.random()<.55){
-    const p=new THREE.Vector3();rLegM.getWorldPosition(p);p.y-=3;
-    spawnP(p,0xff8800,2,.7);if(Math.random()<.4)spawnP(p,0xffcc44,2,.5);
-  }
+  // v6.77/v6.95: Continuous jet-flight animation - reuses the shared emitGipsyFootJets helper.
+  emitGipsyFootJets(e);
   // Extra vertical hover so it reads as "jet flight" rather than standing
   e.mesh.position.y=e.baseY+Math.sin(e.poseTime*.8)*.15+Math.sin(e.poseTime*1.6)*.05;
   // Rocket punch every ~7 seconds (requires right arm intact)
@@ -7094,10 +7372,7 @@ function updateGipsyBoss(e,dt){
       e.rocketPunchPhase='buildup';e.rocketPunchT=0;
       // Dramatic buildup voice: "いくぜーー、ロケットパーーーンチ" (spoken in English for TTS clarity)
       try{playComm('enemy','Here it comes...! ROCKET PAAAAAAAAAN-CH!!!')}catch(ex){}
-      // v6.77: 25% chance to also trigger a JANKEN duel
-      if(Math.random()<.25&&!window._jankenActive){
-        setTimeout(()=>{try{triggerJankenDuel(e)}catch(ex){console.warn('janken:',ex)}},400);
-      }
+      // v6.95: random janken trigger removed - janken is now mandatory at spawn (see jankenPhase)
       if(sfx.ctx){const t=sfx.ctx.currentTime;
         sfx._o('sawtooth',140,t,.4,.15)}
       playComm('enemy','ROCKET PUNCH!!!');
@@ -9028,7 +9303,12 @@ function addScore(pts){S.score+=pts;if(S.score>S.hiScore){S.hiScore=S.score;loca
   // Bonus stage: only during normal PLAYING, NOT during boss wave (wave 5) or if boss is active
   const waveInCycle=((S.wave-1)%C.FORT_WAVES)+1;
   const bossActive=enemies.some(e=>e.isBoss);
-  if(S.score>=S.nextBonus&&S.phase==='PLAYING'&&waveInCycle!==5&&!bossActive)triggerBonus();
+  // v6.96: NEVER trigger bonus on the Forest Planet mission (on-foot infiltration / dungeon / bike chase
+  // would be interrupted by space-bonus-stage spawns). Stage check + on-foot guard.
+  const isForestMission=(typeof selectedStage!=='undefined'&&selectedStage&&selectedStage.id==='forest')||
+                        (S.onFootMode===true)||
+                        (S.phase==='FOREST');
+  if(!isForestMission&&S.score>=S.nextBonus&&S.phase==='PLAYING'&&waveInCycle!==5&&!bossActive)triggerBonus();
   updateHUD()}
 
 function checkPowerUp(){const nl=Math.min(C.MAX_POWER,Math.floor(S.kills/C.POWER_KILLS));
@@ -9859,7 +10139,7 @@ function wfCineStart(){
   if(cockpitObj&&cockpitObj.parent)cockpitObj.parent.remove(cockpitObj);
   scene.fog=null;
 }
-// v6.94: Universal scene cleanup. MUST be called at the start of every scene transition that does NOT itself manage wfCineGroup,
+// v6.95: Universal scene cleanup. MUST be called at the start of every scene transition that does NOT itself manage wfCineGroup,
 // to prevent leftover bridge/cine meshes (and stale forest meshes/HUD) from being visible in the next scene.
 // Used by: actualStartGame, startForestOnFootMode, launchForestPhaseTest, enterForestSpeederEscape (defensive), etc.
 function cleanupSceneCompletely(){
@@ -9880,7 +10160,32 @@ function cleanupSceneCompletely(){
       endForestOnFoot();
     }
   }catch(e){}
-  // 3. Remove stale DOM scene overlays that the above functions do not own
+  // v6.95: 3. HARD-REFRESH leftover bullets / particles / debris that linger across scene cuts
+  // This was reported as "stars and space beam garbage stays around" when entering forest / dungeon / bike phases.
+  try{
+    if(typeof pBeams!=='undefined'&&pBeams){pBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});pBeams.length=0}
+    if(typeof eBeams!=='undefined'&&eBeams){eBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});eBeams.length=0}
+    if(typeof particles!=='undefined'&&particles){particles.forEach(p=>{try{scene.remove(p.mesh)}catch(e){}});particles.length=0}
+    if(typeof megaBossProjectiles!=='undefined'&&megaBossProjectiles){
+      megaBossProjectiles.forEach(p=>{try{if(p.mesh)scene.remove(p.mesh)}catch(e){}});
+      megaBossProjectiles.length=0;
+    }
+    // Forest beams (light saber arcs, laser beams used in on-foot mode)
+    if(typeof forestBeams!=='undefined'&&forestBeams){
+      forestBeams.forEach(b=>{try{if(b.mesh&&b.mesh.parent)b.mesh.parent.remove(b.mesh)}catch(e){}});
+      forestBeams.length=0;
+    }
+    // Hide background visuals that should NOT bleed into a planet/dungeon scene
+    if(typeof starField!=='undefined'&&starField)starField.visible=false;
+    if(typeof speedLines!=='undefined'&&speedLines)speedLines.visible=false;
+    if(typeof persistentFortMesh!=='undefined'&&persistentFortMesh)persistentFortMesh.visible=false;
+    if(typeof fireSunMesh!=='undefined'&&fireSunMesh)fireSunMesh.visible=false;
+    if(typeof titlePlanet!=='undefined'&&titlePlanet)titlePlanet.visible=false;
+    if(typeof removeFireSun==='function')try{removeFireSun()}catch(e){}
+    if(typeof removeRuinsColony==='function')try{removeRuinsColony()}catch(e){}
+    if(typeof clearFireDragons==='function')try{clearFireDragons()}catch(e){}
+  }catch(e){}
+  // 4. Remove stale DOM scene overlays that the above functions do not own
   ['stage-select','bridge-overlay','wfcine-sub','wfcine-exit','forest-landing','forest-onfoot'].forEach(id=>{
     const e=document.getElementById(id);if(e)e.remove();
   });
@@ -10951,7 +11256,7 @@ function exitTestModeToOptions(){
   // v6.93: also clean up forest on-foot scene if active
   try{if(typeof endForestOnFoot==='function'&&forestScene)endForestOnFoot()}catch(e){}
   // Clear any forest-mode overlays (destruct cinematic, elevator, etc.)
-  ['forest-hud','forest-skip','forest-radar','forest-weapon-btn','forest-elev','forest-destruct','forest-controls','forest-reticle','forest-onfoot','forest-landing'].forEach(id=>{
+  ['forest-hud','forest-skip','forest-radar','forest-weapon-btn','forest-elev','forest-destruct','forest-controls','forest-controls-toggle','forest-reticle','forest-onfoot','forest-landing'].forEach(id=>{
     const e=document.getElementById(id);if(e)try{e.remove()}catch(er){}
   });
   // Clear enemies / projectiles / particles / bosses
@@ -11493,7 +11798,7 @@ function clearForestCorpses(){
   forestCorpses.length=0;
 }
 function startForestOnFootMode(){
-  // v6.94: tear down any leftover bridge/cine meshes + DOM overlays before building the forest scene
+  // v6.95: tear down any leftover bridge/cine meshes + DOM overlays before building the forest scene
   try{cleanupSceneCompletely()}catch(e){}
   S.phase='FOREST';
   S.onFootMode=true;
@@ -11544,21 +11849,101 @@ function startForestOnFootMode(){
   document.body.appendChild(skip);
 }
 
+// v6.96: 2D forest terrain heightmap - layered sin waves give a natural rolling-hills feel.
+// Returns the y offset (in meters) for any (x, z). Bigger amplitude near the spawn area for drama.
+function forestTerrainHeight(x,z){
+  return Math.sin(x*0.06)*0.55+Math.sin(z*0.05+1.3)*0.6+Math.sin((x+z)*0.10+0.6)*0.25+Math.cos(x*0.18-z*0.13)*0.18;
+}
+// v6.96: per-frame grass sway - blades closer than 4m to the pilot lean AWAY from him,
+// stronger the closer he is. All blades also have a constant gentle wind sway from windPhase.
+function updateGrassSway(dt){
+  if(!forestScene||!forestPilot)return;
+  const px=forestPilot.position.x,pz=forestPilot.position.z;
+  const t=performance.now()/1000;
+  forestScene.children.forEach(c=>{
+    if(c.name!=='forestGrass')return;
+    const dx=c.position.x-px;
+    const dz=c.position.z-pz;
+    const d=Math.hypot(dx,dz);
+    let leanX=0,leanZ=0;
+    if(d<4){
+      const norm=1-d/4;
+      const n=d||0.01;
+      // Tilt the clump AWAY from the player along the (dx,dz) direction
+      const amt=norm*0.55;
+      leanZ=(dx/n)*amt;// rotation.z tilts around z-axis (controls x-tilt visually)
+      leanX=-(dz/n)*amt;
+    }
+    // Wind sway (gentle, always on)
+    const wp=c.userData.windPhase||0;
+    const windZ=Math.sin(t*1.6+wp)*0.06;
+    const windX=Math.cos(t*1.2+wp*1.3)*0.04;
+    const targetZ=leanZ+windZ;
+    const targetX=leanX+windX;
+    c.rotation.z+=(targetZ-c.rotation.z)*Math.min(1,dt*4);
+    c.rotation.x+=(targetX-c.rotation.x)*Math.min(1,dt*4);
+  });
+}
+// v6.96: small grass clump - 5-7 wireframe blades springing from a central point.
+// userData.windPhase + base tilt is updated per-frame by updateGrassSway().
+function makeGrassClump(){
+  const g=new THREE.Group();g.name='forestGrass';
+  const mGrass=new THREE.LineBasicMaterial({color:0x66dd44,transparent:true,opacity:.85});
+  const mGrass2=new THREE.LineBasicMaterial({color:0x88ee66,transparent:true,opacity:.75});
+  const blades=5+Math.floor(Math.random()*3);
+  for(let b=0;b<blades;b++){
+    const ang=Math.random()*Math.PI*2;
+    const r=Math.random()*0.3;
+    const ox=Math.cos(ang)*r;
+    const oz=Math.sin(ang)*r;
+    const h=0.5+Math.random()*0.5;
+    const tx=(Math.random()-0.5)*0.18;
+    const tz=(Math.random()-0.5)*0.18;
+    // Bottom-mid-tip 3-point line for more natural curve
+    const pts=[
+      new THREE.Vector3(ox,0,oz),
+      new THREE.Vector3(ox+tx*0.5,h*0.55,oz+tz*0.5),
+      new THREE.Vector3(ox+tx,h,oz+tz)
+    ];
+    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),Math.random()<.3?mGrass2:mGrass);
+    g.add(line);
+  }
+  g.userData.windPhase=Math.random()*Math.PI*2;
+  return g;
+}
 function buildForestScene(){
   // Create a Group so we can clean up all forest objects together
   if(forestScene){try{scene.remove(forestScene)}catch(e){}forestScene=null}
   forestScene=new THREE.Group();forestScene.name='forestScene';
   scene.add(forestScene);
-  // Grid floor (large flat ground)
-  const mGround=new THREE.LineBasicMaterial({color:0x226633,transparent:true,opacity:.6});
-  const GRID=60;const STEP=4;
+  // v6.96: ROLLING-HILLS GROUND - subdivided polylines that follow forestTerrainHeight()
+  const mGround=new THREE.LineBasicMaterial({color:0x226633,transparent:true,opacity:.55});
+  const mGroundDk=new THREE.LineBasicMaterial({color:0x114422,transparent:true,opacity:.5});
+  const GRID=60;const STEP=4;const SUB=2;// SUB segments per STEP for smooth undulation
   for(let x=-GRID;x<=GRID;x+=STEP){
-    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(x,0,-GRID),new THREE.Vector3(x,0,GRID)]),mGround));
+    const pts=[];
+    for(let z=-GRID;z<=GRID;z+=STEP/SUB){
+      pts.push(new THREE.Vector3(x,forestTerrainHeight(x,z),z));
+    }
+    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),x%8===0?mGround:mGroundDk));
   }
   for(let z=-GRID;z<=GRID;z+=STEP){
-    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-GRID,0,z),new THREE.Vector3(GRID,0,z)]),mGround));
+    const pts=[];
+    for(let x=-GRID;x<=GRID;x+=STEP/SUB){
+      pts.push(new THREE.Vector3(x,forestTerrainHeight(x,z),z));
+    }
+    forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),z%8===0?mGround:mGroundDk));
+  }
+  // v6.96: GRASS CLUMPS scattered across the ground (avoid spawn + base path)
+  const gfx=(typeof getGfx==='function')?getGfx():{particleMult:1};
+  const grassCount=gfx.particleMult<=.4?40:(gfx.particleMult<=.7?80:130);
+  for(let i=0;i<grassCount;i++){
+    let gx,gz;
+    do{gx=(Math.random()-.5)*108;gz=(Math.random()-.5)*108}
+    while(gx*gx+gz*gz<25||(Math.abs(gx)<10&&gz<-25&&gz>-50));
+    const clump=makeGrassClump();
+    clump.position.set(gx,forestTerrainHeight(gx,gz),gz);
+    forestScene.add(clump);
   }
   // v6.89: BIGGER + MORE trees - double the trunk/leaf size, 80 trees, varied scales for depth
   const mTrunk=new THREE.LineBasicMaterial({color:0x884422,transparent:true,opacity:.75});
@@ -11589,7 +11974,8 @@ function buildForestScene(){
     let x,z;
     do{x=(Math.random()-.5)*115;z=(Math.random()-.5)*115}
     while(x*x+z*z<120||(Math.abs(x)<12&&z<-28&&z>-48));// keep base approach path clear
-    tree.position.set(x,0,z);
+    // v6.96: tree y follows the rolling-hills terrain
+    tree.position.set(x,forestTerrainHeight(x,z),z);
     forestScene.add(tree);
   }
   // v6.89: Bush / shrub layer for ground density
@@ -11599,7 +11985,8 @@ function buildForestScene(){
     let x,z;
     do{x=(Math.random()-.5)*110;z=(Math.random()-.5)*110}
     while(x*x+z*z<60);
-    bush.position.set(x,.5,z);
+    // v6.96: bush y follows terrain (sit half-buried for natural look)
+    bush.position.set(x,forestTerrainHeight(x,z)+.4,z);
     bush.scale.y=.5+Math.random()*.3;
     forestScene.add(bush);
   }
@@ -11635,7 +12022,7 @@ function buildForestScene(){
   gun.position.set(.65,1.0,.2);
   forestPilot.add(gun);
   // v6.82: LIGHT SABER mesh (cyan glowing blade) - hidden by default, shown when weapon='saber'
-  // v6.94: Hilt always visible while held; blade+core appear ONLY during the swing animation
+  // v6.95: Hilt always visible while held; blade+core appear ONLY during the swing animation
   const sab=new THREE.Group();sab.name='pilotSaber';
   const sabHilt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.08,.08,.35,6)),
     new THREE.LineBasicMaterial({color:0x666666}));
@@ -11688,55 +12075,140 @@ function buildForestScene(){
   // Ensure clean sky - use dark green tint
   scene.background=new THREE.Color(0x001a08);
 }
-// v6.81: guard types: 'grunt' (HP3, standard rifle), 'elite' (HP5, faster fire), 'scout' (HP2, wide vision)
+// v6.81/v6.96: guard types: 'grunt' (HP3, standard rifle), 'elite' (HP5, faster fire), 'scout' (HP2, wide vision)
+// v6.96 redesign: properly proportioned humanoid trooper with helmet+visor, body armor, arm/leg joint
+// groups (lLeg/rLeg + lLegLower/rLegLower, lArm/rArm + lArmFore/rArmFore) so the patrol loop can
+// drive a real walk cycle. Rifle held in both hands across the chest.
 function spawnForestGuard(x,z,patrol,type){
   type=type||'grunt';
   const g=new THREE.Group();g.name='forestGuard';
   const tint=type==='elite'?0xcc2200:type==='scout'?0xff8844:0xff6644;
-  const mBody=new THREE.LineBasicMaterial({color:tint,transparent:true,opacity:.85});
-  const mHead=new THREE.LineBasicMaterial({color:0x992211,transparent:true,opacity:.85});
-  // Body
-  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.9,1.4,.6)),mBody));
-  // Head (helmet)
-  const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.35,6,5)),mHead);
-  head.position.y=1;head.name='guardHead';g.add(head);
-  // Rifle
-  const rifle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.15,.15,1)),
-    new THREE.LineBasicMaterial({color:0x444444}));
-  rifle.position.set(.45,.3,.3);g.add(rifle);
-  // Arms/legs simple
+  const dark=type==='elite'?0x661100:type==='scout'?0x553311:0x441111;
+  const mBody=new THREE.LineBasicMaterial({color:tint,transparent:true,opacity:.9});
+  const mDark=new THREE.LineBasicMaterial({color:dark,transparent:true,opacity:.9});
+  const mArmor=new THREE.LineBasicMaterial({color:0x554433,transparent:true,opacity:.9});
+  const mHelmet=new THREE.LineBasicMaterial({color:0x331111,transparent:true,opacity:.95});
+  const mVisor=new THREE.LineBasicMaterial({color:type==='elite'?0xff4422:0xff8844,transparent:true,opacity:.95});
+  const mGun=new THREE.LineBasicMaterial({color:0x222222,transparent:true,opacity:.95});
+  // === HEAD: dark helmet + glowing visor + side antenna ===
+  const head=new THREE.Group();head.name='guardHead';
+  const helmet=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.32,8,6)),mHelmet);
+  head.add(helmet);
+  const visor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.4,.1,.05)),mVisor);
+  visor.position.set(0,.04,.22);head.add(visor);
+  // Side ear
   [-1,1].forEach(sx=>{
-    const arm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.09,.1,.8,4)),mBody);
-    arm.position.set(sx*.5,.2,0);g.add(arm);
-    const leg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.12,.14,1,4)),mBody);
-    leg.position.set(sx*.2,-1.2,0);g.add(leg);
+    const ear=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.08,5,4)),mDark);
+    ear.position.set(sx*.27,0,0);head.add(ear);
   });
-  // v6.81: Vision cone (yellow wireframe triangle on the ground)
+  // Top antenna for elite
+  if(type==='elite'){
+    const ant=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.02,.025,.3,4)),mDark);
+    ant.position.y=.4;head.add(ant);
+  }
+  head.position.y=2.2;g.add(head);
+  // === NECK ===
+  const neck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.12,.15,6)),mDark);
+  neck.position.y=1.85;g.add(neck);
+  // === TORSO with chest plate + shoulder pads ===
+  const body=new THREE.Group();body.name='body';
+  const chest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.7,.95,.45)),mBody);
+  body.add(chest);
+  // Armor plate
+  const plate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.55,.1)),mArmor);
+  plate.position.set(0,.1,.25);body.add(plate);
+  // Shoulder pads
+  [-1,1].forEach(sx=>{
+    const pad=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.16,6,4,0,Math.PI*2,0,Math.PI/2)),mArmor);
+    pad.position.set(sx*.35,.4,0);body.add(pad);
+  });
+  // Belt
+  const belt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.32,.05,4,12)),mDark);
+  belt.position.y=-.45;belt.rotation.x=Math.PI/2;body.add(belt);
+  body.position.y=1.25;g.add(body);
+  // === ARMS (8-side cylinders + elbow joint group + fist) ===
+  ['lArm','rArm'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const arm=new THREE.Group();arm.name=nm;
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.11,.5,8)),mBody);
+    upper.position.y=-.25;arm.add(upper);
+    const elbow=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.11,6,5)),mDark);
+    elbow.position.y=-.5;arm.add(elbow);
+    const fore=new THREE.Group();fore.name=nm+'Fore';
+    const foreSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.09,.1,.45,8)),mBody);
+    foreSeg.position.y=-.25;fore.add(foreSeg);
+    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.08,.09,.13,6)),mDark);
+    hand.position.y=-.55;fore.add(hand);
+    fore.position.y=-.5;
+    // Both arms hold the rifle in front (forearms come forward)
+    fore.rotation.x=-1.0;
+    arm.add(fore);
+    arm.position.set(side*.4,1.65,0);
+    arm.rotation.z=side*.1;
+    arm.rotation.x=-0.3;// upper arms tilted forward to hold rifle
+    g.add(arm);
+  });
+  // === RIFLE held in both hands across the chest ===
+  const rifle=new THREE.Group();rifle.name='guardRifle';
+  const stock=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.14,.16,.85)),mGun);
+  stock.position.z=.05;rifle.add(stock);
+  // Barrel
+  const barrel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.05,.06,.55,6)),mGun);
+  barrel.rotation.x=Math.PI/2;barrel.position.z=.7;rifle.add(barrel);
+  // Sight
+  const sight=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.06,.12,.18)),mGun);
+  sight.position.set(0,.18,.1);rifle.add(sight);
+  // Magazine
+  const mag=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.12,.25,.14)),mDark);
+  mag.position.set(0,-.18,0);rifle.add(mag);
+  rifle.position.set(0,1.05,.55);
+  g.add(rifle);
+  // === LEGS (8-side cylinders + knee joint group + boots) ===
+  ['lLeg','rLeg'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const leg=new THREE.Group();leg.name=nm;
+    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.16,.17,.65,8)),mBody);
+    thigh.position.y=-.32;leg.add(thigh);
+    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.14,6,5)),mDark);
+    knee.position.y=-.66;leg.add(knee);
+    const lower=new THREE.Group();lower.name=nm+'Lower';
+    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.14,.65,8)),mBody);
+    shin.position.y=-.32;lower.add(shin);
+    // Boot
+    const boot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.14,.32)),mDark);
+    boot.position.set(0,-.7,.05);lower.add(boot);
+    // Boot tip
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.08,.1)),mArmor);
+    tip.position.set(0,-.7,.22);lower.add(tip);
+    lower.position.y=-.66;
+    leg.add(lower);
+    leg.position.set(side*.16,.7,0);
+    g.add(leg);
+  });
+  // v6.81: Vision cone - v6.96: now drawn at ground level (group origin is at ground in v6.96)
   const coneGeom=new THREE.BufferGeometry();
   const coneR=type==='scout'?14:10;
   const coneAng=type==='scout'?Math.PI*.7:Math.PI*.55;// 100-126° FOV
-  const pts=[new THREE.Vector3(0,-1.1,0)];
+  const pts=[new THREE.Vector3(0,0.05,0)];
   const segs=12;
   for(let i=0;i<=segs;i++){
     const a=-coneAng*.5+coneAng*(i/segs);
-    pts.push(new THREE.Vector3(Math.sin(a)*coneR,-1.1,Math.cos(a)*coneR));
+    pts.push(new THREE.Vector3(Math.sin(a)*coneR,0.05,Math.cos(a)*coneR));
   }
-  pts.push(new THREE.Vector3(0,-1.1,0));
+  pts.push(new THREE.Vector3(0,0.05,0));
   coneGeom.setFromPoints(pts);
   const coneMat=new THREE.LineBasicMaterial({color:0xffff22,transparent:true,opacity:.35});
   const coneLine=new THREE.Line(coneGeom,coneMat);coneLine.name='visionCone';
   g.add(coneLine);
-  // v6.81: Alert indicator (floating "?" / "!" over head, invisible by default)
-  const alertCanvas=document.createElement('canvas');alertCanvas.width=64;alertCanvas.height=64;
-  // Use a simple plane with material.color for "alert" - swap between yellow ? and red !
+  // v6.81: Alert indicator (floating "?" / "!" over head, invisible by default) - v6.96: above the head
   const alertMat=new THREE.LineBasicMaterial({color:0xffff00,transparent:true,opacity:0});
   const alertMark=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.3,.6,.08)),alertMat);
-  alertMark.position.y=2;alertMark.name='alertMark';g.add(alertMark);
-  // Second alert pip (makes "!!" visual at full alert)
+  alertMark.position.y=3.0;alertMark.name='alertMark';g.add(alertMark);
   const alertMat2=new THREE.LineBasicMaterial({color:0xffff00,transparent:true,opacity:0});
   const alertDot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.15)),alertMat2);
-  alertDot.position.y=1.4;alertDot.name='alertDot';g.add(alertDot);
-  g.position.set(x,1.2,z);
+  alertDot.position.y=2.6;alertDot.name='alertDot';g.add(alertDot);
+  // v6.96: realistic guard now stands feet-on-ground; group origin at ground level
+  g.position.set(x,0,z);
   forestScene.add(g);
   forestGuards.push({
     mesh:g,
@@ -11935,14 +12407,22 @@ function showForestHUD(){
     '<div id="forest-hud-hp" style="font-size:11px;color:#8f8;margin-top:2px">HP: 5/5</div>'+
     '<div id="forest-hud-alert" style="font-size:11px;color:#f88;margin-top:2px">'+(hk?'警戒度: ---':'Alert: ---')+'</div>';
   document.body.appendChild(hud);
-  // v6.89: Always-visible control guide (bottom-left)
+  // v6.89/v6.95: Control guide (bottom-left) - now toggleable so it does not block the touchscreen view.
   let cg=document.getElementById('forest-controls');if(cg)cg.remove();
   cg=document.createElement('div');cg.id='forest-controls';
   const touch='ontouchstart' in window||navigator.maxTouchPoints>0;
+  // v6.95: persist hide/show state across sessions; default = hidden on touch devices, visible on desktop
+  let _ctrlHidden=false;
+  try{
+    const saved=localStorage.getItem('forestControlsHidden');
+    if(saved===null)_ctrlHidden=touch;// default: touch=hidden, desktop=visible
+    else _ctrlHidden=(saved==='1');
+  }catch(e){_ctrlHidden=touch}
   cg.style.cssText='position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));left:10px;z-index:110;'+
     'font-family:inherit;color:#8f8;background:rgba(0,20,10,0.85);border:1px solid #0f8;'+
     'padding:8px 12px;font-size:11px;letter-spacing:1px;line-height:1.7;pointer-events:none;'+
-    'box-shadow:0 0 12px rgba(0,255,136,0.35);max-width:260px;border-radius:4px';
+    'box-shadow:0 0 12px rgba(0,255,136,0.35);max-width:260px;border-radius:4px;'+
+    'display:'+(_ctrlHidden?'none':'block');
   if(hk){
     cg.innerHTML=
       '<div style="color:#0ff;font-size:11px;margin-bottom:4px;letter-spacing:2px">◎ 操作方法</div>'+
@@ -11975,6 +12455,42 @@ function showForestHUD(){
       '<div style="margin-top:3px;color:#aaa;font-size:10px">🎯 Eliminate patrols, reach the base</div>';
   }
   document.body.appendChild(cg);
+  // v6.95: small "?" toggle button to hide/show the controls panel - always visible (top-left)
+  let toggleBtn=document.getElementById('forest-controls-toggle');if(toggleBtn)toggleBtn.remove();
+  toggleBtn=document.createElement('button');toggleBtn.id='forest-controls-toggle';toggleBtn.type='button';
+  toggleBtn.textContent=_ctrlHidden?'?':'×';
+  toggleBtn.title=hk?'操作パネル 表示/非表示':'Show / hide controls panel';
+  toggleBtn.style.cssText='position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));left:10px;z-index:111;'+
+    'width:30px;height:30px;padding:0;border:1px solid #0f8;background:rgba(0,40,20,0.9);color:#0f8;'+
+    'font-family:inherit;font-size:14px;font-weight:bold;cursor:pointer;border-radius:50%;'+
+    '-webkit-appearance:none;touch-action:manipulation;box-shadow:0 0 8px rgba(0,255,136,0.4)';
+  toggleBtn.onclick=()=>{
+    const panel=document.getElementById('forest-controls');
+    if(!panel)return;
+    const hidden=(panel.style.display==='none');
+    panel.style.display=hidden?'block':'none';
+    toggleBtn.textContent=hidden?'×':'?';
+    try{localStorage.setItem('forestControlsHidden',hidden?'0':'1')}catch(e){}
+    // After showing the panel, push the toggle button up to sit just above the panel
+    setTimeout(()=>{
+      const p=document.getElementById('forest-controls');
+      if(p&&p.style.display!=='none'){
+        const r=p.getBoundingClientRect();
+        toggleBtn.style.bottom='calc('+(window.innerHeight-r.top+4)+'px)';
+      } else {
+        toggleBtn.style.bottom='calc(160px + env(safe-area-inset-bottom,0px))';
+      }
+    },20);
+  };
+  document.body.appendChild(toggleBtn);
+  // Initial position adjustment so the button doesn't overlap the panel
+  setTimeout(()=>{
+    const p=document.getElementById('forest-controls');
+    if(p&&p.style.display!=='none'){
+      const r=p.getBoundingClientRect();
+      toggleBtn.style.bottom='calc('+(window.innerHeight-r.top+4)+'px)';
+    }
+  },50);
   // v6.81: RADAR GOGGLES HUD - circular radar in the top-right
   let rd=document.getElementById('forest-radar');if(rd)rd.remove();
   rd=document.createElement('div');rd.id='forest-radar';
@@ -12041,7 +12557,7 @@ function updateForestHUD(){
     else if(forestState.wave>0){obj.textContent=`OBJ: Clear wave ${forestState.wave}/${forestState.waveTotal}`}
     else{obj.textContent='OBJ: Await patrols'}
   }
-  // v6.94: DR. AUTO-FIRE indicator badge - only visible during the bike phase
+  // v6.95: DR. AUTO-FIRE indicator badge - only visible during the bike phase
   {
     let dr=document.getElementById('forest-hud-drauto');
     if(forestState.phase==='bike'){
@@ -12148,10 +12664,17 @@ function updateForestOnFoot(dt){
   // Clamp to play area
   forestPilot.position.x=Math.max(-50,Math.min(50,forestPilot.position.x));
   forestPilot.position.z=Math.max(-50,Math.min(50,forestPilot.position.z));
+  // v6.96: TERRAIN FOLLOW - pilot's y stays on the rolling-hills ground
+  if(typeof forestTerrainHeight==='function'){
+    const ty=forestTerrainHeight(forestPilot.position.x,forestPilot.position.z);
+    forestPilot.position.y+=(ty-forestPilot.position.y)*Math.min(1,dt*8);
+  }
   // v6.89: Walk cycle animation (faster cycle when sprinting)
   try{animateForestPilotWalk(forestPilot,moving,dt,sprint?1.5:(moving?1:0))}catch(e){}
-  // v6.94: drive the saber swing animation (arm rotation + blade extend/retract)
+  // v6.95: drive the saber swing animation (arm rotation + blade extend/retract)
   try{updateSaberSwing()}catch(e){}
+  // v6.96: grass sway around the player (lean away when stepped near + gentle wind)
+  try{updateGrassSway(dt)}catch(e){}
   // v6.89: Update forest corpses (bodies that topple after death)
   try{updateForestCorpses(dt)}catch(e){}
   // CAMERA: third-person behind pilot (smooth follow)
@@ -12259,12 +12782,17 @@ function updateForestOnFoot(dt){
       }
     }
   }
-  // v6.81: Update guards - patrol + facing + stealth detection + alert-based firing
+  // v6.81/v6.96: Update guards - patrol + facing + stealth detection + alert-based firing
+  // v6.96: walk-cycle animation: legs swing, knees bend, body bobs while patrolling
   for(const g of forestGuards){
     g.patrolT+=dt*.2;
     const phase=(Math.sin(g.patrolT)+1)/2;
     g.mesh.position.x=g.patrolA.x+(g.patrolB.x-g.patrolA.x)*phase;
     g.mesh.position.z=g.patrolA.z+(g.patrolB.z-g.patrolA.z)*phase;
+    // v6.96: guards walk on the rolling-hills terrain too
+    if(typeof forestTerrainHeight==='function'){
+      g.mesh.position.y=forestTerrainHeight(g.mesh.position.x,g.mesh.position.z);
+    }
     // Face along motion direction
     const dirX=(g.patrolB.x-g.patrolA.x);
     const dirZ=(g.patrolB.z-g.patrolA.z);
@@ -12276,12 +12804,38 @@ function updateForestOnFoot(dt){
       const pdx=forestPilot.position.x-g.mesh.position.x;
       const pdz=forestPilot.position.z-g.mesh.position.z;
       const pTargetY=Math.atan2(pdx,pdz);
-      // Smooth turn
       let diff=pTargetY-g.mesh.rotation.y;
       while(diff>Math.PI)diff-=Math.PI*2;
       while(diff<-Math.PI)diff+=Math.PI*2;
       g.mesh.rotation.y+=diff*Math.min(1,dt*4);
     }
+    // v6.96: WALK CYCLE animation - speed scaled by motion intensity (motionSign abs)
+    try{
+      const moving=Math.abs(motionSign);// 0..1, peaks at midpoint of patrol leg
+      g.mesh.userData.walkT=(g.mesh.userData.walkT||0)+dt*5*moving;
+      const wt=g.mesh.userData.walkT;
+      const lLeg=g.mesh.getObjectByName('lLeg');
+      const rLeg=g.mesh.getObjectByName('rLeg');
+      const lLegLower=g.mesh.getObjectByName('lLegLower');
+      const rLegLower=g.mesh.getObjectByName('rLegLower');
+      const body=g.mesh.getObjectByName('body');
+      if(g.alertLevel<2){
+        // Patrolling: full walk cycle
+        const swing=Math.sin(wt)*.5*moving;
+        if(lLeg)lLeg.rotation.x=swing;
+        if(rLeg)rLeg.rotation.x=-swing;
+        if(lLegLower)lLegLower.rotation.x=-Math.max(0,Math.sin(wt))*.85*moving;
+        if(rLegLower)rLegLower.rotation.x=-Math.max(0,-Math.sin(wt))*.85*moving;
+        if(body)body.position.y=1.25+Math.abs(Math.sin(wt))*.07*moving;
+      } else {
+        // Alert/firing stance: relax legs, slight crouch
+        if(lLeg)lLeg.rotation.x+=(0-lLeg.rotation.x)*.2;
+        if(rLeg)rLeg.rotation.x+=(0-rLeg.rotation.x)*.2;
+        if(lLegLower)lLegLower.rotation.x+=(-.15-lLegLower.rotation.x)*.2;
+        if(rLegLower)rLegLower.rotation.x+=(-.15-rLegLower.rotation.x)*.2;
+        if(body)body.position.y+=(1.18-body.position.y)*.2;// tiny crouch
+      }
+    }catch(e){}
     // STEALTH DETECTION (updates alertLevel + calls backup if needed)
     updateGuardAlert(g,dt);
     // FIRE only when at alert level 2+ AND has LOS
@@ -12465,16 +13019,23 @@ function fireForestSaber(){
   if(!forestPilot||!forestScene)return;
   const fwdX=-Math.sin(forestPilot.rotation.y);
   const fwdZ=-Math.cos(forestPilot.rotation.y);
-  // v6.94: trigger the saber swing animation (arm swings + blade extends + retracts)
+  // v6.95: trigger the saber swing animation (arm swings + blade extends + retracts)
+  // v6.96: pick a RANDOM swing pattern so consecutive slashes look different (overhead chop /
+  // upward rise / level horizontal / diagonal). updateSaberSwing reads userData.swingPattern.
   try{
     const sabGroup=forestPilot.getObjectByName('pilotSaber');
     if(sabGroup){
       sabGroup.userData.swingActive=true;
       sabGroup.userData.swingStartT=performance.now()/1000;
       sabGroup.userData.swingDur=0.45;
+      // 5 patterns: 0=horizontal level (legacy), 1=overhead chop down, 2=rising upward,
+      // 3=diagonal top-left → bottom-right, 4=diagonal top-right → bottom-left
+      sabGroup.userData.swingPattern=Math.floor(Math.random()*5);
+      // Slight per-swing variation so even the same pattern feels alive
+      sabGroup.userData.swingPitchOffset=(Math.random()-0.5)*0.4;
     }
   }catch(e){}
-  // v6.94: VROOM saber sound (low sweep + harmonic + noise) — replaces the older saber hum
+  // v6.95: VROOM saber sound (low sweep + harmonic + noise) — replaces the older saber hum
   try{if(sfx.ctx){const t=sfx.ctx.currentTime;
     const o1=sfx.ctx.createOscillator();const g1=sfx.ctx.createGain();
     o1.type='sawtooth';
@@ -12496,7 +13057,7 @@ function fireForestSaber(){
     o2.start(t);o2.stop(t+0.4);
     sfx._n(t,.3,.12,5500,900);
   }}catch(e){}
-  // v6.94: thicker arc trail - draw 3 stacked arcs (height varied) + extra particles
+  // v6.95: thicker arc trail - draw 3 stacked arcs (height varied) + extra particles
   const arcMat=new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.95});
   const arcMat2=new THREE.LineBasicMaterial({color:0x88f6ff,transparent:true,opacity:.7});
   const arcMat3=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55});
@@ -12555,7 +13116,7 @@ function fireForestSaber(){
       damageGuardianPilot(3);
     }
   }
-  // v6.94: cleanup all 3 trail arcs (was 1 in v6.93)
+  // v6.95: cleanup all 3 trail arcs (was 1 in v6.93)
   setTimeout(()=>{
     try{forestScene.remove(arc)}catch(e){}
     try{forestScene.remove(arc2)}catch(e){}
@@ -12563,8 +13124,13 @@ function fireForestSaber(){
   },300);
 }
 
-// v6.94: per-frame saber swing animation - rotates the saber group + extends/retracts the blade.
-// Called from updateForestOnFoot every frame; uses sab.userData.swingActive set by fireForestSaber.
+// v6.95/v6.96: per-frame saber swing animation - rotates the saber group + extends/retracts blade.
+// v6.96: 5 swing patterns chosen at random per slash (set in fireForestSaber):
+//   0 = horizontal level (legacy)
+//   1 = overhead chop down (X axis, big downward swing)
+//   2 = upward rise (X axis, foot to sky)
+//   3 = diagonal: top-left → bottom-right (Y + X mixed)
+//   4 = diagonal: top-right → bottom-left (Y + X mixed)
 function updateSaberSwing(){
   if(!forestPilot)return;
   const sabGroup=forestPilot.getObjectByName('pilotSaber');
@@ -12573,7 +13139,7 @@ function updateSaberSwing(){
   const core=sabGroup.getObjectByName('saberCore');
   const u=sabGroup.userData;
   if(!u.swingActive){
-    sabGroup.rotation.y=0;sabGroup.rotation.z=0;
+    sabGroup.rotation.x=0;sabGroup.rotation.y=0;sabGroup.rotation.z=0;
     if(blade)blade.visible=false;
     if(core)core.visible=false;
     return;
@@ -12583,15 +13149,42 @@ function updateSaberSwing(){
   const t=Math.max(0,Math.min(1,(now-u.swingStartT)/dur));
   if(t>=1){
     u.swingActive=false;
-    sabGroup.rotation.y=0;sabGroup.rotation.z=0;
+    sabGroup.rotation.x=0;sabGroup.rotation.y=0;sabGroup.rotation.z=0;
     if(blade)blade.visible=false;
     if(core)core.visible=false;
     return;
   }
-  // Swing arc: cocked back (+0.5π) → forward (-0.5π) over the duration
-  sabGroup.rotation.y=Math.PI*0.5-Math.PI*1.0*t;
-  // Slight downward chop on the same arc
-  sabGroup.rotation.z=-Math.sin(t*Math.PI)*0.25;
+  // Choose pattern (set by fireForestSaber); fall back to horizontal
+  const pat=u.swingPattern||0;
+  const off=u.swingPitchOffset||0;
+  // ease curve: half-sine peak in the middle, eases in/out
+  const arc=Math.sin(t*Math.PI);
+  if(pat===0){
+    // Horizontal sweep cocked-back → forward
+    sabGroup.rotation.y=Math.PI*0.5-Math.PI*1.0*t;
+    sabGroup.rotation.x=off;
+    sabGroup.rotation.z=-Math.sin(t*Math.PI)*0.25;
+  } else if(pat===1){
+    // OVERHEAD CHOP: arm starts raised high (-π/2) → swings down through 0 → past 0 to +π/3
+    sabGroup.rotation.x=-Math.PI*0.55+Math.PI*0.95*t;
+    sabGroup.rotation.y=off*0.5;
+    sabGroup.rotation.z=-arc*0.18;
+  } else if(pat===2){
+    // RISING UPWARD: from low (+π/3) → up (-π/2). The classic uppercut.
+    sabGroup.rotation.x=Math.PI*0.4-Math.PI*0.95*t;
+    sabGroup.rotation.y=off*0.4;
+    sabGroup.rotation.z=arc*0.18;
+  } else if(pat===3){
+    // DIAGONAL TOP-LEFT → BOTTOM-RIGHT: combine Y + X
+    sabGroup.rotation.y=Math.PI*0.45-Math.PI*0.85*t;
+    sabGroup.rotation.x=-Math.PI*0.4+Math.PI*0.7*t;
+    sabGroup.rotation.z=-arc*0.22+off;
+  } else {
+    // DIAGONAL TOP-RIGHT → BOTTOM-LEFT (mirror of 3)
+    sabGroup.rotation.y=-Math.PI*0.45+Math.PI*0.85*t;
+    sabGroup.rotation.x=-Math.PI*0.4+Math.PI*0.7*t;
+    sabGroup.rotation.z=arc*0.22+off;
+  }
   // Blade extension envelope: ramp 0..0.18, hold 0.18..0.72, retract 0.72..1.0
   let bladeScale=1;
   if(t<0.18)bladeScale=t/0.18;
@@ -12773,54 +13366,214 @@ function detonateForestBomb(b){
   try{forestScene.remove(b.mesh)}catch(e){}
 }
 
-// v6.82: Build the Gate Guardian mech (big wireframe walker, cockpit with hatch + pilot inside)
+// v6.82/v6.97: Build the Gate Guardian mech - HARD-DETAIL design with layered armor, shoulder
+// pauldrons, multi-segment knee/ankle joints, exhaust vents on the back, twin barrel cannons +
+// shoulder missile pods, glowing chest reactor, antenna cluster, AND a realistic pilot inside the
+// cockpit (helmet+visor+harness+arms+seat).
 let forestGuardian=null;
 function spawnGateGuardian(){
   if(!forestScene)return;
   const g=new THREE.Group();g.name='gateGuardian';
   const mBody=new THREE.LineBasicMaterial({color:0xcc4422});
+  const mBodyDk=new THREE.LineBasicMaterial({color:0x882211});
   const mAcc=new THREE.LineBasicMaterial({color:0xffcc22});
-  const mDark=new THREE.LineBasicMaterial({color:0x662211});
+  const mDark=new THREE.LineBasicMaterial({color:0x331100});
   const mGlow=new THREE.LineBasicMaterial({color:0xff2222,transparent:true,opacity:.9});
-  // Main body
-  const body=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(5,4,4)),mBody);
+  const mGlowHot=new THREE.LineBasicMaterial({color:0xffeebb,transparent:true,opacity:.95});
+  const mSteel=new THREE.LineBasicMaterial({color:0x888899});
+  // === MAIN BODY - layered chest with armor plates + glowing reactor + abdominal block ===
+  const body=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(5.2,4,4)),mBody);
   body.position.y=5;g.add(body);
-  // Legs (thick)
+  // Outer armor plate (sloped front shield)
+  const armor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.5,2.0,.4)),mBodyDk);
+  armor.position.set(0,5.4,2.1);g.add(armor);
+  // Sub-armor side panels (riveted look)
+  [-1,1].forEach(side=>{
+    const panel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.4,3.4,3.6)),mDark);
+    panel.position.set(side*2.7,5,0);g.add(panel);
+    // Vent slits on each side panel
+    for(let v=0;v<3;v++){
+      const slit=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.15,.18,.7)),mGlow);
+      slit.position.set(side*2.95,5.5-v*.55,-.5);g.add(slit);
+    }
+  });
+  // Glowing chest reactor (the heart of the mech)
+  const reactor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.55)),mGlowHot);
+  reactor.position.set(0,5.0,2.25);g.add(reactor);
+  // Reactor rim
+  const reactorRing=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.7,.08,4,12)),mAcc);
+  reactorRing.position.set(0,5.0,2.25);g.add(reactorRing);
+  // Abdominal block (under the chest)
+  const abdomen=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(3.2,1.0,2.6)),mBodyDk);
+  abdomen.position.y=2.7;g.add(abdomen);
+  // === SHOULDER PAULDRONS - massive armored caps ===
+  [-1,1].forEach(side=>{
+    const pauldron=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(1.2,8,5,0,Math.PI*2,0,Math.PI*.6)),mBody);
+    pauldron.position.set(side*3.0,6.4,0);g.add(pauldron);
+    // Spike on top of each pauldron
+    const spike=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.25,.7,5)),mAcc);
+    spike.position.set(side*3.0,7.1,0);g.add(spike);
+  });
+  // === SHOULDER MISSILE PODS (rectangular launchers stacked) ===
+  [-1,1].forEach(side=>{
+    const pod=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.0,1.4,1.6)),mDark);
+    pod.position.set(side*3.6,5.8,-.2);g.add(pod);
+    // Missile tubes (4 visible per pod)
+    for(let r=0;r<2;r++)for(let col=0;col<2;col++){
+      const tube=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.14,.14,.4,6)),mAcc);
+      tube.rotation.x=Math.PI/2;tube.position.set(side*3.6-.28+col*.56,5.5+r*.55,.5);g.add(tube);
+    }
+  });
+  // === LEGS - 3-segment with knee + ankle joint detail ===
   [-1.4,1.4].forEach(sx=>{
-    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1,2.5,1.1)),mBody);
+    // Hip plate
+    const hipPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.85,7,5)),mBody);
+    hipPlate.position.set(sx,3.4,0);g.add(hipPlate);
+    // Thigh (bigger + chamfered)
+    const thigh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.55,.7,2.4,8)),mBody);
     thigh.position.set(sx,2,0);g.add(thigh);
-    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.9,2.2,.9)),mBody);
-    shin.position.set(sx,0,.2);g.add(shin);
-    const foot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,.4,2.5)),mDark);
-    foot.position.set(sx,-1.2,.3);g.add(foot);
+    // Thigh side armor plate
+    const thighPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.32,2.0,.6)),mBodyDk);
+    thighPlate.position.set(sx+(sx>0?.6:-.6),2,.2);g.add(thighPlate);
+    // Knee servo (sphere with accent)
+    const knee=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.6,8,5)),mDark);
+    knee.position.set(sx,.8,0);g.add(knee);
+    const kneePip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.18)),mGlow);
+    kneePip.position.set(sx,.8,.5);g.add(kneePip);
+    // Shin (multi-piece)
+    const shin=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.45,.55,2.0,8)),mBody);
+    shin.position.set(sx,-.3,.2);g.add(shin);
+    // Shin armor (front guard)
+    const shinGuard=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,1.7,.18)),mBodyDk);
+    shinGuard.position.set(sx,-.3,.7);g.add(shinGuard);
+    // Calf piston (mechanical detail behind the shin)
+    const piston=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,1.4,6)),mSteel);
+    piston.position.set(sx,-.3,-.4);g.add(piston);
+    // Ankle joint
+    const ankle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.3,6,5)),mDark);
+    ankle.position.set(sx,-1.4,.2);g.add(ankle);
+    // Foot (multi-toe claws)
+    const foot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6,.5,2.6)),mDark);
+    foot.position.set(sx,-1.7,.4);g.add(foot);
+    // Foot toe claws (3 forward toes)
+    [-.5,0,.5].forEach(tx=>{
+      const claw=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.18,.5,4)),mAcc);
+      claw.rotation.x=Math.PI/2;claw.position.set(sx+tx,-1.6,1.85);g.add(claw);
+    });
   });
-  // Twin laser cannons on top
+  // === BACK EXHAUST VENTS (4 stacked) ===
+  for(let v=0;v<4;v++){
+    const vent=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.3,.3,.45,6)),mDark);
+    vent.rotation.x=Math.PI/2;vent.position.set(-.9+v*.6,6.2,-2.3);g.add(vent);
+    const ventGlow=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.2,.2,.4,5)),mGlowHot);
+    ventGlow.rotation.x=Math.PI/2;ventGlow.position.set(-.9+v*.6,6.2,-2.5);g.add(ventGlow);
+  }
+  // === TWIN LASER CANNONS ON SHOULDERS - chunkier with barrel sleeves + sights ===
   [-1.7,1.7].forEach(sx=>{
-    const cannon=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.25,.3,2,6)),mAcc);
-    cannon.rotation.x=Math.PI/2;cannon.position.set(sx,6.5,1.5);g.add(cannon);
+    // Barrel sleeve (outer)
+    const sleeve=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.42,.42,2.4,8)),mDark);
+    sleeve.rotation.x=Math.PI/2;sleeve.position.set(sx,6.5,1.3);g.add(sleeve);
+    // Inner barrel
+    const cannon=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.25,.30,2.6,8)),mAcc);
+    cannon.rotation.x=Math.PI/2;cannon.position.set(sx,6.5,1.6);g.add(cannon);
+    // Heat-shroud rings around the barrel
+    for(let rIdx=0;rIdx<3;rIdx++){
+      const ring=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.34,.05,4,10)),mDark);
+      ring.rotation.y=Math.PI/2;ring.position.set(sx,6.5,.9+rIdx*.45);g.add(ring);
+    }
+    // Muzzle - inverted cone for that "energy mouth"
+    const muzzleCone=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.4,.5,6)),mGlow);
+    muzzleCone.rotation.x=Math.PI/2;muzzleCone.position.set(sx,6.5,2.85);g.add(muzzleCone);
     const muzzle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.3)),mGlow);
-    muzzle.position.set(sx,6.5,2.5);muzzle.name='guardianMuzzle_'+(sx<0?'L':'R');g.add(muzzle);
+    muzzle.position.set(sx,6.5,3.0);muzzle.name='guardianMuzzle_'+(sx<0?'L':'R');g.add(muzzle);
+    // Top sight
+    const sight=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.18,.4)),mAcc);
+    sight.position.set(sx,6.95,1.6);g.add(sight);
   });
-  // Cockpit hatch (closed by default) - 2 sliding plates
+  // === HEAD ANTENNA CLUSTER on top of the chest ===
+  const antMast=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.06,.08,1.4,6)),mDark);
+  antMast.position.set(0,7.6,-1.4);g.add(antMast);
+  const antDish=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.3,8,4,0,Math.PI*2,0,Math.PI*.5)),mAcc);
+  antDish.position.set(0,8.3,-1.4);g.add(antDish);
+  // Side antennas (smaller)
+  [-.3,.3].forEach(sx=>{
+    const sm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.03,.04,.7,4)),mDark);
+    sm.position.set(sx,7.5,-.6);g.add(sm);
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.06)),mGlow);
+    tip.position.set(sx,7.85,-.6);g.add(tip);
+  });
+  // === COCKPIT HATCH (closed by default) - 2 armored hatch plates with hinge bolts ===
   const hatchGroup=new THREE.Group();hatchGroup.name='hatchGroup';
-  const hLeft=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8,1.2,1.8)),mAcc);
-  hLeft.position.set(-.9,7.8,0);hLeft.name='hatchL';hatchGroup.add(hLeft);
-  const hRight=hLeft.clone();hRight.position.set(.9,7.8,0);hRight.name='hatchR';hatchGroup.add(hRight);
+  const hLeft=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6,1.4,1.6)),mAcc);
+  hLeft.position.set(-.8,7.7,0);hLeft.name='hatchL';hatchGroup.add(hLeft);
+  // Hinge bolts on the hatch
+  [-.7,-.7+1.4].forEach(by=>{
+    const bolt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.08,4,4)),mDark);
+    bolt.position.set(-1.5,7.7-.5+(by-.7)*1.4,.7);hLeft.parent.add(bolt);
+  });
+  const hRight=hLeft.clone();hRight.position.set(.8,7.7,0);hRight.name='hatchR';hatchGroup.add(hRight);
   g.add(hatchGroup);
-  // Pilot inside (visible only when hatch is open)
+  // === REALISTIC PILOT INSIDE COCKPIT (visible only when hatch opens) ===
   const pilot=new THREE.Group();pilot.name='guardianPilot';
-  const pHead=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.5,6,5)),
-    new THREE.LineBasicMaterial({color:0xff8844}));
-  pHead.position.y=.3;pilot.add(pHead);
-  const pBody=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.8,1,.6)),
-    new THREE.LineBasicMaterial({color:0xcc4422}));
-  pBody.position.y=-.4;pilot.add(pBody);
-  pilot.position.set(0,7.7,0);pilot.visible=false;
+  const mPilotSuit=new THREE.LineBasicMaterial({color:0xcc4422});
+  const mPilotSuitDk=new THREE.LineBasicMaterial({color:0x661100});
+  const mPilotHelm=new THREE.LineBasicMaterial({color:0x222233});
+  const mPilotVisor=new THREE.LineBasicMaterial({color:0xff8844,transparent:true,opacity:.95});
+  const mPilotSkin=new THREE.LineBasicMaterial({color:0xffccaa});
+  // Pilot helmet
+  const pHelm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.42,8,6)),mPilotHelm);
+  pHelm.position.y=.55;pilot.add(pHelm);
+  // Pilot visor
+  const pVisor=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.16,.06)),mPilotVisor);
+  pVisor.position.set(0,.55,.32);pilot.add(pVisor);
+  // Pilot ear pieces
+  [-1,1].forEach(sx=>{
+    const ear=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.1,5,4)),mPilotHelm);
+    ear.position.set(sx*.36,.55,0);pilot.add(ear);
+  });
+  // Pilot torso (suit)
+  const pBody=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.8,1.0,.6)),mPilotSuit);
+  pBody.position.y=-.3;pilot.add(pBody);
+  // Chest harness straps
+  [-1,1].forEach(sx=>{
+    const strap=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.08,.95,.06)),mPilotSuitDk);
+    strap.position.set(sx*.18,-.3,.32);strap.rotation.z=sx*.15;pilot.add(strap);
+  });
+  // Buckle in the middle
+  const buckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.18,.06)),mAcc);
+  buckle.position.set(0,-.4,.34);pilot.add(buckle);
+  // Pilot arms (gripping the controls)
+  [-1,1].forEach(sx=>{
+    const upper=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.11,.5,8)),mPilotSuit);
+    upper.position.set(sx*.45,-.2,0);upper.rotation.x=-.6;pilot.add(upper);
+    // Forearm reaching forward (clutching joystick)
+    const fore=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.09,.1,.4,8)),mPilotSuit);
+    fore.position.set(sx*.45,-.45,.35);fore.rotation.x=-1.2;pilot.add(fore);
+    // Glove
+    const glove=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.08,.09,.16,6)),mPilotHelm);
+    glove.position.set(sx*.45,-.5,.55);pilot.add(glove);
+  });
+  // Pilot seat (visible behind/under)
+  const seat=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.95,.18,.7)),mDark);
+  seat.position.y=-.85;pilot.add(seat);
+  // Seat backrest
+  const seatBack=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.95,.85,.12)),mDark);
+  seatBack.position.set(0,-.4,-.4);pilot.add(seatBack);
+  // Twin control sticks in front of the pilot
+  [-1,1].forEach(sx=>{
+    const stickBase=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.1,.18)),mDark);
+    stickBase.position.set(sx*.4,-.65,.55);pilot.add(stickBase);
+    const stick=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.04,.05,.3,5)),mAcc);
+    stick.position.set(sx*.4,-.55,.55);pilot.add(stick);
+    const stickKnob=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.06,5,4)),mPilotHelm);
+    stickKnob.position.set(sx*.4,-.45,.55);pilot.add(stickKnob);
+  });
+  pilot.position.set(0,7.6,0);pilot.visible=false;
   g.add(pilot);
-  // Glowing eyes on mech
+  // Glowing eyes on mech (red - intimidating)
   [-.5,.5].forEach(sx=>{
-    const eye=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.18)),mGlow);
-    eye.position.set(sx,6,2);g.add(eye);
+    const eye=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.2)),mGlow);
+    eye.position.set(sx,5.9,2.05);g.add(eye);
   });
   // Position at base gate
   g.position.set(0,2,-30);
@@ -13036,6 +13789,19 @@ function enterForestDungeon(){
 // v6.84: Build the dungeon scene - corridor maze + turrets + doctor NPC + exit door
 function buildForestDungeon(){
   if(!forestScene)return;
+  // v6.95: hard-refresh leftover combat debris (beams, particles, projectiles, star field)
+  // before swapping the scene contents — fixes the "stars / space beams stay visible" bug.
+  try{
+    if(typeof pBeams!=='undefined'&&pBeams){pBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});pBeams.length=0}
+    if(typeof eBeams!=='undefined'&&eBeams){eBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});eBeams.length=0}
+    if(typeof particles!=='undefined'&&particles){particles.forEach(p=>{try{scene.remove(p.mesh)}catch(e){}});particles.length=0}
+    if(typeof megaBossProjectiles!=='undefined'&&megaBossProjectiles){megaBossProjectiles.forEach(p=>{try{if(p.mesh)scene.remove(p.mesh)}catch(e){}});megaBossProjectiles.length=0}
+    if(typeof starField!=='undefined'&&starField)starField.visible=false;
+    if(typeof speedLines!=='undefined'&&speedLines)speedLines.visible=false;
+    if(typeof persistentFortMesh!=='undefined'&&persistentFortMesh)persistentFortMesh.visible=false;
+    if(typeof fireSunMesh!=='undefined'&&fireSunMesh)fireSunMesh.visible=false;
+    if(typeof titlePlanet!=='undefined'&&titlePlanet)titlePlanet.visible=false;
+  }catch(e){}
   // Remove outdoor forest (trees, base, etc.) except the pilot
   const keep=new Set([forestPilot]);
   for(let i=forestScene.children.length-1;i>=0;i--){
@@ -13143,24 +13909,111 @@ function spawnDungeonTurret(x,z){
   });
 }
 
-function spawnDungeonDoctor(x,z){
-  const g=new THREE.Group();g.name='dungeonDoctor';
+// v6.96: Realistic HK-CHINDERU MK doctor figure - shared between dungeon (full size + halo + pillar)
+// and bike (no halo/pillar). Properly proportioned humanoid: hooded head, robed body, lower robe skirt,
+// arms with sleeves, hands. opts.includeHalo=true adds the rescue-target halo + pillar.
+function makeForestDoctor(opts){
+  opts=opts||{};
+  const g=new THREE.Group();g.name='forestDoctor';
   const mRobe=new THREE.LineBasicMaterial({color:0x44ffaa,transparent:true,opacity:.9});
-  const mHead=new THREE.LineBasicMaterial({color:0xffcc88});
-  // Robed figure (HK-CHINDERU MK - padawan of HK-TAMAAN)
-  const body=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.9,2.2,6)),mRobe);
-  body.position.y=1.1;g.add(body);
-  const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.4,6,5)),mHead);
+  const mRobeDk=new THREE.LineBasicMaterial({color:0x118855,transparent:true,opacity:.85});
+  const mSash=new THREE.LineBasicMaterial({color:0xffcc44,transparent:true,opacity:.95});
+  const mHead=new THREE.LineBasicMaterial({color:0xffcc88,transparent:true,opacity:.95});
+  const mHair=new THREE.LineBasicMaterial({color:0x553311,transparent:true,opacity:.9});
+  const mDark=new THREE.LineBasicMaterial({color:0x222233,transparent:true,opacity:.8});
+  // === HEAD (with hood, beard hint, eyes) ===
+  const head=new THREE.Group();head.name='doctorHead';
+  const skull=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.32,8,6)),mHead);
+  head.add(skull);
+  // Hood draped on the back of the head
+  const hoodBack=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.4,8,5,0,Math.PI*2,0,Math.PI*.65)),mRobe);
+  hoodBack.position.set(0,.05,-.05);hoodBack.rotation.x=.15;head.add(hoodBack);
+  // Hood front opening / cowl ring
+  const cowl=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.3,.05,5,12)),mRobe);
+  cowl.position.set(0,-.05,.05);cowl.rotation.x=Math.PI*.5;head.add(cowl);
+  // Sage beard (small wedge under the chin)
+  const beard=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.18,.32,6)),mHair);
+  beard.position.set(0,-.32,.16);beard.rotation.x=.2;head.add(beard);
+  // Eyes (two tiny dark dots)
+  [-1,1].forEach(sx=>{
+    const eye=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.04)),mDark);
+    eye.position.set(sx*.1,.04,.28);head.add(eye);
+  });
   head.position.y=2.5;g.add(head);
-  // Small glowing halo above
-  const halo=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.5,.05,4,12)),
-    new THREE.LineBasicMaterial({color:0x88ffcc}));
-  halo.position.y=3.1;halo.rotation.x=Math.PI/2;g.add(halo);
-  // Glow pillar (indicates rescue target)
-  const pillar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.15,.15,8,6)),
-    new THREE.LineBasicMaterial({color:0x44ffaa,transparent:true,opacity:.5}));
-  pillar.position.y=4;g.add(pillar);
-  g.position.set(x,0,z);g.name='dungeonDoctor';
+  // === NECK ===
+  const neck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.12,.15,6)),mDark);
+  neck.position.y=2.1;g.add(neck);
+  // === UPPER BODY (chest robe) ===
+  const body=new THREE.Group();body.name='doctorBody';
+  const chest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.45,.55,1.0,8)),mRobe);
+  chest.position.y=0;body.add(chest);
+  // V-collar opening
+  const collar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.32,.3,6)),mRobeDk);
+  collar.position.set(0,.4,.2);collar.rotation.x=-.2;body.add(collar);
+  // Sash across the chest (yellow)
+  const sash=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.95,.18,.08)),mSash);
+  sash.position.set(0,0,.3);sash.rotation.z=.25;body.add(sash);
+  // Belt at waist
+  const belt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.5,.05,4,12)),mSash);
+  belt.position.y=-.55;belt.rotation.x=Math.PI/2;body.add(belt);
+  body.position.y=1.45;g.add(body);
+  // === ARMS - draped sleeves + hands ===
+  ['lArm','rArm'].forEach((nm,idx)=>{
+    const side=idx===0?-1:1;
+    const arm=new THREE.Group();arm.name='doctor'+nm;
+    // Wide sleeve (upper arm covered by robe)
+    const sleeveUp=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.18,.16,.55,8)),mRobe);
+    sleeveUp.position.y=-.3;arm.add(sleeveUp);
+    // Lower sleeve (forearm, slightly narrower)
+    const sleeveLo=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.16,.13,.55,8)),mRobe);
+    sleeveLo.position.y=-.85;arm.add(sleeveLo);
+    // Hand poking out of the sleeve
+    const hand=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.1,6,5)),mHead);
+    hand.position.y=-1.18;arm.add(hand);
+    // Slight outward tilt + relaxed hang
+    arm.position.set(side*.5,1.85,0);
+    arm.rotation.z=side*.18;
+    arm.rotation.x=.05;
+    g.add(arm);
+  });
+  // === LOWER ROBE / SKIRT (wide flowing bottom) ===
+  const skirt=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.55,.85,1.0,10)),mRobe);
+  skirt.position.y=.4;g.add(skirt);
+  // Skirt lower fold
+  const fold=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.85,.95,.25,10)),mRobeDk);
+  fold.position.y=-.1;g.add(fold);
+  // Hint of feet poking out
+  [-1,1].forEach(sx=>{
+    const foot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.1,.32)),mDark);
+    foot.position.set(sx*.18,-.18,.05);g.add(foot);
+  });
+  // === HALO + PILLAR (only in dungeon, marks rescue target) ===
+  if(opts.includeHalo){
+    const halo=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.5,.05,4,12)),
+      new THREE.LineBasicMaterial({color:0x88ffcc}));
+    halo.position.y=3.1;halo.rotation.x=Math.PI/2;halo.name='doctorHalo';g.add(halo);
+    const pillar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.15,.15,8,8)),
+      new THREE.LineBasicMaterial({color:0x44ffaa,transparent:true,opacity:.5}));
+    pillar.position.y=4;pillar.name='doctorPillar';g.add(pillar);
+  }
+  // === BLASTER PISTOL (only on bike - back-pointed for the auto-fire) ===
+  if(opts.includeBlaster){
+    const blaster=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.16,.5)),
+      new THREE.LineBasicMaterial({color:0x222244}));
+    blaster.position.set(.4,1.1,-.45);blaster.name='docBlaster';g.add(blaster);
+    // Barrel detail
+    const barrel=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.04,.05,.25,5)),
+      new THREE.LineBasicMaterial({color:0x444466}));
+    barrel.rotation.x=Math.PI/2;barrel.position.set(.4,1.1,-.75);g.add(barrel);
+  }
+  return g;
+}
+
+function spawnDungeonDoctor(x,z){
+  // v6.96: use the realistic shared doctor figure (full halo + pillar for rescue target marker)
+  const g=makeForestDoctor({includeHalo:true});
+  g.name='dungeonDoctor';
+  g.position.set(x,0,z);
   forestScene.add(g);
   forestDungeon.doctor=g;
 }
@@ -13266,14 +14119,28 @@ function updateForestDungeon(dt){
 
 // v6.85: SPEEDER BIKE CHASE — v6.94 doubled to 44s through jungle with 3+3+2 pursuer waves
 let forestBike=null;
-// v6.94: ground undulation for the bike chase corridor
+// v6.95: ground undulation for the bike chase corridor
 function bikeTerrainHeight(z){
   return Math.sin(z*0.04)*0.5+Math.sin(z*0.11+0.7)*0.22;
 }
 function enterForestSpeederEscape(){
   if(!forestState||!forestScene)return;
-  // v6.94: defensive - if any bridge/cine mesh somehow leaked into this scene, drop it now
+  // v6.95: defensive - if any bridge/cine mesh somehow leaked into this scene, drop it now
   try{if(wfCineGroup){scene.remove(wfCineGroup);wfCineGroup=null;wfCineActive=false;}}catch(e){}
+  // v6.95: HARD-REFRESH all leftover bullets/particles/projectiles/background sprites so the bike
+  // chase starts on a clean slate (fixes "leftover stars / space beams" reported in v6.95).
+  try{
+    if(typeof pBeams!=='undefined'&&pBeams){pBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});pBeams.length=0}
+    if(typeof eBeams!=='undefined'&&eBeams){eBeams.forEach(b=>{try{scene.remove(b.mesh)}catch(e){}});eBeams.length=0}
+    if(typeof particles!=='undefined'&&particles){particles.forEach(p=>{try{scene.remove(p.mesh)}catch(e){}});particles.length=0}
+    if(typeof megaBossProjectiles!=='undefined'&&megaBossProjectiles){megaBossProjectiles.forEach(p=>{try{if(p.mesh)scene.remove(p.mesh)}catch(e){}});megaBossProjectiles.length=0}
+    if(forestBeams){forestBeams.forEach(b=>{try{if(b.mesh&&b.mesh.parent)b.mesh.parent.remove(b.mesh)}catch(e){}});forestBeams.length=0}
+    if(typeof starField!=='undefined'&&starField)starField.visible=false;
+    if(typeof speedLines!=='undefined'&&speedLines)speedLines.visible=false;
+    if(typeof persistentFortMesh!=='undefined'&&persistentFortMesh)persistentFortMesh.visible=false;
+    if(typeof fireSunMesh!=='undefined'&&fireSunMesh)fireSunMesh.visible=false;
+    if(typeof titlePlanet!=='undefined'&&titlePlanet)titlePlanet.visible=false;
+  }catch(e){}
   forestState.phase='bike';
   for(let i=forestScene.children.length-1;i>=0;i--){
     try{forestScene.remove(forestScene.children[i])}catch(e){}
@@ -13285,17 +14152,17 @@ function enterForestSpeederEscape(){
   buildBikeScene();
   forestBike={
     state:'ride',
-    t:0,totalT:44,// v6.94: doubled (was 22s)
+    t:0,totalT:44,// v6.95: doubled (was 22s)
     laneX:0,
     targetLaneX:0,
     shootCD:0,
     pursuers:[],
     forwardSpeed:40,
     scrollPos:0,
-    doctorAutoFireT:0,// v6.94: doctor auto-fire timer
-    bikeShakeT:0,// v6.94: ram shake
-    nextWaveAt:18,// v6.94: spawn second wave at t=18s
-    nextWaveAt2:32,// v6.94: spawn third wave at t=32s
+    doctorAutoFireT:0,// v6.95: doctor auto-fire timer
+    bikeShakeT:0,// v6.95: ram shake
+    nextWaveAt:18,// v6.95: spawn second wave at t=18s
+    nextWaveAt2:32,// v6.95: spawn third wave at t=32s
   };
   for(let i=0;i<3;i++){
     spawnBikePursuer(i);
@@ -13318,8 +14185,12 @@ function enterForestSpeederEscape(){
 function buildBikeScene(){
   const mGround=new THREE.LineBasicMaterial({color:0x226633,transparent:true,opacity:.6});
   const mTrunk=new THREE.LineBasicMaterial({color:0x884422,transparent:true,opacity:.7});
+  const mTrunkDk=new THREE.LineBasicMaterial({color:0x4a2a11,transparent:true,opacity:.75});
   const mLeaves=new THREE.LineBasicMaterial({color:0x44ff66,transparent:true,opacity:.75});
-  // v6.94: longer corridor (-400..+40 = 440m) + ground undulation polylines
+  const mLeavesDk=new THREE.LineBasicMaterial({color:0x228844,transparent:true,opacity:.75});
+  const mRock=new THREE.LineBasicMaterial({color:0x886655,transparent:true,opacity:.85});
+  const mRockDk=new THREE.LineBasicMaterial({color:0x554433,transparent:true,opacity:.85});
+  // v6.95: longer corridor (-400..+40 = 440m) + ground undulation polylines
   for(let x=-20;x<=20;x+=4){
     const pts=[];
     for(let z=-400;z<=40;z+=8){
@@ -13334,7 +14205,39 @@ function buildBikeScene(){
     }
     forestScene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mGround));
   }
-  // v6.94: 120 trees per side (was 60), spread over 440m
+  // v6.97: NIGHT-SKY STAR FIELD overhead (twinkling cyber stars + occasional shooting star).
+  // Stored in a child Group so we can spin it slowly during the chase.
+  const starGroup=new THREE.Group();starGroup.name='bikeStarField';
+  const starGeo=new THREE.BufferGeometry();
+  const starN=350;const starPos=new Float32Array(starN*3);
+  for(let i=0;i<starN;i++){
+    const ang=Math.random()*Math.PI*2;
+    const r=80+Math.random()*120;// orbital ring radius
+    starPos[i*3]=Math.cos(ang)*r;
+    starPos[i*3+1]=20+Math.random()*60;// 20..80m up
+    starPos[i*3+2]=Math.sin(ang)*r-150;// centred ahead of the chase
+  }
+  starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
+  starGroup.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.6,sizeAttenuation:true,transparent:true,opacity:.95})));
+  // Bigger sparkly stars (octahedrons)
+  for(let i=0;i<24;i++){
+    const star=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.4+Math.random()*.4)),
+      new THREE.LineBasicMaterial({color:Math.random()<.5?0xeeeeff:0x99ddff,transparent:true,opacity:.9}));
+    const ang=Math.random()*Math.PI*2;
+    const r=110+Math.random()*70;
+    star.position.set(Math.cos(ang)*r,30+Math.random()*45,Math.sin(ang)*r-180);
+    starGroup.add(star);
+  }
+  // Distant glowing nebula horizon ring (very faint colored ring far away)
+  const neb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(180,4,4,32)),
+    new THREE.LineBasicMaterial({color:0x6644aa,transparent:true,opacity:.35}));
+  neb.position.set(0,8,-200);neb.rotation.x=Math.PI*.45;starGroup.add(neb);
+  // Crescent moon (bright disk)
+  const moon=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(6,8,6)),
+    new THREE.LineBasicMaterial({color:0xffffcc,transparent:true,opacity:.9}));
+  moon.position.set(40,55,-160);starGroup.add(moon);
+  forestScene.add(starGroup);
+  // v6.95: 120 trees per side (was 60), spread over 440m - SIDE TREES (lane edge) ===
   for(let i=0;i<120;i++){
     [-1,1].forEach(side=>{
       const tree=new THREE.Group();
@@ -13352,6 +14255,46 @@ function buildBikeScene(){
       forestScene.add(tree);
     });
   }
+  // v6.97: COURSE OBSTACLES - smaller trees AND rocks placed in the lanes (x=-16..16) so the
+  // player must dodge them while chasing. They share the bikeTree name so the scroll-recycle loop
+  // moves them along with the side trees.
+  const obstacleCount=70;
+  for(let i=0;i<obstacleCount;i++){
+    const isRock=Math.random()<.5;
+    const obj=new THREE.Group();
+    if(isRock){
+      // Cluster of 1-3 boulders
+      const n=1+Math.floor(Math.random()*3);
+      for(let r=0;r<n;r++){
+        const size=.7+Math.random()*1.1;
+        const rock=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(size,0)),Math.random()<.4?mRockDk:mRock);
+        rock.position.set((Math.random()-.5)*1.2,size*.55,(Math.random()-.5)*1.2);
+        rock.scale.y=.6+Math.random()*.4;
+        obj.add(rock);
+      }
+    } else {
+      // Small lane tree (shorter than the side trees so it reads as "in the way")
+      const h=2.2+Math.random()*1.6;
+      const trunk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.18,.28,h*.55,5)),Math.random()<.4?mTrunkDk:mTrunk);
+      trunk.position.y=h*.3;obj.add(trunk);
+      for(let l=0;l<2;l++){
+        const size=1.0-l*.25;
+        const cone=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(size,h*.45,6)),Math.random()<.3?mLeavesDk:mLeaves);
+        cone.position.y=h*.55+l*h*.22;obj.add(cone);
+      }
+    }
+    // x in [-15..15] but bias slightly away from dead-center so single line is always traversable
+    const lane=Math.random();
+    let ox;
+    if(lane<.3)ox=(Math.random()-.5)*4;// near centre
+    else if(lane<.65)ox=-15+Math.random()*8;// left lane
+    else ox=7+Math.random()*8;// right lane
+    const oz=-380+(i/obstacleCount)*420;
+    obj.position.set(ox,bikeTerrainHeight(oz),oz);
+    obj.name='bikeTree';// reuse the recycle path in updateForestBike
+    obj.userData.isObstacle=true;
+    forestScene.add(obj);
+  }
   if(forestPilot){try{forestScene.remove(forestPilot)}catch(e){}}
   forestPilot=makeSpeederBike(true);
   forestPilot.position.set(0,1,-5);
@@ -13360,48 +14303,102 @@ function buildBikeScene(){
 }
 
 // Build a speeder bike mesh; withRider=true adds pilot + doctor on top.
-// v6.94: options.enemyRider=true adds an imperial-trooper figure (used for enemy bikes).
+// v6.95: options.enemyRider=true adds an imperial-trooper figure (used for enemy bikes).
+// v6.96 redesign: layered chassis (upper hull + lower belly) + side fairings + front cowl + cone steering
+// vanes + side handlebar grips + tail repulsor stack + exhaust glow + 6-side body cylinders so the bike
+// reads as an actual vehicle, not just a box on hover-disks.
 function makeSpeederBike(withRider,options){
   options=options||{};
   const g=new THREE.Group();g.name='speederBike';
   const mBody=new THREE.LineBasicMaterial({color:0x999999});
+  const mBodyDk=new THREE.LineBasicMaterial({color:0x555566});
   const mAcc=new THREE.LineBasicMaterial({color:0xff8844});
-  const mGlow=new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.8});
-  const chassis=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.8,.4,3.5)),mBody);
-  chassis.position.y=.3;g.add(chassis);
-  const front=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.5,1.2,6)),mBody);
-  front.position.set(0,.3,2);front.rotation.x=-Math.PI/2;g.add(front);
-  const exhaust=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.3)),mGlow);
-  exhaust.position.set(0,.3,-2);g.add(exhaust);
-  const bar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.05,.05,1.2,4)),mAcc);
-  bar.rotation.z=Math.PI/2;bar.position.set(0,.7,1.5);g.add(bar);
-  [-.6,.6].forEach(sz=>{
-    const disk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.4,.08,4,8)),mGlow);
-    disk.position.set(0,.1,sz*2.5);disk.rotation.x=Math.PI/2;g.add(disk);
+  const mGlow=new THREE.LineBasicMaterial({color:0x44eeff,transparent:true,opacity:.85});
+  const mGlowHot=new THREE.LineBasicMaterial({color:0xffeebb,transparent:true,opacity:.95});
+  // === MAIN CHASSIS - upper hull (where rider sits) ===
+  const chassis=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.7,.32,3.0)),mBody);
+  chassis.position.y=.45;g.add(chassis);
+  // Lower belly (engine block) - longer, narrower, fits under the chassis
+  const belly=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.32,.28,3.4,8)),mBodyDk);
+  belly.rotation.x=Math.PI/2;belly.position.y=.18;g.add(belly);
+  // Side fairings (aerodynamic wings on each side of the chassis)
+  [-1,1].forEach(side=>{
+    const fairing=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.2,2.6)),mBody);
+    fairing.position.set(side*.5,.42,0);
+    g.add(fairing);
+    // Edge stripe / accent line on each fairing
+    const stripe=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.04,.06,2.4)),mAcc);
+    stripe.position.set(side*.6,.5,0);
+    g.add(stripe);
   });
+  // === FRONT NOSE COWL ===
+  const noseCowl=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.45,1.4,6)),mBody);
+  noseCowl.position.set(0,.42,1.9);noseCowl.rotation.x=-Math.PI/2;g.add(noseCowl);
+  // Front headlight (orange)
+  const headlight=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.18)),mGlowHot);
+  headlight.position.set(0,.45,2.55);g.add(headlight);
+  // Front steering vanes (small fins on either side of the nose)
+  [-1,1].forEach(side=>{
+    const vane=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.2,.7,5)),mAcc);
+    vane.position.set(side*.5,.5,1.7);vane.rotation.z=side*Math.PI*.5;g.add(vane);
+  });
+  // === HANDLEBAR ===
+  const bar=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.05,.05,1.0,6)),mBodyDk);
+  bar.rotation.z=Math.PI/2;bar.position.set(0,.78,1.0);g.add(bar);
+  // Handlebar grips (one on each side)
+  [-1,1].forEach(side=>{
+    const grip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.07,.06,.18,6)),mAcc);
+    grip.rotation.z=Math.PI/2;grip.position.set(side*.5,.78,1.0);g.add(grip);
+  });
+  // === TAIL REPULSOR STACK + EXHAUST ===
+  // Two stacked exhaust nozzles
+  [-.18,.18].forEach(yoff=>{
+    const nozzle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.18,.22,.5,6)),mBodyDk);
+    nozzle.rotation.x=Math.PI/2;nozzle.position.set(0,.3+yoff*.3,-1.85);g.add(nozzle);
+    // Inner glow
+    const glow=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.16,.45,5)),mGlowHot);
+    glow.rotation.x=Math.PI/2;glow.position.set(0,.3+yoff*.3,-1.95);g.add(glow);
+  });
+  // Trailing exhaust plume (cone)
+  const plume=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(.3,.85,5)),
+    new THREE.LineBasicMaterial({color:0xff6622,transparent:true,opacity:.7}));
+  plume.position.set(0,.3,-2.4);plume.rotation.x=Math.PI/2;g.add(plume);
+  // === REPULSOR DISKS (hover plates) - 4 instead of 2, with inner glow ring ===
+  [[-.55,1.2],[.55,1.2],[-.55,-1.2],[.55,-1.2]].forEach(p=>{
+    const disk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(.32,.07,5,10)),mGlow);
+    disk.position.set(p[0],.05,p[1]);disk.rotation.x=Math.PI/2;g.add(disk);
+    // Inner glow disc
+    const inner=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CircleGeometry(.22,8)),mGlowHot);
+    inner.position.set(p[0],.02,p[1]);inner.rotation.x=-Math.PI/2;g.add(inner);
+  });
+  // === SIDE FOOTPEGS for the rider ===
+  [-1,1].forEach(side=>{
+    const peg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.06,.08,.36)),mBodyDk);
+    peg.position.set(side*.45,.18,.4);g.add(peg);
+  });
+  // === SEAT (visible when no rider, otherwise rider covers it) ===
+  const seat=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.55,.12,.65)),mBodyDk);
+  seat.position.y=.65;g.add(seat);
+  // Rear backrest
+  const backrest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,.5,.1)),mBody);
+  backrest.position.set(0,.85,-.55);g.add(backrest);
   if(withRider){
     const pilot=makePilotFigure();
     pilot.scale.setScalar(.7);
     pilot.position.set(0,.8,.5);pilot.rotation.y=Math.PI;
     pilot.traverse(o=>{o.userData.preserveColor=true});
     g.add(pilot);
-    const doc=new THREE.Group();doc.name='bikeDoctor';
-    const body=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.3,.4,1.2,6)),
-      new THREE.LineBasicMaterial({color:0x44ffaa,transparent:true,opacity:.9}));
-    body.position.y=.6;doc.add(body);
-    const head=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.22,5,4)),
-      new THREE.LineBasicMaterial({color:0xffcc88}));
-    head.position.y=1.4;doc.add(head);
-    // v6.94: doctor's blaster pistol pointed back toward the pursuers
-    const blaster=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.18,.16,.5)),
-      new THREE.LineBasicMaterial({color:0x222244}));
-    blaster.position.set(.3,.9,-.4);blaster.name='docBlaster';doc.add(blaster);
+    // v6.96: realistic doctor figure (shared with the dungeon scene). Bike version omits the halo
+    // + pillar but adds the back-pointing blaster pistol.
+    const doc=makeForestDoctor({includeBlaster:true});
+    doc.name='bikeDoctor';
+    doc.scale.setScalar(.45);// slim him down so he fits seated behind the pilot
+    doc.position.set(0,.45,-1);
     doc.traverse(o=>{o.userData.preserveColor=true});
-    doc.position.set(0,.8,-1);
     g.add(doc);
   }
   if(options.enemyRider){
-    // v6.94: imperial trooper figure on the enemy bike (kept white so the dark-red bike tint skips it)
+    // v6.95: imperial trooper figure on the enemy bike (kept white so the dark-red bike tint skips it)
     const trooper=makeImperialTrooper();
     trooper.scale.setScalar(.6);
     trooper.position.set(0,.85,.3);
@@ -13412,7 +14409,7 @@ function makeSpeederBike(withRider,options){
   return g;
 }
 
-// v6.94: minimal wireframe imperial trooper figure for enemy bike riders
+// v6.95: minimal wireframe imperial trooper figure for enemy bike riders
 function makeImperialTrooper(){
   const t=new THREE.Group();t.name='imperialTrooper';
   const mWhite=new THREE.LineBasicMaterial({color:0xeeeeee});
@@ -13442,14 +14439,14 @@ function makeImperialTrooper(){
 
 function spawnBikePursuer(idx){
   if(!forestBike||!forestScene)return;
-  // v6.94: enemy bikes now carry an imperial-trooper rider
+  // v6.95: enemy bikes now carry an imperial-trooper rider
   const bike=makeSpeederBike(false,{enemyRider:true});
   // Tint only the bike chassis dark red - leave the trooper white (rider meshes have preserveColor flag)
   bike.traverse(o=>{
     if(o.userData&&o.userData.preserveColor)return;
     if(o.material&&o.material.color)o.material.color.setHex(0x882211);
   });
-  // v6.94: spawn BEHIND the player (positive +Z = behind, since the bike faces -Z)
+  // v6.95: spawn BEHIND the player (positive +Z = behind, since the bike faces -Z)
   bike.position.set(-6+idx*6,1,15+idx*4);
   bike.rotation.y=Math.PI;
   forestScene.add(bike);
@@ -13468,7 +14465,7 @@ function spawnBikePursuer(idx){
 function updateForestBike(dt){
   if(!forestBike||!forestPilot)return;
   forestBike.t+=dt;
-  // v6.94: spawn additional waves at scheduled times (now that the chase is 2x longer)
+  // v6.95: spawn additional waves at scheduled times (now that the chase is 2x longer)
   if(forestBike.nextWaveAt!=null&&forestBike.t>=forestBike.nextWaveAt){
     forestBike.nextWaveAt=null;
     for(let i=0;i<3;i++)spawnBikePursuer(i);
@@ -13488,9 +14485,9 @@ function updateForestBike(dt){
   forestBike.laneX+=(forestBike.targetLaneX-forestBike.laneX)*dt*5;
   forestPilot.position.x=forestBike.laneX;
   forestPilot.rotation.z=(forestBike.targetLaneX-forestBike.laneX)*.05;
-  // v6.94: terrain-follow + bobbing
+  // v6.95: terrain-follow + bobbing
   forestPilot.position.y=1+Math.sin(forestBike.t*8)*.1+bikeTerrainHeight(forestBike.scrollPos);
-  // v6.94: ram impact shake
+  // v6.95: ram impact shake
   if(forestBike.bikeShakeT>0){
     forestBike.bikeShakeT-=dt;
     forestPilot.position.y+=Math.sin(forestBike.t*60)*.15;
@@ -13501,10 +14498,23 @@ function updateForestBike(dt){
     if(c.name==='bikeTree'){
       c.position.z+=forestBike.forwardSpeed*dt;
       if(c.position.z>25){
-        c.position.z-=440;// v6.94: longer recycle distance
-        c.position.x=(Math.random()<.5?-1:1)*(22+Math.random()*6);
+        c.position.z-=440;// v6.95: longer recycle distance
+        if(c.userData&&c.userData.isObstacle){
+          // v6.97: lane obstacles respawn IN the lane (x=-15..15) with biased lateral position
+          const lane=Math.random();
+          if(lane<.3)c.position.x=(Math.random()-.5)*4;
+          else if(lane<.65)c.position.x=-15+Math.random()*8;
+          else c.position.x=7+Math.random()*8;
+        } else {
+          // Side trees keep to the lane edges (±22-28)
+          c.position.x=(Math.random()<.5?-1:1)*(22+Math.random()*6);
+        }
         c.position.y=bikeTerrainHeight(c.position.z+forestBike.scrollPos);
       }
+    }
+    // v6.97: slowly rotate the star field for parallax / starscape feel
+    if(c.name==='bikeStarField'){
+      c.rotation.y+=dt*0.015;
     }
   });
   // Pursuers
@@ -13518,7 +14528,7 @@ function updateForestBike(dt){
       p.laneX+=(p.targetLaneX-p.laneX)*dt*.3;
     }
     p.mesh.position.x=p.laneX;
-    // v6.94: pursuer chases by moving in -Z direction (toward player at z=-5)
+    // v6.95: pursuer chases by moving in -Z direction (toward player at z=-5)
     p.mesh.position.z-=p.speed*dt;
     // Terrain-follow
     p.mesh.position.y=1+Math.sin(forestBike.t*7+p.laneX)*.1+bikeTerrainHeight(forestBike.scrollPos+p.mesh.position.z);
@@ -13535,7 +14545,7 @@ function updateForestBike(dt){
       firePursuerLaser(p);
     }
   });
-  // v6.94: ram collisions + tree-kill
+  // v6.95: ram collisions + tree-kill
   bikeRamCollision(dt);
   // Manual back-fire (Space/touch)
   forestState.beamCD-=dt;
@@ -13544,7 +14554,7 @@ function updateForestBike(dt){
     fireBikeBackShot();
     forestState.beamCD=.3;
   }
-  // v6.94: doctor auto-fires backward at the nearest pursuer every ~0.7s
+  // v6.95: doctor auto-fires backward at the nearest pursuer every ~0.7s
   forestBike.doctorAutoFireT-=dt;
   if(forestBike.doctorAutoFireT<=0){
     forestBike.doctorAutoFireT=.7;
@@ -13609,7 +14619,7 @@ function updateForestBike(dt){
   }
 }
 
-// v6.94: doctor's auto-fire — locks onto the nearest pursuer behind the bike
+// v6.95: doctor's auto-fire — locks onto the nearest pursuer behind the bike
 function fireDoctorAutoShot(){
   if(!forestPilot||!forestScene||!forestBike)return;
   let target=null,nearestD=Infinity;
@@ -13634,7 +14644,7 @@ function fireDoctorAutoShot(){
   try{if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('triangle',1400,t,.05,.06);sfx._n(t,.04,.08,5000,1200)}}catch(e){}
 }
 
-// v6.94: ram + tree-kill collision system for the bike chase
+// v6.95: ram + tree-kill collision system for the bike chase
 function bikeRamCollision(dt){
   if(!forestBike||!forestPilot)return;
   forestBike.pursuers.forEach(p=>{
@@ -13731,24 +14741,57 @@ function firePursuerLaser(p){
 
 // v6.85: PLANET SELF-DESTRUCT cinematic - end of forest mission
 function playPlanetDestructCinematic(){
-  // DOM overlay with planet + destruct button + chain voice
+  // v6.97: REALISTIC 3D DESTRUCT BUTTON - chunky red dome on a metal housing inside a glass guard.
+  // Built entirely with stacked CSS divs (3D transforms) so the button has real depth + press anim.
   let ov=document.getElementById('forest-destruct');if(ov)ov.remove();
   ov=document.createElement('div');ov.id='forest-destruct';
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:250;'+
     'background:radial-gradient(ellipse at center,rgba(20,0,0,0.6),rgba(0,0,0,0.96));'+
     'display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ff4;'+
-    'font-family:inherit;text-align:center;pointer-events:none';
+    'font-family:inherit;text-align:center;pointer-events:none;perspective:1200px';
   ov.innerHTML=
-    '<div style="font-size:14px;color:#fa8;letter-spacing:4px;margin-bottom:6px">&#9679; ABOARD THE SHIP — ORBITAL VIEW &#9679;</div>'+
+    '<div style="font-size:14px;color:#fa8;letter-spacing:4px;margin-bottom:6px">&#9679; ABOARD THE SHIP &mdash; ORBITAL VIEW &#9679;</div>'+
     '<div style="font-size:24px;color:#ff4;letter-spacing:5px;text-shadow:0 0 16px #ff4;margin-bottom:14px">THE FOREST PLANET IS ARTIFICIAL!</div>'+
-    // Planet view + destruct button
-    '<div style="position:relative;width:360px;height:260px">'+
-    '  <div id="destruct-planet" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:180px;height:180px;border:3px solid #4f4;border-radius:50%;background:radial-gradient(circle,rgba(68,255,102,0.25),rgba(34,204,51,0.4));box-shadow:0 0 30px #4f4"></div>'+
-    '  <div id="destruct-flash" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0);transition:background .3s"></div>'+
-    '  <button type="button" id="destruct-btn" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:14px 28px;background:rgba(80,0,0,0.9);border:3px solid #f44;color:#ff8;font-size:18px;letter-spacing:4px;cursor:pointer;border-radius:10px;font-family:inherit;box-shadow:0 0 16px #f44;-webkit-appearance:none;touch-action:manipulation;animation:destructPulse 1.2s infinite">&#9888; PRESS THE DESTRUCT BUTTON &#9888;</button>'+
+    // Planet + destruct button stage
+    '<div style="position:relative;width:380px;height:340px">'+
+      // Planet (rotating glow circle)
+      '  <div id="destruct-planet" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:170px;height:170px;border:3px solid #4f4;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(120,255,150,0.55),rgba(34,160,51,0.85) 60%,rgba(8,40,8,0.95));box-shadow:0 0 30px #4f4,inset -20px -20px 40px rgba(0,0,0,0.5)"></div>'+
+      '  <div id="destruct-flash" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,0);transition:background .3s,box-shadow .3s"></div>'+
+      // === 3D DESTRUCT BUTTON ASSEMBLY ===
+      // Outer housing - metallic plate
+      '  <div id="destruct-housing" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%) rotateX(60deg);transform-style:preserve-3d;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#666 0%,#333 60%,#222 100%);border:3px solid #888;box-shadow:0 0 24px rgba(255,68,68,0.4),inset 0 0 30px rgba(0,0,0,0.7)">'+
+        // Bolts around the rim
+        Array.from({length:8}).map((_,i)=>{
+          const ang=(i/8)*360;
+          return '<div style="position:absolute;width:14px;height:14px;background:radial-gradient(circle at 30% 30%,#999,#444);border-radius:50%;border:1px solid #222;left:50%;top:50%;transform:translate(-50%,-50%) rotate('+ang+'deg) translate(105px) rotate(-'+ang+'deg);box-shadow:0 0 4px rgba(0,0,0,0.6)"></div>';
+        }).join('')+
+        // Warning stripes (yellow/black)
+        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:160px;height:160px;border-radius:50%;background:repeating-conic-gradient(#ff0 0 20deg,#000 20deg 40deg);opacity:.45"></div>'+
+        // Inner ring (button socket)
+        '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#222,#000);box-shadow:inset 0 0 18px rgba(255,68,68,0.6),inset 0 0 6px rgba(0,0,0,0.95)"></div>'+
+        // === THE BIG RED BUTTON CAP (3D dome) ===
+        '<div id="destruct-cap" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translateZ(36px);width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffaaaa 0%,#ff4422 30%,#cc1100 75%,#660000 100%);box-shadow:0 0 24px #ff4422,inset -10px -16px 24px rgba(0,0,0,0.4),inset 8px 8px 18px rgba(255,200,200,0.5);transition:transform 0.18s ease-out,box-shadow 0.18s ease-out;cursor:pointer;animation:destructPulse 1.2s infinite">'+
+          // Highlight glint on the button cap
+          '<div style="position:absolute;top:14%;left:22%;width:30%;height:18%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,0.85),rgba(255,255,255,0));pointer-events:none"></div>'+
+          // Centre warning glyph
+          '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;color:#fff;text-shadow:0 0 8px #f00,0 0 4px #000;font-weight:bold;pointer-events:none">&#9888;</div>'+
+        '</div>'+
+        // Shield arms (the flip-up safety guard)
+        '<div id="destruct-guard-l" style="position:absolute;top:14%;left:18%;width:8px;height:65px;background:linear-gradient(180deg,#888,#222);border-radius:4px;transform:rotate(-15deg);box-shadow:0 0 6px rgba(0,0,0,0.6)"></div>'+
+        '<div id="destruct-guard-r" style="position:absolute;top:14%;right:18%;width:8px;height:65px;background:linear-gradient(180deg,#888,#222);border-radius:4px;transform:rotate(15deg);box-shadow:0 0 6px rgba(0,0,0,0.6)"></div>'+
+      '</div>'+
+      // Click target - invisible button overlapping the cap
+      '  <button type="button" id="destruct-btn" aria-label="DESTRUCT" style="position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:130px;height:130px;background:transparent;border:0;color:transparent;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;font-size:0">DESTRUCT</button>'+
     '</div>'+
-    '<div style="margin-top:14px;font-size:12px;color:#aaa;letter-spacing:2px">Doctor HK-CHINDERU MK: Press it! End this evil base forever!</div>'+
-    '<style>@keyframes destructPulse{0%,100%{box-shadow:0 0 16px #f44}50%{box-shadow:0 0 30px #f44,0 0 8px #fff}}</style>';
+    '<div style="margin-top:6px;font-size:13px;color:#ff8;letter-spacing:3px;text-shadow:0 0 8px #ff4">&#9888; PRESS THE BIG RED BUTTON &#9888;</div>'+
+    '<div style="margin-top:6px;font-size:11px;color:#aaa;letter-spacing:2px">Doctor HK-CHINDERU MK: Press it! End this evil base forever!</div>'+
+    '<style>'+
+      '@keyframes destructPulse{0%,100%{box-shadow:0 0 24px #ff4422,inset -10px -16px 24px rgba(0,0,0,0.4),inset 8px 8px 18px rgba(255,200,200,0.5)}'+
+        '50%{box-shadow:0 0 44px #ff8866,0 0 18px #fff,inset -10px -16px 24px rgba(0,0,0,0.4),inset 8px 8px 18px rgba(255,220,220,0.7)}}'+
+      '@keyframes destructPress{0%{transform:translate(-50%,-50%) translateZ(36px)}30%{transform:translate(-50%,-50%) translateZ(-4px) scale(.95)}100%{transform:translate(-50%,-50%) translateZ(2px) scale(.97)}}'+
+      '@keyframes destructGuardLeft{0%{transform:rotate(-15deg)}100%{transform:rotate(-65deg) translateY(-8px)}}'+
+      '@keyframes destructGuardRight{0%{transform:rotate(15deg)}100%{transform:rotate(65deg) translateY(-8px)}}'+
+    '</style>';
   document.body.appendChild(ov);
   // Unlock button pointer events
   const btn=document.getElementById('destruct-btn');
@@ -13766,7 +14809,27 @@ function playPlanetDestructCinematic(){
 
 function triggerPlanetDestruct(){
   const btn=document.getElementById('destruct-btn');
-  if(btn){btn.disabled=true;btn.textContent='&#10003; BUTTON PRESSED';btn.style.background='rgba(0,80,0,0.9)';btn.style.borderColor='#4f4';btn.style.color='#8f8';btn.innerHTML='✓ BUTTON PRESSED'}
+  if(btn){btn.disabled=true;btn.style.cursor='default'}
+  // v6.97: Animate the 3D button: safety guards swing open, button cap presses down, click SFX
+  const cap=document.getElementById('destruct-cap');
+  if(cap){
+    cap.style.animation='none';// stop pulsing
+    // Force reflow then apply press anim
+    void cap.offsetWidth;
+    cap.style.animation='destructPress 0.4s ease-out forwards';
+    cap.style.background='radial-gradient(circle at 35% 30%,#ff8888 0%,#cc2200 40%,#660000 100%)';
+    cap.style.boxShadow='0 0 32px #ff6644,inset -8px -12px 18px rgba(0,0,0,0.6)';
+  }
+  const gL=document.getElementById('destruct-guard-l'),gR=document.getElementById('destruct-guard-r');
+  if(gL){gL.style.animation='destructGuardLeft 0.35s ease-out forwards'}
+  if(gR){gR.style.animation='destructGuardRight 0.35s ease-out forwards'}
+  // Mechanical click SFX
+  if(sfx.ctx){
+    const ct=sfx.ctx.currentTime;
+    sfx._o('square',3000,ct,.04,.18);
+    sfx._o('sine',180,ct+.04,.12,.25);
+    sfx._n(ct,.06,.12,7000,1500);
+  }
   // Chain of escalating flashes / explosions on the planet
   const flash=document.getElementById('destruct-flash');
   if(flash){
@@ -13826,7 +14889,7 @@ function endForestOnFoot(){
     window._forestSavedCockpitParent=null;
   }catch(e){}
   // Hide HUD - v6.81/82/84/85/89/90: radar + weapon button + elevator + destruct + controls + reticle overlays
-  ['forest-hud','forest-skip','forest-radar','forest-weapon-btn','forest-elev','forest-destruct','forest-controls','forest-reticle'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});
+  ['forest-hud','forest-skip','forest-radar','forest-weapon-btn','forest-elev','forest-destruct','forest-controls','forest-controls-toggle','forest-reticle','forest-hud-drauto','forest-hud-saber-trail'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});
   // v6.89: clear corpses
   try{clearForestCorpses()}catch(e){}
   // Clear the guardian + dungeon + bike
@@ -14523,7 +15586,7 @@ function triggerGameOver(){
   try{sfx.stopBGM()}catch(e){}
   try{sfx.gameOver()}catch(e){}
   try{playVoice('gameover')}catch(e){}
-  // v6.94: HQ farewell on mission failure - JP map provides "ミッション失敗、またのチャレンジをお待ちしております。"
+  // v6.95: HQ farewell on mission failure - JP map provides "ミッション失敗、またのチャレンジをお待ちしております。"
   try{setTimeout(()=>{try{playComm('hq','Mission failed. Awaiting your next challenge.')}catch(e){}},1200)}catch(e){}
   // Hard cleanup: remove any stuck overlays that block touches
   ['fate-overlay','doom-overlay','rescue-overlay','continue-overlay','catapult-overlay','cat-tunnel','cat-speedlines','cat-flash'].forEach(id=>{
@@ -15749,7 +16812,7 @@ function runCatapultSequence(){
 
 function actualStartGame(){
   sfx.init();sfx.resume();
-  // v6.94: defense - tear down any leftover bridge/forest scene meshes/overlays from earlier sessions
+  // v6.95: defense - tear down any leftover bridge/forest scene meshes/overlays from earlier sessions
   try{cleanupSceneCompletely()}catch(e){}
   document.querySelector('canvas').classList.remove('no-click');
   // Rebuild cockpit with selected ship color
@@ -16655,7 +17718,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.94 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v6.97 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
