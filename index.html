@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v7.04</title>
+<title>COSMIC INVADERS v7.05</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -617,7 +617,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v7.04 - LOADED
+  COSMIC INVADERS v7.05 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -638,7 +638,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v7.04 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v7.05 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -991,7 +991,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v7.04 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v7.05 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -1026,7 +1026,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.04 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.05 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -3979,7 +3979,9 @@ function makeBossGipsyDanger(){
     const sh=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.5,1.2,1.5)),mBody);
     sh.position.set(sx*2.8,5,0);g.add(sh);
   });
-  // --- ARMS (right arm wields chainsword, right fist is the rocket-punch detail fist) ---
+  // --- ARMS (right arm wields chainsword, left arm has the janken/rocket-punch fist) ---
+  // v7.05: forearm now lives in a sub-Group pivoted at the elbow so the elbow can BEND for the
+  // janken throw motion. getObjectByName('leftForearm') returns this group.
   ['leftArm','rightArm'].forEach((name,i)=>{
     const side=i===0?-1:1;
     const arm=new THREE.Group();
@@ -3988,13 +3990,12 @@ function makeBossGipsyDanger(){
     // elbow
     const elb=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.5,6,5)),mAccent);
     elb.position.y=-1.2;arm.add(elb);
-    // forearm
+    // === FOREARM SUBGROUP (v7.05) - pivots at the elbow so animation can bend it ===
+    const forearm=new THREE.Group();forearm.name=(side<0?'leftForearm':'rightForearm');
     const fa=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,2,1)),mBody);
-    fa.position.y=-2.3;arm.add(fa);
-    // v6.70/v6.98: DETAILED fist holder - now on the LEFT arm (the hand WITHOUT the chainsword)
-    // so janken + rocket punch use the left. The right arm still carries the chainsword + a simple
-    // fist that NEVER fires (per v6.98 feedback: "チェーンソードのこぶしは発射しないで下さい").
+    fa.position.y=-1.1;forearm.add(fa);// forearm centred 1.1 below the elbow pivot
     if(side<0){
+      // v6.70/v6.98/v7.05: DETAILED fist holder on the LEFT arm (chainsword-free hand).
       const fistHolder=new THREE.Group();
       const mFist=new THREE.LineBasicMaterial({color:0x6699bb});
       const mKnuckle=new THREE.LineBasicMaterial({color:0xff9922});
@@ -4013,12 +4014,14 @@ function makeBossGipsyDanger(){
       }
       const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.6,.55,.3,6)),mKnuckle);
       cuff.position.y=.5;fistHolder.add(cuff);
-      fistHolder.position.y=-3.5;fistHolder.name='leftFistHolder';arm.add(fistHolder);
+      fistHolder.position.y=-2.3;fistHolder.name='leftFistHolder';forearm.add(fistHolder);// relative to forearm pivot
     } else {
-      // v6.98: right arm = chainsword-hand. Keep a simple non-firing fist.
       const fist=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1,.9,1.1)),mBody);
-      fist.position.y=-3.5;fist.name='rightSimpleFist';arm.add(fist);
+      fist.position.y=-2.3;fist.name='rightSimpleFist';forearm.add(fist);
     }
+    // Position the forearm subgroup at the elbow pivot
+    forearm.position.y=-1.2;
+    arm.add(forearm);
     // right arm holds chainsword
     if(side>0){
       const sword=new THREE.Group();
@@ -7239,79 +7242,119 @@ function emitGipsyFootJets(e){
 
 // v6.95: swap the boss's right-arm fist mesh to a janken shape (rock/paper/scissors).
 // Used during the janken phase so the player can SEE what shape the boss just played.
-// v6.100: ANIMATABLE JANKEN HAND - replaces the static makeGipsyDetailedFist for janken rounds.
-// 4 fingers + thumb are individual Groups so finger curl can be lerped smoothly from "rock" (all
-// curled) to the target shape. Each finger has a proximal + distal segment that bend together.
+// v6.100/v7.05: ANIMATABLE JANKEN HAND - high-detail wireframe palm with 4 fingers (each with
+// 3 phalanx joints) + 2-joint thumb + palm pad/cushion + finger-base ridges + nails.
 function makeGipsyJankenHand(){
   const g=new THREE.Group();g.name='gipsyJankenHand';
-  const mFist=new THREE.LineBasicMaterial({color:0x88aaee});// slightly brighter so it's readable
+  const mFist=new THREE.LineBasicMaterial({color:0x88aaee});
   const mKnuckle=new THREE.LineBasicMaterial({color:0xff9922});
   const mPalm=new THREE.LineBasicMaterial({color:0x6699bb});
-  // === PALM (chunky block, pivot at wrist top) ===
-  const palm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6,1.2,1.5)),mPalm);
+  const mNail=new THREE.LineBasicMaterial({color:0xffeebb});
+  // === PALM: wireframe-rich with palm-cushion + finger-base ridge ===
+  const palm=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.7,1.25,1.5)),mPalm);
   palm.position.y=-0.6;g.add(palm);
-  // Palm plate (visible highlighted front of hand)
-  const palmPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.3,0.95,0.15)),mKnuckle);
-  palmPlate.position.set(0,-0.55,0.78);g.add(palmPlate);
-  // Wrist cuff
-  const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(0.75,0.68,0.4,6)),mKnuckle);
-  cuff.position.y=0.05;g.add(cuff);
-  // === THUMB (static, side of palm, partially curled) ===
-  const thumb=new THREE.Group();thumb.name='gipsyThumb';
-  const thumbSeg1=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.38,0.8,0.42)),mFist);
-  thumbSeg1.position.y=-0.35;thumb.add(thumbSeg1);
-  const thumbKnuck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.15,5,4)),mKnuckle);
-  thumbKnuck.position.y=-0.65;thumb.add(thumbKnuck);
-  const thumbSeg2=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.32,0.45,0.36)),mFist);
-  thumbSeg2.position.set(0,-0.92,0.12);thumb.add(thumbSeg2);
-  thumb.position.set(-0.82,-0.15,0.4);
-  thumb.rotation.z=0.45;
-  thumb.rotation.x=-0.3;// partially bent
-  g.add(thumb);
-  // === 4 FINGERS (index, middle, ring, pinky) with proximal + distal joint ===
+  // Palm cushion (rounded inner pad)
+  const palmCushion=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.7,8,6,0,Math.PI*2,0,Math.PI*0.55)),mFist);
+  palmCushion.position.set(0,-0.55,0.7);palmCushion.rotation.x=-Math.PI*0.5;g.add(palmCushion);
+  // Palm-front centre plate (highlighted)
+  const palmPlate=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,0.85,0.12)),mKnuckle);
+  palmPlate.position.set(0,-0.55,0.82);g.add(palmPlate);
+  // Lifeline / palm-grooves (3 thin ridges across the palm front)
+  for(let r=0;r<3;r++){
+    const groove=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.0,0.05,0.04)),mPalm);
+    groove.position.set(0,-0.85+r*0.25,0.86);g.add(groove);
+  }
+  // Side knuckle bumps (visible from above, like the back of a real hand)
   for(let k=0;k<4;k++){
+    const bump=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.18,7,5)),mKnuckle);
+    bump.position.set(-0.5+k*0.32,0.05,0.45);g.add(bump);
+  }
+  // Wrist cuff with extra ring detail
+  const cuff=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(0.78,0.7,0.42,8)),mKnuckle);
+  cuff.position.y=0.05;g.add(cuff);
+  const cuffRing=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.TorusGeometry(0.78,0.05,4,12)),mFist);
+  cuffRing.position.y=0.25;cuffRing.rotation.x=Math.PI*0.5;g.add(cuffRing);
+  // === THUMB - 2 joints (proximal + distal) with knuckle bumps ===
+  const thumb=new THREE.Group();thumb.name='gipsyThumb';
+  const thumbProx=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.16,.18,0.7,7)),mFist);
+  thumbProx.position.y=-0.32;thumb.add(thumbProx);
+  const thumbKnuck=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.16,6,5)),mKnuckle);
+  thumbKnuck.position.y=-0.62;thumb.add(thumbKnuck);
+  const thumbDistal=new THREE.Group();thumbDistal.name='gipsyThumb_distal';
+  const thumbDistSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.13,.16,0.42,7)),mFist);
+  thumbDistSeg.position.y=-0.21;thumbDistal.add(thumbDistSeg);
+  const thumbNail=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.16,.05,.14)),mNail);
+  thumbNail.position.set(0,-0.42,.05);thumbDistal.add(thumbNail);
+  thumbDistal.position.y=-0.62;
+  thumb.add(thumbDistal);
+  thumb.position.set(-0.85,-0.15,0.4);
+  thumb.rotation.z=0.45;
+  thumb.rotation.x=-0.3;// partially bent (always)
+  g.add(thumb);
+  // === 4 FINGERS (index, middle, ring, pinky) - 3 phalanges each (proximal/middle/distal) ===
+  // Finger lengths slightly tapered so middle is longest (anatomically correct)
+  const fingerLengths=[0.50,0.55,0.50,0.42];
+  for(let k=0;k<4;k++){
+    const baseLen=fingerLengths[k];
     const finger=new THREE.Group();finger.name='gipsyFinger'+k;
-    const prox=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.28,0.55,0.32)),mFist);
-    prox.position.y=-0.28;finger.add(prox);
-    const midKnuckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.14,5,4)),mKnuckle);
-    midKnuckle.position.y=-0.55;finger.add(midKnuckle);
-    // DISTAL (tip end) - child Group so we can bend it independently (2nd joint)
+    // Proximal segment (cylinder for organic look)
+    const prox=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.14,.16,baseLen,7)),mFist);
+    prox.position.y=-baseLen*0.5;finger.add(prox);
+    // PIP knuckle (proximal-middle joint)
+    const pipKnuckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.14,6,5)),mKnuckle);
+    pipKnuckle.position.y=-baseLen-0.02;finger.add(pipKnuckle);
+    // MIDDLE phalanx group (2nd joint)
+    const middle=new THREE.Group();middle.name='gipsyFinger'+k+'_middle';
+    const midLen=baseLen*0.85;
+    const midSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.12,.14,midLen,7)),mFist);
+    midSeg.position.y=-midLen*0.5;middle.add(midSeg);
+    // DIP knuckle (middle-distal joint)
+    const dipKnuckle=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.12,6,5)),mKnuckle);
+    dipKnuckle.position.y=-midLen-0.02;middle.add(dipKnuckle);
+    // DISTAL phalanx group (3rd joint - the fingertip)
     const distal=new THREE.Group();distal.name='gipsyFinger'+k+'_distal';
-    const distSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.25,0.55,0.29)),mFist);
-    distSeg.position.y=-0.28;distal.add(distSeg);
-    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(0.12)),mFist);
-    tip.position.y=-0.6;distal.add(tip);
-    distal.position.y=-0.55;
-    finger.add(distal);
+    const distLen=baseLen*0.65;
+    const distSeg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.12,distLen,7)),mFist);
+    distSeg.position.y=-distLen*0.5;distal.add(distSeg);
+    // Fingertip cap
+    const tip=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.SphereGeometry(.11,6,5)),mFist);
+    tip.position.y=-distLen-0.03;distal.add(tip);
+    // Fingernail (small flat plate on top)
+    const nail=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.14,.04,.16)),mNail);
+    nail.position.set(0,-distLen-0.02,0.08);distal.add(nail);
+    distal.position.y=-midLen-0.02;
+    middle.add(distal);
+    middle.position.y=-baseLen-0.02;
+    finger.add(middle);
     // Spread the 4 fingers across the top of the palm
-    finger.position.set(-0.45+k*0.3,0.0,0.4);
+    finger.position.set(-0.5+k*0.32,0.0,0.45);
     g.add(finger);
   }
-  // Initial pose = ROCK (all fingers curled)
+  // Initial pose = ROCK (all fingers fully curled)
   g.userData.currentShape='rock';
-  g.userData.currentMorph=1.0;// 1 = rock, 0 = target shape
+  g.userData.currentMorph=1.0;
   return g;
 }
-// v6.100: morph the 4 fingers between rock (baseline) and target shape.
+// v6.100/v7.05: morph the 4 fingers between rock (baseline) and target shape.
 // shape: 'rock' | 'paper' | 'scissors'
 // morph: 0 (fully target) to 1 (fully rock)
+// Now drives all THREE finger joints (proximal + middle + distal) for natural curl.
 function setGipsyHandMorph(hand,shape,morph){
   if(!hand)return;
-  // Target curl per finger (1 = curled, 0 = extended)
   let tgt;
   if(shape==='paper')tgt=[0,0,0,0];
-  else if(shape==='scissors')tgt=[0,0,1,1];// index+middle extended, ring+pinky curled
+  else if(shape==='scissors')tgt=[0,0,1,1];
   else tgt=[1,1,1,1];// rock
   for(let k=0;k<4;k++){
     const finger=hand.getObjectByName('gipsyFinger'+k);
     if(!finger)continue;
+    const middle=hand.getObjectByName('gipsyFinger'+k+'_middle');
     const distal=hand.getObjectByName('gipsyFinger'+k+'_distal');
-    // curl = 1 means fully bent at rock; curl = 0 means straight
-    const curl=1+(tgt[k]-1)*(1-morph);// morph=1→rock; morph=0→target
-    // Proximal knuckle bends forward (toward palm-plate = -Z in finger local)
-    finger.rotation.x=Math.PI*0.5*curl;
-    // Distal curls further (tighter fist)
-    if(distal)distal.rotation.x=Math.PI*0.55*curl;
+    const curl=1+(tgt[k]-1)*(1-morph);// 1 at rock, 0 at target
+    // 3-joint curl: spread the bend across knuckle (~50°), middle (~50°), distal (~70°)
+    finger.rotation.x=Math.PI*0.32*curl;// ~58°
+    if(middle)middle.rotation.x=Math.PI*0.30*curl;// ~54°
+    if(distal)distal.rotation.x=Math.PI*0.40*curl;// ~72°
   }
 }
 function swapGipsyFistShape(e,shape){
@@ -7386,27 +7429,47 @@ function updateGipsyBoss(e,dt){
     // fingers smoothly lerp from rock → target shape during the final settle.
     try{
       const lArm=e.mesh.getObjectByName('leftArm');
+      const lFore=e.mesh.getObjectByName('leftForearm');
       if(lArm){
         if(e._jankenArmAnimT==null){
-          // v7.01: Idle pre-janken pose - arm raised HIGH ABOVE THE HEAD, tilted diagonally forward
-          // so the fist sits in front-of-and-above the cockpit and is always clearly visible.
+          // v7.01/v7.05: Idle pre-janken pose - arm raised HIGH ABOVE THE HEAD with the elbow bent
+          // ~30°, so the cocked palm is ready to throw. (v7.05 added the elbow bend.)
           const targX=-Math.PI*0.80;// ~144° (arm nearly straight up, slightly forward)
-          const targZ=-0.32;// tilt out to the boss's left so the arm doesn't clip the chest
-          const targY=0.30;// rotate the palm-side toward the camera
+          const targZ=-0.32;
+          const targY=0.30;
           lArm.rotation.x+=(targX-lArm.rotation.x)*Math.min(1,dt*4);
           lArm.rotation.z+=(targZ-lArm.rotation.z)*Math.min(1,dt*4);
           lArm.rotation.y+=(targY-(lArm.rotation.y||0))*Math.min(1,dt*4);
+          if(lFore){
+            // Idle elbow flex: ~35° bent so the palm tilts forward (the cocked-throw pose)
+            const targElbow=0.6;
+            lFore.rotation.x+=(targElbow-lFore.rotation.x)*Math.min(1,dt*4);
+          }
         } else {
           e._jankenArmAnimT+=dt;
           const dur=e._jankenArmAnimDur||1.6;
           const p=Math.min(1,e._jankenArmAnimT/dur);
-          // v7.01: base pose = arm HIGH above head, slightly forward (fist clearly visible)
+          // v7.01: base pose = arm HIGH above head
           const base=-Math.PI*0.80;
-          // 3 pumps (JAN - KEN - PON): smaller pump since the arm is already up high
+          // 3 pumps (JAN - KEN - PON)
           const pumpWave=Math.sin(p*Math.PI*3);
           lArm.rotation.x=base-pumpWave*0.14;
           lArm.rotation.z=-0.32;
           lArm.rotation.y=0.30;
+          // v7.05: ELBOW BEND + THROWING MOTION
+          // - Pumps 1-2: elbow flexes/extends with the wave (mirroring the pump)
+          // - Pump 3 (PON, p ~ 0.65-0.95): elbow EXTENDS dramatically as the hand "throws" the shape
+          if(lFore){
+            const elbowIdle=0.6;// 34° bent baseline
+            const elbowPump=Math.abs(pumpWave)*0.25;// flex MORE on each pump down
+            let throwFlex=0;
+            if(p>=0.62&&p<=0.95){
+              // Quick extension burst: elbow swings from bent → straight → slightly past
+              const tt=(p-0.62)/0.33;
+              throwFlex=-Math.sin(tt*Math.PI)*0.7;// reaches peak (-0.7) at mid-throw
+            }
+            lFore.rotation.x=elbowIdle+elbowPump+throwFlex;
+          }
           // v6.100: voice beats at p≈0.08 (JAN), p≈0.37 (KEN), p≈0.65 (PON), p≈0.85 (shape)
           if(!e._jankenVoicedJan&&p>=0.08){e._jankenVoicedJan=true;try{playComm('enemy','JAN!')}catch(ex){}try{if(sfx.ctx){const tt=sfx.ctx.currentTime;sfx._o('square',520,tt,.08,.2);sfx._n(tt,.06,.15,2500,400)}}catch(ex){}}
           if(!e._jankenVoicedKen&&p>=0.37){e._jankenVoicedKen=true;try{playComm('enemy','KEN!')}catch(ex){}try{if(sfx.ctx){const tt=sfx.ctx.currentTime;sfx._o('square',520,tt,.08,.2);sfx._n(tt,.06,.15,2500,400)}}catch(ex){}}
@@ -7511,7 +7574,15 @@ function updateGipsyBoss(e,dt){
         const fistHolder=arm.getObjectByName('leftFistHolder');
         const fistOriginalZ=fistHolder?fistHolder.position.z:0;
         const worldPos=new THREE.Vector3();
-        if(fistHolder){fistHolder.getWorldPosition(worldPos);arm.remove(fistHolder);e._savedFistHolder=fistHolder}
+        if(fistHolder){
+          fistHolder.getWorldPosition(worldPos);
+          // v7.05: fistHolder may be nested inside the leftForearm subgroup, so remove from its
+          // actual parent (not necessarily `arm`).
+          const fp=fistHolder.parent||arm;
+          try{fp.remove(fistHolder)}catch(_){}
+          e._savedFistHolder=fistHolder;
+          e._savedFistHolderParent=fp;// remember where to put it back
+        }
         else{arm.getWorldPosition(worldPos);worldPos.z+=2}
         const fist=makeGipsyDetailedFist(e.rocketPunchShape||'rock');
         fist.position.copy(worldPos);
@@ -7583,8 +7654,11 @@ function updateGipsyBoss(e,dt){
       arm.rotation.x=-.25*(1-p);
       if(e.rocketPunchT>=1.2){
         if(e._savedFistHolder){
-          try{arm.add(e._savedFistHolder)}catch(ex){}
+          // v7.05: re-attach to the original parent (forearm subgroup)
+          const fp=e._savedFistHolderParent||arm;
+          try{fp.add(e._savedFistHolder)}catch(ex){}
           e._savedFistHolder=null;
+          e._savedFistHolderParent=null;
         }
         arm.position.z=e.rocketArmBaseZ||0;
         arm.rotation.x=0;
@@ -18238,7 +18312,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.04 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.05 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
