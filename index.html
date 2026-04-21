@@ -9,7 +9,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>COSMIC INVADERS v7.00</title>
+<title>COSMIC INVADERS v7.04</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
@@ -617,7 +617,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   padding:8px;background:rgba(20,20,0,0.9);border-bottom:2px solid #ff0;
   color:#ff0;font-size:13px;text-align:center;letter-spacing:3px;
   font-family:Courier New,monospace;font-weight:bold;pointer-events:none">
-  COSMIC INVADERS v7.00 - LOADED
+  COSMIC INVADERS v7.04 - LOADED
 </div>
 <style>
   /* Auto-hide banner once game reaches TITLE or beyond */
@@ -638,7 +638,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
   </div>
 </noscript>
 <!-- IMMEDIATE minimal JS test - if this doesn't run, JS is blocked -->
-<script>document.getElementById('version-banner').textContent='v7.00 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
+<script>document.getElementById('version-banner').textContent='v7.04 JS ON - loading...';document.getElementById('version-banner').style.color='#0ff';document.getElementById('version-banner').style.borderBottomColor='#0ff';</script>
 <div id="container">
   <div id="crt"></div>
   <div id="cockpit-frame">
@@ -991,7 +991,7 @@ body.boss-active #mini-radar{top:calc(90px + env(safe-area-inset-top,0px))}
 <!-- PRE-CHECK: Prove JS can execute at all, BEFORE loading Three.js -->
 <script>
 try{
-  document.getElementById('version-banner').textContent='v7.00 - JS WORKS, loading Three.js...';
+  document.getElementById('version-banner').textContent='v7.04 - JS WORKS, loading Three.js...';
   document.getElementById('version-banner').style.color='#0ff';
   document.getElementById('version-banner').style.borderBottomColor='#0ff';
 }catch(e){
@@ -1026,7 +1026,7 @@ if(typeof THREE==='undefined'){
   throw new Error('Three.js missing');
 }
 // Update version banner to prove JS+Three.js both loaded
-try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.00 - JS+THREE RUNNING';
+try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.04 - JS+THREE RUNNING';
 document.getElementById('version-banner').style.color='#0f0';
 document.getElementById('version-banner').style.borderBottomColor='#0f0';}catch(e){}
 
@@ -1621,9 +1621,9 @@ const JP_PHRASE_MAP={
   'BEHOLD! KOTEKA DRAGON UNLEASHED!!!':'見よ！ コテカドラゴン解き放つ！！！',
   'DAFFUNNDAAAA!':'ダッフンダー！',
   'Daffunndaaaa!':'ダッフンダー！',
-  'EGASHIRAAAAAAA!!!':'エガシラー！！！',
+  'TRIPLE STRIKE INCOMING!!!':'トリプルストライク発射！！！',
   'DOOOOOOOOOOOON!!!':'ドーーーーーーン！！！',
-  'EGA-EGA-EGASHIRA!!! DOOOOON!!!':'エガエガエガシラ！！！ ドーーーン！！！',
+  'TRIPLE-TRIPLE-STRIKE!!! DOOOOON!!!':'トリプル・トリプル・ストライク！！！ ドーーーン！！！',
   'Alright! POWERED UP! Time to head back to the station!':'よし！ パワーアップしたし、ステーションに戻るか！',
   'Hyperwarp confirmed! Punching it!':'ハイパーワープ確認！ 発進！',
   'Welcome back!':'お帰りなさい！',
@@ -1719,8 +1719,8 @@ const JP_PHRASE_MAP={
   'DOUBLE ROCKET PUNCH!':'ダブル・ロケットパンチ！',
   'Debris field ahead! Clear the obstacles.':'前方にデブリ帯！ 障害物を排除してください。',
   'Doctor HK-CHINDERU MK is in the deepest cell. You have 60 seconds before they raise the alarm!':'HK-CHINDERU MK博士は最深部の独房にいます。警報が鳴るまで60秒です！',
-  'EGA-EGA-EGASHIRA!!! DOOOOON!!!':'エガ・エガ・エガシラ！！！ ドーン！！！',
-  'EGASHIRAAAAAAA!!! DOOOOON!!!':'エガシラーーー！！！ ドーン！！！',
+  'TRIPLE-TRIPLE-STRIKE!!! DOOOOON!!!':'トリプル・トリプル・ストライク！！！ ドーン！！！',
+  'TRIPLE STRIKE INCOMING!!! DOOOOON!!!':'トリプルストライク発射！！！ ドーン！！！',
   'ENEMY ON PERIMETER! CALLING REINFORCEMENTS!':'敵侵入！ 増援を要請する！',
   'ESCAPE THROUGH ASTEROID BELT!':'アステロイド帯を突破せよ！',
   'Elevator up! Hold on doctor!':'エレベーター上昇！ 博士、掴まって！',
@@ -6219,7 +6219,7 @@ function endBossCinematic(){
   bossCinematic=null;
 }
 
-// === CROTCH MISSILE - Egashira 2:50 style dramatic launch ===
+// === CROTCH MISSILE - v7.03: dramatic triple-strike launch ===
 // Phases: 0=idle, 1=charge (smoke+pose, 1.5s), 2=launch, 3=cooldown
 function updateCrotchMissileAttack(e,dt){
   const missile=e.mesh.getObjectByName('crotchMissile');
@@ -6234,8 +6234,8 @@ function updateCrotchMissileAttack(e,dt){
       e.crotchChargePhase=1;e.crotchChargeTime=0;
       // v6.70: TRIPLED duration - cinematic now 9s, charge 9s (was 3s)
       startBossCinematic(e.mesh,9);
-      // Dramatic warning comm - all 3 trio members shout DON DON DON (Egashira-style)
-      playComm('enemy','EGASHIRAAAAAAA!!! DOOOOON!!!');
+      // v7.03: Dramatic warning comm - all 3 trio members shout the launch call
+      playComm('enemy','TRIPLE STRIKE INCOMING!!! DOOOOON!!!');
       // Have the other 2 trio members echo after small delay (alternating voices)
       setTimeout(()=>{try{playComm('enemy','DOOOOOOOOON!!! DOOOOOOOON!!!')}catch(ex){}},900);
       setTimeout(()=>{try{playComm('enemy','DOOOOOOOOOOOON!!!')}catch(ex){}},1800);
@@ -6272,7 +6272,7 @@ function updateCrotchMissileAttack(e,dt){
     // Pre-launch rumble (more frequent in later stages)
     if(sfx.ctx&&Math.random()<(.1+shakeAmt*.15))sfx._n(sfx.ctx.currentTime,.08,.08,3000,400);
     // Taunting repeats - spaced over the 9s charge
-    if(e.crotchChargeTime>=2&&!e.midTaunt1){e.midTaunt1=true;playComm('enemy','EGA-EGA-EGASHIRA!!! DOOOOON!!!')}
+    if(e.crotchChargeTime>=2&&!e.midTaunt1){e.midTaunt1=true;playComm('enemy','TRIPLE-TRIPLE-STRIKE!!! DOOOOON!!!')}
     if(e.crotchChargeTime>=4.5&&!e.midTaunt2){e.midTaunt2=true;playComm('enemy','DON! DON! DON! DOOOOOOOON!!!')}
     if(e.crotchChargeTime>=7&&!e.midTaunt3){e.midTaunt3=true;playComm('enemy','DOON!!! DOON!!! DOOOOOOOOON!!!')}
     // After CHARGE_DUR → LAUNCH
@@ -8078,7 +8078,7 @@ function spawnBossMech(cycleMult){
   // Boss A - Heavy Gunner (leftmost) - equipped with iconic CROTCH MISSILE
   const bossA=makeBossMech();
   tintBossMech(bossA,0);
-  // === CROTCH MISSILE (Egashira 2:50-style comedic signature weapon) ===
+  // === CROTCH MISSILE (v7.03: dramatic signature weapon) ===
   const missile=new THREE.Group();
   const mMissile=new THREE.LineBasicMaterial({color:0xffaa00,transparent:true,opacity:.9});
   const mWarhead=new THREE.LineBasicMaterial({color:0xff3322,transparent:true,opacity:.95});
@@ -12540,6 +12540,8 @@ function spawnForestGuard(x,z,patrol,type){
   const alertDot=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.OctahedronGeometry(.15)),alertMat2);
   alertDot.position.y=2.6;alertDot.name='alertDot';g.add(alertDot);
   // v6.96: realistic guard now stands feet-on-ground; group origin at ground level
+  // v7.02: scale guard up to match the player's tactical pilot (~3m tall) per user feedback
+  g.scale.setScalar(1.18);
   g.position.set(x,0,z);
   forestScene.add(g);
   forestGuards.push({
@@ -12767,7 +12769,7 @@ function showForestHUD(){
         '<div>⚡ <b style="color:#ff8">Shift</b>: ダッシュ (1.7倍速)</div>'+
         '<div>🔫 <b style="color:#f88">Space</b>: レーザーガン発射</div>'+
         '<div>⚔ <b style="color:#4ff">Enter</b>: ライトセーバー斬撃</div>'+
-        '<div>💠 <b style="color:#ff8">3 / 4</b>: 電気ムチ / プラスチック爆弾</div>'+
+        '<div>💠 <b style="color:#ff8">3</b>: プラスチック爆弾</div>'+
         '<div>🔄 <b style="color:#ff8">Q</b>: 武器サイクル</div>')+
       '<div style="margin-top:3px;color:#aaa;font-size:10px">🎯 巡回敵を倒して基地へ到達</div>';
   } else {
@@ -12782,7 +12784,7 @@ function showForestHUD(){
         '<div>⚡ <b style="color:#ff8">Shift</b>: Sprint (1.7x speed)</div>'+
         '<div>🔫 <b style="color:#f88">Space</b>: Laser gun fire</div>'+
         '<div>⚔ <b style="color:#4ff">Enter</b>: Light saber slash</div>'+
-        '<div>💠 <b style="color:#ff8">3 / 4</b>: Electric whip / Plastic bomb</div>'+
+        '<div>💠 <b style="color:#ff8">3</b>: Plastic bomb</div>'+
         '<div>🔄 <b style="color:#ff8">Q</b>: Cycle weapons</div>')+
       '<div style="margin-top:3px;color:#aaa;font-size:10px">🎯 Eliminate patrols, reach the base</div>';
   }
@@ -12848,7 +12850,8 @@ function showForestHUD(){
     'outline:1px dashed rgba(255,136,68,0.55);outline-offset:3px;text-shadow:0 0 6px #f84,0 0 2px #000;'+
     'box-shadow:inset 0 0 10px rgba(255,136,68,0.18)';
   wb.onclick=()=>{
-    const order=['laser','saber','whip','bomb'];
+    // v7.02: whip retired (Forest combat overhaul - removed for usability)
+    const order=['laser','saber','bomb'];
     const cur=(forestState&&forestState.weapon)||'laser';
     let idx=order.indexOf(cur);
     for(let tries=0;tries<4;tries++){
@@ -12960,15 +12963,15 @@ function updateForestOnFoot(dt){
   if(forestState.phase==='elevator'){
     updateForestHUD();return;
   }
-  // v6.89 PC CONTROLS (Fortnite-style): A/D (or L/R arrows) smoothly rotate, W/S forward/back,
-  // Shift = sprint, Space = laser, Enter = saber. Mobile stick still works (camera-relative).
+  // v7.04 CONTROLS - restored A/D turn + W/S move-in-facing-direction (camera follows behind).
+  // The locked-rotation experiment from v7.02-v7.03 was reverted per user feedback - players need
+  // to be able to turn and look around in the forest scene.
   const sprint=keys['ShiftLeft']||keys['ShiftRight'];
   const baseSpd=10*(sprint?1.7:1);
   // Rotation input - smooth rotation via A/D or arrow-L/R
   let turnRate=0;
   if(keys['KeyA']||keys['ArrowLeft'])turnRate+=1;
   if(keys['KeyD']||keys['ArrowRight'])turnRate-=1;
-  // Smooth pilot rotation
   if(turnRate!==0){
     forestPilot.userData.targetRotY=(forestPilot.userData.targetRotY||forestPilot.rotation.y)+turnRate*dt*3.2;
   }
@@ -12982,15 +12985,12 @@ function updateForestOnFoot(dt){
   let forward=0;
   if(keys['KeyW']||keys['ArrowUp'])forward+=1;
   if(keys['KeyS']||keys['ArrowDown'])forward-=1;
-  // Touch stick: stickX rotates, stickY moves forward/back (Fortnite-ish)
   if(touch&&touch.stickActive){
-    // Use magnitude of stickY for forward; stickX as smooth turn if stick is mostly horizontal
     if(Math.abs(touch.stickX)>.15){
       forestPilot.userData.targetRotY=(forestPilot.userData.targetRotY||forestPilot.rotation.y)-touch.stickX*dt*3.2;
     }
     forward+=-touch.stickY;// stickY positive = down = forward on screen
   }
-  // Movement in the pilot's facing direction
   let moving=Math.abs(forward)>.1;
   if(moving){
     const fwdX=-Math.sin(forestPilot.rotation.y)*forward*baseSpd*dt;
@@ -13018,7 +13018,8 @@ function updateForestOnFoot(dt){
   try{updateFallingTrees(dt)}catch(e){}
   // v6.89: Update forest corpses (bodies that topple after death)
   try{updateForestCorpses(dt)}catch(e){}
-  // CAMERA: third-person behind pilot (smooth follow)
+  // v7.04 CAMERA: third-person follow that ROTATES with the pilot's facing direction so the
+  // player always sees the world from behind their character (restored after the v7.02 lock).
   const camOffZ=8,camOffY=4;
   const desiredX=forestPilot.position.x-Math.sin(forestPilot.rotation.y)*camOffZ;
   const desiredZ=forestPilot.position.z+Math.cos(forestPilot.rotation.y)*camOffZ;
@@ -14690,13 +14691,14 @@ function buildBikeScene(){
         obj.add(rock);
       }
     } else {
-      // Small lane tree (shorter than the side trees so it reads as "in the way")
-      const h=2.2+Math.random()*1.6;
-      const trunk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.18,.28,h*.55,5)),Math.random()<.4?mTrunkDk:mTrunk);
+      // v7.01: BIG lane tree (per user feedback: 真ん中に出てくる木は大きい木に). Taller than the
+      // side trees so the player really has to dodge them. 5-8m trunk with 3 cone layers.
+      const h=5+Math.random()*3;
+      const trunk=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.35,.55,h*.55,6)),Math.random()<.4?mTrunkDk:mTrunk);
       trunk.position.y=h*.3;obj.add(trunk);
-      for(let l=0;l<2;l++){
-        const size=1.0-l*.25;
-        const cone=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(size,h*.45,6)),Math.random()<.3?mLeavesDk:mLeaves);
+      for(let l=0;l<3;l++){
+        const size=1.8-l*.35;
+        const cone=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.ConeGeometry(size,h*.45,7)),Math.random()<.3?mLeavesDk:mLeaves);
         cone.position.y=h*.55+l*h*.22;obj.add(cone);
       }
     }
@@ -14800,14 +14802,12 @@ function makeSpeederBike(withRider,options){
   const backrest=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.5,.5,.1)),mBody);
   backrest.position.set(0,.85,-.55);g.add(backrest);
   if(withRider){
-    // v6.98: bike pilot now uses the FOREST tactical pilot model (with joint groups) so the
-    // straddle pose works. Was the simpler makePilotFigure() which lacked named limbs.
+    // v6.98/v7.01: bike pilot uses the FOREST tactical pilot model (with joint groups). v7.01
+    // bumps scale up + raises the seat so the pilot is actually visible above the chassis.
     const pilot=makeForestTacticalPilot();
-    pilot.scale.setScalar(.32);// scale down to fit on a bike
-    pilot.position.set(0,-.05,.45);pilot.rotation.y=Math.PI;
+    pilot.scale.setScalar(.50);// v7.01: was .32 - too small to see. .50 reads as a person on the bike
+    pilot.position.set(0,.55,.45);pilot.rotation.y=Math.PI;// v7.01: y .55 (was -.05) lifts seated torso above the chassis
     pilot.traverse(o=>{o.userData.preserveColor=true});
-    // v6.98: STRADDLE the bike like a motorcycle - legs spread outward to grip the chassis,
-    // forearms reach forward to the handlebars, torso tilts forward (racing posture).
     try{straddleBikeRider(pilot)}catch(e){}
     g.add(pilot);
     const doc=makeForestDoctor({includeBlaster:true});
@@ -14823,9 +14823,10 @@ function makeSpeederBike(withRider,options){
     const trooper=makeImperialTrooper();
     trooper.scale.setScalar(.6);
     trooper.position.set(0,.85,.3);
-    trooper.rotation.y=Math.PI;
+    // v7.01: FIX front-back reversal - trooper's visor is at local +Z; the bike already rotates
+    // 180° so the trooper should stay at rotation.y=0 (not π) to face the bike's forward direction.
+    trooper.rotation.y=0;
     trooper.traverse(o=>{o.userData.preserveColor=true});
-    // v6.98: enemy trooper also straddles
     try{straddleBikeRider(trooper)}catch(e){}
     g.add(trooper);
   }
@@ -14934,25 +14935,26 @@ function makeImperialTrooper(){
 
 function spawnBikePursuer(idx){
   if(!forestBike||!forestScene)return;
-  // v6.95: enemy bikes now carry an imperial-trooper rider
+  // v7.02: enemy bikes spawn AHEAD of the player (so the camera-behind view actually sees them).
+  // Pursuers face the SAME direction as the player (no flip) so they look like they\'re fleeing
+  // OR being chased depending on their relative speed.
   const bike=makeSpeederBike(false,{enemyRider:true});
-  // Tint only the bike chassis dark red - leave the trooper white (rider meshes have preserveColor flag)
   bike.traverse(o=>{
     if(o.userData&&o.userData.preserveColor)return;
     if(o.material&&o.material.color)o.material.color.setHex(0x882211);
   });
-  // v6.95: spawn BEHIND the player (positive +Z = behind, since the bike faces -Z)
-  bike.position.set(-6+idx*6,1,15+idx*4);
-  bike.rotation.y=Math.PI;
+  // v7.02: spawn IN FRONT of the player (negative z = forward of player at z=-5)
+  bike.position.set(-6+idx*6,1,-30-idx*8);
+  bike.rotation.y=Math.PI;// face the same forward direction as player bike
   forestScene.add(bike);
   forestBike.pursuers.push({
     mesh:bike,
     laneX:-6+idx*6,
     targetLaneX:-6+idx*6,
-    speed:5+Math.random()*2,// approach rate (m/s in -Z direction relative to player)
+    speed:4+Math.random()*2,// approach rate (m/s) - they hover ahead, gradually closing distance
     fireT:1.5+Math.random(),
     hp:3,
-    pushVx:0,// lateral push velocity from player rams
+    pushVx:0,
     _destroyed:false,
   });
 }
@@ -15023,12 +15025,12 @@ function updateForestBike(dt){
       p.laneX+=(p.targetLaneX-p.laneX)*dt*.3;
     }
     p.mesh.position.x=p.laneX;
-    // v6.95: pursuer chases by moving in -Z direction (toward player at z=-5)
-    p.mesh.position.z-=p.speed*dt;
+    // v7.02: pursuers spawn in FRONT (negative z) and approach the player by INCREASING z
+    p.mesh.position.z+=p.speed*dt;
     // Terrain-follow
     p.mesh.position.y=1+Math.sin(forestBike.t*7+p.laneX)*.1+bikeTerrainHeight(forestBike.scrollPos+p.mesh.position.z);
-    // If pursuer overshoots way past player, despawn
-    if(p.mesh.position.z<-30){
+    // v7.02: if pursuer drifts past the player to the rear, despawn
+    if(p.mesh.position.z>15){
       try{forestScene.remove(p.mesh)}catch(e){}
       p.mesh.parent=null;p._destroyed=true;
       return;
@@ -15114,21 +15116,23 @@ function updateForestBike(dt){
   }
 }
 
-// v6.95: doctor's auto-fire — locks onto the nearest pursuer behind the bike
+// v6.95/v7.02: doctor's auto-fire — locks onto the nearest pursuer IN FRONT of the bike
 function fireDoctorAutoShot(){
   if(!forestPilot||!forestScene||!forestBike)return;
   let target=null,nearestD=Infinity;
   forestBike.pursuers.forEach(p=>{
     if(!p.mesh||!p.mesh.parent||p._destroyed)return;
-    const dz=p.mesh.position.z-forestPilot.position.z;
-    if(dz<=0)return;// in front of player - skip
+    // v7.02: pursuers are now in FRONT of the player (z < player.z), pick the closest one ahead
+    const dz=forestPilot.position.z-p.mesh.position.z;
+    if(dz<=0)return;// behind player - skip (shouldn\'t happen post-v7.02)
     if(dz<nearestD){nearestD=dz;target=p}
   });
   if(!target)return;
   const beam=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.1,.1,1.2,5)),
     new THREE.LineBasicMaterial({color:0x44ffaa}));
   beam.rotation.x=Math.PI/2;
-  const px=forestPilot.position.x+.3,py=forestPilot.position.y+.9,pz=forestPilot.position.z+1.5;
+  // v7.02: beam spawns at the FRONT of the bike (-Z side)
+  const px=forestPilot.position.x+.3,py=forestPilot.position.y+.9,pz=forestPilot.position.z-1.5;
   beam.position.set(px,py,pz);
   forestScene.add(beam);
   const tdx=target.mesh.position.x-px;
@@ -15232,13 +15236,14 @@ function bikeRamCollision(dt){
 
 function fireBikeBackShot(){
   if(!forestPilot||!forestScene)return;
-  // Back-shot from the pilot (behind, +Z)
+  // v7.02: name kept for compatibility, but the bike now fires FORWARD (toward enemies in front).
+  // beam spawns at the front of the bike + travels in -Z direction.
   const beam=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.CylinderGeometry(.12,.12,1.4,5)),
     new THREE.LineBasicMaterial({color:0xff4422}));
   beam.rotation.x=Math.PI/2;
-  beam.position.set(forestPilot.position.x,forestPilot.position.y+.8,forestPilot.position.z+1.5);
+  beam.position.set(forestPilot.position.x,forestPilot.position.y+.8,forestPilot.position.z-1.5);
   forestScene.add(beam);
-  forestBeams.push({mesh:beam,vel:new THREE.Vector3(0,0,40),life:1.5,dmg:1});
+  forestBeams.push({mesh:beam,vel:new THREE.Vector3(0,0,-40),life:1.5,dmg:1});
   try{if(sfx.ctx){const t=sfx.ctx.currentTime;sfx._o('square',1800,t,.06,.08);sfx._n(t,.05,.12,6000,1500)}}catch(e){}
 }
 
@@ -17415,21 +17420,19 @@ window.addEventListener('keydown',e=>{
       try{requestFullscreen()}catch(ex){}
     }
   }
-  // v6.82/83: Forest weapon switching (1=laser, 2=saber, 3=whip, 4=bomb)
+  // v6.82/83/v7.02: Forest weapon switching - whip RETIRED. (1=laser, 2=saber, 3=bomb)
   if(S.phase==='FOREST'&&forestState){
     if(e.code==='Digit1'||e.code==='Numpad1'){e.preventDefault();forestSwitchWeapon('laser')}
     else if(e.code==='Digit2'||e.code==='Numpad2'){e.preventDefault();forestSwitchWeapon('saber')}
-    else if(e.code==='Digit3'||e.code==='Numpad3'){e.preventDefault();forestSwitchWeapon('whip')}
-    else if(e.code==='Digit4'||e.code==='Numpad4'){e.preventDefault();forestSwitchWeapon('bomb')}
+    else if(e.code==='Digit3'||e.code==='Numpad3'){e.preventDefault();forestSwitchWeapon('bomb')}
     else if(e.code==='KeyQ'){e.preventDefault();
-      // Cycle all 4 weapons
-      const order=['laser','saber','whip','bomb'];
+      const order=['laser','saber','bomb'];
       const cur=forestState.weapon||'laser';
       let idx=order.indexOf(cur);
-      for(let tries=0;tries<4;tries++){
+      for(let tries=0;tries<3;tries++){
         idx=(idx+1)%order.length;
         const next=order[idx];
-        if(next==='bomb'&&(forestState.bombAmmo||0)<=0)continue;// skip if no ammo
+        if(next==='bomb'&&(forestState.bombAmmo||0)<=0)continue;
         forestSwitchWeapon(next);break;
       }
     }
@@ -18235,7 +18238,7 @@ function init(){setupThree();createStars();createSpeedLines();createGrid();creat
 // Wrap init in try/catch so any error doesn't prevent auto-launch
 try{init();
   // Update banner: success
-  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.00 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
+  try{document.getElementById('version-banner').textContent='COSMIC INVADERS v7.04 - READY | AUTO-LAUNCH ACTIVE'}catch(e){}
 }catch(initErr){
   // Show error on screen (for iPhone debugging)
   try{const b=document.getElementById('version-banner');
